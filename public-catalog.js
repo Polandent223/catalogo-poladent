@@ -1,4 +1,4 @@
-import{configured,listProducts,validImage}from'./data-client.js';
+import{configured,listProducts,validImage}from'./catalog-service.js';
 const grid=document.querySelector('#products'),status=document.querySelector('#catalog-status'),search=document.querySelector('#product-search'),brand=document.querySelector('#brand-filter'),available=document.querySelector('#available'),more=document.querySelector('#more'),dialog=document.querySelector('#detail');let products=[],limit=12;
 const labels={available:'Disponible',sold_out:'Agotado'};
 function legacy(){return paginas.filter(p=>![1,16,30].includes(p.pagina)).map(p=>({id:'adalta-'+p.pagina,name:p.nombre,brand:'ADALTA',image_url:p.archivo,status:'available',description:'',sort_order:p.pagina}))}
