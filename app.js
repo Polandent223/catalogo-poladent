@@ -1,0 +1,11 @@
+const image=document.querySelector('#page-image'),index=document.querySelector('#index'),search=document.querySelector('#search'),toggle=document.querySelector('#index-toggle');
+let current=1;
+function normalize(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+function renderIndex(){const q=normalize(search.value.trim());index.replaceChildren();const matches=paginas.filter(p=>normalize(p.nombre).includes(q));for(const p of matches){const b=document.createElement('button');b.textContent=`${p.pagina}. ${p.nombre}`;b.setAttribute('aria-current',String(p.pagina===current));b.onclick=()=>{show(p.pagina);index.hidden=true;toggle.setAttribute('aria-expanded','false')};index.append(b)}const status=document.querySelector('#results');status.hidden=!q;status.textContent=matches.length?`${matches.length} resultados`:'No encontramos ese producto.'}
+function show(n,updateUrl=true){n=Math.max(1,Math.min(paginas.length,n));const p=paginas[n-1];current=n;image.src=p.archivo;image.alt=p.nombre;document.querySelector('#page-name').textContent=p.nombre;document.querySelector('#counter').textContent=`${n} de ${paginas.length}`;document.querySelector('#prev').disabled=n===1;document.querySelector('#next').disabled=n===paginas.length;if(updateUrl)history.replaceState(null,'',`#pagina-${n}`);renderIndex()}
+document.querySelector('#prev').onclick=()=>show(current-1);document.querySelector('#next').onclick=()=>show(current+1);
+toggle.onclick=()=>{index.hidden=!index.hidden;toggle.setAttribute('aria-expanded',String(!index.hidden));renderIndex()};
+search.oninput=()=>{index.hidden=false;toggle.setAttribute('aria-expanded','true');renderIndex()};
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{show(Number(b.dataset.page));document.querySelector('.catalog').scrollIntoView({behavior:'smooth',block:'start'})});
+document.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.key==='ArrowLeft'){e.preventDefault();show(current-1)}if(e.key==='ArrowRight'){e.preventDefault();show(current+1)}});
+function fromHash(){const match=location.hash.match(/^#pagina-(\d+)$/);show(match?Number(match[1]):1,false)}window.addEventListener('hashchange',fromHash);fromHash();
