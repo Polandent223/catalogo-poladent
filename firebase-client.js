@@ -19,8 +19,22 @@ export const signedIn = () => Boolean(auth.currentUser);
 export async function adminCheck() {
   await ready;
   if (!auth.currentUser) throw Error('Inicia sesión para administrar el catálogo.');
-  const access = await getDoc(doc(db, 'catalogAdmins', auth.currentUser.uid));
-  if (!access.exists() || access.data()?.active !== true) throw Error('Esta cuenta no está autorizada para administrar el catálogo.');
+  const uid = auth.currentUser.uid;
+  let access;
+  try {
+    access = await getDoc(doc(db, 'catalogAdmins', uid));
+  } catch (cause) {
+    const message = cause?.code === 'permission-denied'
+      ? 'Firebase rechazó la lectura del permiso. Comprueba que publicaste las reglas de Firestore.'
+      : 'No pudimos comprobar el permiso de tu cuenta en Firestore: ' + (cause?.message || 'error desconocido');
+    throw Object.assign(new Error(message), { uid, reason: 'read-failed' });
+  }
+  if (!access.exists()) {
+    throw Object.assign(new Error('Tu usuario existe, pero falta su documento de autorización en catalogAdmins.'), { uid, reason: 'missing-document' });
+  }
+  if (access.data()?.active !== true) {
+    throw Object.assign(new Error('Encontramos tu documento, pero active debe ser Boolean true (no texto).'), { uid, reason: 'invalid-active' });
+  }
   return true;
 }
 export async function restoreSession() {
