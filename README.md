@@ -14,3 +14,8 @@ Catálogo web de odontología y laboratorio dental organizado por marcas, con bu
 - Nunca subir contraseñas, secretos ni credenciales de administrador al repositorio.
 - **Firebase Storage requiere el plan Blaze** para subir imágenes desde el panel. Sin Blaze se pueden usar URL públicas existentes.
 - La integración necesita pruebas reales de autenticación, permisos, escritura y consulta pública antes de publicarse.
+
+## Publicación inicial sin pérdida de contenido
+
+Mientras Firestore no tenga publicaciones, la web muestra las 27 fichas originales de ADALTA.
+Al crear o importar el primer producto, el adaptador crea un registro público interno `catalogPublic/_catalog_state` de activación. La web filtra ese registro y utiliza solo la base de datos, incluso si todos los productos terminan ocultos o eliminados. No se requiere modificar nuevamente las reglas de Firestore compartidas previamente.
