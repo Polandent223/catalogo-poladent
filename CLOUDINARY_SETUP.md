@@ -1,0 +1,37 @@
+# POLADENT — subir imágenes sin activar Blaze
+
+## Servicios
+- **Cloudinary Free:** plan sin tarjeta de crédito, 25 créditos mensuales compartidos entre almacenamiento, transformaciones y transferencia. https://cloudinary.com/pricing
+- **Cloudflare Workers Free:** genera firmas para autorizar cada fotografía; 100.000 solicitudes al día en el plan gratuito. https://www.cloudflare.com/plans/developer-platform/
+- **Firebase:** conserva usuarios y fichas en Firestore; no cambia ni se migra la base de datos.
+
+> Seguridad: nunca publicar la API Secret de Cloudinary ni el token ID de Firebase en GitHub o en el chat. El preset de subida sin firma no se usa: cualquiera que conozca su nombre podría consumir la cuota.
+
+## 1. Crear cuenta Cloudinary
+1. Visita https://cloudinary.com/users/register/free y crea una cuenta Free.
+2. En **Console / API Keys** localiza el **Cloud name** y la **API Key**. Son datos públicos que pueden guardarse en `config.js`.
+3. Localiza **API Secret**, pero **NO** lo copies al código del catálogo ni lo compartas por chat. Solo se colocará como secreto en Cloudflare.
+
+## 2. Crear Cloudflare Worker
+1. Accede a https://dash.cloudflare.com/ y entra en **Workers & Pages → Create → Worker**; usa el plan gratuito.
+2. Crea un Worker llamado `poladent-imagenes` y reemplaza el código inicial con el contenido completo de `cloudinary-upload-worker.js`. Pulsa **Deploy**.
+3. En el Worker, **Settings → Variables and Secrets**, agrega:
+   - `CLOUDINARY_CLOUD_NAME`: tu Cloud name (texto).
+   - `CLOUDINARY_API_KEY`: tu API Key (texto).
+   - `CLOUDINARY_API_SECRET`: tu API Secret, marcada como **Secret** (no texto visible ni variable pública).
+4. Guarda las variables y copia la URL HTTPS de tu Worker, normalmente `https://poladent-imagenes.<tu-subdominio>.workers.dev`.
+5. No borres `catalogAdmins`. El Worker verifica que el usuario tenga su documento `catalogAdmins/{uid}` con `active = true`; verifica además la firma criptográfica y la vigencia del token de Firebase.
+
+## 3. Conectar al catálogo
+1. Completa `window.CATALOGO_IMAGES` en `config.js` con tus datos públicos: `{ provider: 'cloudinary', workerUrl: 'https://...', cloudName: '...', apiKey: '...' }`.
+2. Nunca insertes el API Secret en `config.js`, `firebase-client.js`, `admin.html` ni otros archivos públicos.
+3. Abre el panel de administración, selecciona una foto JPG, PNG o WebP y guarda el producto. La foto se comprimirá automáticamente a WebP y se enviará a Cloudinary mediante un permiso firmado.
+4. Comprueba que la imagen aparezca en el catálogo público en una ventana de incógnito. Haz primero una prueba con un producto temporal y luego con un producto de una marca nueva.
+
+## Funcionamiento / limitaciones
+- Solo puede solicitar firmas una cuenta de Firebase autenticada y autorizada como administradora por Firestore.
+- Las imágenes finales son públicas, como corresponde a un catálogo. Ocultar una ficha no vuelve privada una URL de imagen ya publicada.
+- Al borrar una ficha con imagen propia de Cloudinary, el panel intenta borrar también la imagen. Si el segundo paso falla, el archivo puede quedar huérfano y será necesario retirarlo desde Cloudinary.
+- Si sustituyes una foto, el archivo anterior se conserva por seguridad, para evitar pérdida accidental.
+- No se hace ninguna operación ni se factura automáticamente a Cloudinary o Cloudflare hasta crear y conectar ambas cuentas.
+- La edición existente con URLs públicas sigue disponible.

@@ -8,3 +8,12 @@ window.CATALOGO_FIREBASE = {
   messagingSenderId: '1031541087641',
   appId: '1:1031541087641:web:c7898a966258c660f68708'
 };
+
+// Alojamiento de imágenes opcional: datos PUBLICOS solamente.
+// No incluyas aquí el API Secret de Cloudinary ni tokens de Firebase.
+window.CATALOGO_IMAGES = {
+  provider: 'cloudinary',
+  workerUrl: '', // URL segura del Cloudflare Worker configurado
+  cloudName: '', // referencia pública de Cloudinary
+  apiKey: '' // API Key pública de Cloudinary
+};

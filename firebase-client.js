@@ -11,6 +11,23 @@ const app = initializeApp(cfg);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = cfg.storageBucket ? getStorage(app) : null;
+const images = window.CATALOGO_IMAGES || {};
+const signedUploadsReady = images.provider === 'cloudinary' && /^https:\/\//.test(images.workerUrl || '');
+async function imageWorker(path, data) {
+  await adminCheck();
+  const idToken = await auth.currentUser.getIdToken();
+  const workerUrl = String(images.workerUrl).replace(/\/$/, '') + path;
+  const response = await fetch(workerUrl, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {})
+  });
+  let payload;
+  try { payload = await response.json(); } catch { payload = {}; }
+  if (!response.ok) throw Error(payload.error || 'No pudimos autorizar la subida de la imagen.');
+  return payload;
+}
+
 const ready = new Promise(resolve => {
   const unsubscribe = onAuthStateChanged(auth, () => { unsubscribe(); resolve(); }, () => resolve());
 });
@@ -106,9 +123,7 @@ export async function deleteProduct(product) {
   batch.delete(doc(db, 'catalogProducts', product.id));
   batch.delete(doc(db, 'catalogPublic', product.id));
   await batch.commit();
-  if (product.image_path && storage) {
-    try { await deleteObject(ref(storage, product.image_path)); } catch { /* Limpieza no crítica */ }
-  }
+  if (product.image_path) await removeImage(product.image_path);
 }
 export async function importProducts(rows) {
   await adminCheck();
@@ -128,7 +143,7 @@ export function validImage(value) {
 }
 export async function uploadImage(file) {
   await adminCheck();
-  if (!storage) throw Error('Para subir fotos directamente configura Cloud Storage en Firebase (requiere plan Blaze). Puedes usar una URL pública en el campo de imagen.');
+
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw Error('Usa imágenes JPG, PNG o WebP.');
   if (file.size > 20 * 1024 * 1024) throw Error('La foto debe pesar menos de 20 MB.');
   const bitmap = await createImageBitmap(file);
@@ -141,6 +156,22 @@ export async function uploadImage(file) {
   bitmap.close();
   const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', .84));
   if (!blob) throw Error('No pudimos procesar la imagen.');
+  if (signedUploadsReady) {
+    const signed = await imageWorker('/sign');
+    const form = new FormData();
+    form.append('file', blob, 'producto.webp');
+    for (const key of ['timestamp', 'public_id', 'overwrite', 'api_key', 'signature']) form.append(key, String(signed[key]));
+    const cloudName = String(signed.cloud_name || '');
+    if (!/^[a-zA-Z0-9_-]+$/.test(cloudName)) throw Error('Nombre de Cloudinary inválido.');
+    const endpoint = 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(cloudName) + '/image/upload';
+    const response = await fetch(endpoint, { method: 'POST', body: form });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.secure_url || !result.public_id) {
+      throw Error(result?.error?.message || 'No pudimos guardar la fotografía en Cloudinary.');
+    }
+    return { url: result.secure_url, path: 'cloudinary:' + result.public_id };
+  }
+  if (!storage) throw Error('La carga de fotos todavía no está configurada. Puedes pegar un enlace de imagen o activar el alojamiento gratuito de Cloudinary.');
   const path = 'catalog-images/' + crypto.randomUUID() + '.webp';
   const object = ref(storage, path);
   try { await uploadBytes(object, blob, { contentType: 'image/webp' }); }
@@ -150,6 +181,12 @@ export async function uploadImage(file) {
   return { url: await getDownloadURL(object), path };
 }
 export async function removeImage(path) {
-  if (!path || !storage) return;
+  if (!path) return;
+  if (path.startsWith('cloudinary:')) {
+    if (!signedUploadsReady) return;
+    try { await imageWorker('/delete', { public_id: path.slice('cloudinary:'.length) }); } catch {}
+    return;
+  }
+  if (!storage) return;
   try { await deleteObject(ref(storage, path)); } catch {}
 }
