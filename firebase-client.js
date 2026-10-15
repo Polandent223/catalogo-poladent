@@ -51,7 +51,11 @@ export async function login(email, password) {
 export async function logout() { await signOut(auth); }
 
 function sortProducts(a, b) {
-  return a.brand.localeCompare(b.brand, 'es') || (a.sort_order || 0) - (b.sort_order || 0) || a.name.localeCompare(b.name, 'es');
+  // catalogPublic/_catalog_state es un marcador interno sin marca ni nombre.
+  // Debe poder ordenarse sin impedir que se muestren los productos importados.
+  return String(a.brand || '').localeCompare(String(b.brand || ''), 'es')
+    || (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0)
+    || String(a.name || '').localeCompare(String(b.name || ''), 'es');
 }
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
