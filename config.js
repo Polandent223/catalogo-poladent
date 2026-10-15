@@ -13,7 +13,7 @@ window.CATALOGO_FIREBASE = {
 // No incluyas aquí el API Secret de Cloudinary ni tokens de Firebase.
 window.CATALOGO_IMAGES = {
   provider: 'cloudinary',
-  workerUrl: '', // URL segura del Cloudflare Worker configurado
+  workerUrl: 'https://poladent-imagenes.samuel-eliuzeq-223.workers.dev',
   cloudName: 'pewsdgm5', // Cloud name público de POLADENT
   apiKey: '' // API Key pública de Cloudinary
 };
