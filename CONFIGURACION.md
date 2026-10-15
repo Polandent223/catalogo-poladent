@@ -1,3 +1,5 @@
+> Este documento describe la alternativa **Supabase**. Para crear el catálogo con **Firebase** y no consumir otro proyecto de Supabase, consulta [FIREBASE_SETUP.md](FIREBASE_SETUP.md).
+
 # Activar administración
 
 1. Crear un proyecto independiente en Supabase llamado catalogo-poladent en la organización elegida. Revisar el plan/costo mostrado antes de crearlo.
