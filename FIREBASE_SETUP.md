@@ -25,3 +25,7 @@ Este proyecto sigue alojado en GitHub Pages. Firebase aporta autenticación, doc
 - Esta integración requiere pruebas finales reales con tu proyecto Firebase antes de pasar a producción.
 
 Consulta oficial del requisito Blaze: https://firebase.google.com/docs/storage/faqs-storage-changes-announced-sept-2024
+
+## Activación automática
+
+La web seguirá mostrando los 27 productos locales de ADALTA hasta la primera operación de administración en Firestore. Al pulsar **Importar productos ADALTA**, se crean las fichas y un registro interno `catalogPublic/_catalog_state`. Ese registro no aparece como producto y evita que se restauren productos locales antiguos cuando el catálogo quede vacío por decisiones del administrador. Las reglas de seguridad del repositorio ya permiten este registro sin cambios adicionales.
