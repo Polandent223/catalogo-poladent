@@ -19,3 +19,9 @@ Catálogo web de odontología y laboratorio dental organizado por marcas, con bu
 
 Mientras Firestore no tenga publicaciones, la web muestra las 27 fichas originales de ADALTA.
 Al crear o importar el primer producto, el adaptador crea un registro público interno `catalogPublic/_catalog_state` de activación. La web filtra ese registro y utiliza solo la base de datos, incluso si todos los productos terminan ocultos o eliminados. No se requiere modificar nuevamente las reglas de Firestore compartidas previamente.
+
+
+## Fotos sin facturación de Firebase
+El panel admite la futura integración **Cloudinary Free** para almacenar imágenes y **Cloudflare Workers Free** para firmar las solicitudes y validar el administrador de Firebase. No utiliza presets de subidas anónimas.
+
+La integración está preparada, pero **no está activada** hasta configurar la URL del Worker y los datos públicos de Cloudinary en `config.js`. Consulta [CLOUDINARY_SETUP.md](CLOUDINARY_SETUP.md). Nunca publicar la `CLOUDINARY_API_SECRET`, contraseñas o ID tokens en este repositorio. El usuario puede seguir pegando URLs de imágenes como antes.
