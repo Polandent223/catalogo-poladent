@@ -19,3 +19,12 @@
 .product-card{min-width:0}
 .product-card h2{overflow-wrap:anywhere}
 @media(max-width:800px){.brands-area,.filters,#catalog-status,.product-grid{max-width:100%}}
+
+/* Ayuda para resolver permiso del administrador sin compartir contraseñas */
+#admin-diagnostic{max-width:760px;margin:18px 0;background:#fff6e7;border:1px solid #e6c898}
+#admin-diagnostic h2{font-size:19px;margin:0 0 10px}
+#admin-diagnostic p{font-size:13px}
+#admin-diagnostic a{color:var(--navy);text-decoration:underline}
+.uid-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.uid-row code{background:#fff;padding:12px;border:1px solid #dfccb0;overflow-wrap:anywhere;min-width:0;max-width:100%;user-select:all}
+.uid-row button{font-size:12px}
