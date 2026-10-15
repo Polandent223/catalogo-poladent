@@ -1,0 +1,22 @@
+name: Verificar catálogo estático
+on:
+  push:
+    branches: [main, feature/firebase-catalogo]
+  pull_request:
+    branches: [main]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar JavaScript como módulos
+        run: |
+          for file in admin.js app.js catalogo.js public-catalog.js config.js data-client.js firebase-client.js catalog-service.js; do
+            node --input-type=module --check < "$file"
+          done
+      - name: Validar enlaces y reglas mínimas
+        run: |
+          grep -q 'catalogPublic' firestore.rules
+          grep -q 'catalogAdmins' firestore.rules
+          grep -q 'firestore.exists' storage.rules
+          grep -q 'FIREBASE_SETUP.md' README.md

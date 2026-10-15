@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/catalogAdmins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/catalogAdmins/$(request.auth.uid)).data.active == true;
+    }
+    // Crear este documento de forma manual desde la consola. Nadie se autonombra admin.
+    match /catalogAdmins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    // Inventario completo. Solo administradores autorizados.
+    match /catalogProducts/{id} {
+      allow read, write: if isAdmin();
+    }
+    // Vista pública separada: jamás se exponen artículos ocultos.
+    match /catalogPublic/{id} {
+      allow get, list: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.status in ['available', 'sold_out'];
+      allow delete: if isAdmin();
+    }
+  }
+}
