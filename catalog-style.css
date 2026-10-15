@@ -10,3 +10,12 @@
 .brand-shortcut{border-radius:999px;background:#fff;border:1px solid #c8d9e3;padding:10px 16px;font-size:12px;font-weight:700;transition:background .15s,color .15s}
 .brand-shortcut:hover,.brand-shortcut.active{color:#fff;background:var(--navy);border-color:var(--navy)}
 @media(max-width:420px){.brand-shortcut{padding:9px 13px}.brands-heading h2{font-size:22px}}
+
+/* Ancho de lectura uniforme: evita tarjetas estiradas en monitores grandes */
+.brands-area,.filters,#catalog-status,.product-grid{width:100%;max-width:1104px;margin-left:auto;margin-right:auto}
+.filters{margin-bottom:14px}
+#catalog-status{padding:0 2px;margin-top:16px;margin-bottom:16px}
+.product-grid{align-items:start}
+.product-card{min-width:0}
+.product-card h2{overflow-wrap:anywhere}
+@media(max-width:800px){.brands-area,.filters,#catalog-status,.product-grid{max-width:100%}}
