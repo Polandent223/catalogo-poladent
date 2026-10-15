@@ -1,0 +1,9 @@
+# Credenciales locales y archivos temporales de Cloudflare
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+node_modules/
+.env
+.env.*
+!.env.example
