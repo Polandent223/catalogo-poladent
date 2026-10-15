@@ -1,23 +1,7 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Catálogo ADALTA 2026 | Poladent Casa Dental</title>
-<meta name="description" content="Catálogo ADALTA de odontología y laboratorio dental. Distribuido por Poladent Casa Dental.">
-<meta name="theme-color" content="#09294c">
-<link rel="preload" as="image" href="imagenes/adalta-01.webp">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><div class="edition">CATÁLOGO 2026 <b>ADALTA</b></div></header>
-<main>
-<section class="intro"><div><p class="eyebrow">NUESTRA SELECCIÓN · ADALTA</p><h1>Odontología y<br>laboratorio dental.</h1><p>Explora los productos y encuentra lo que necesitas.</p></div><div class="sections"><button data-page="1">Ver catálogo</button><button data-page="2">Clínica e instrumental</button><button data-page="16">Laboratorio dental</button></div></section>
-<section class="catalog" aria-label="Visor del catálogo">
-<div class="tools"><label for="search">Buscar producto</label><input id="search" type="search" placeholder="Ej. curetas, espátula, mechero…" autocomplete="off"><button id="index-toggle" aria-expanded="false" aria-controls="index">Ver índice</button></div>
-<nav id="index" aria-label="Índice de páginas" hidden></nav><p id="results" role="status" hidden></p>
-<div class="viewer"><img id="page-image" src="imagenes/adalta-01.webp" width="1440" height="1440" alt="Portada ADALTA" fetchpriority="high"></div>
-<div class="navigation"><button id="prev" aria-label="Página anterior">← Anterior</button><div aria-live="polite"><strong id="page-name">Portada ADALTA</strong><span id="counter">1 de 30</span></div><button id="next" aria-label="Página siguiente">Siguiente →</button></div>
-</section>
-</main><footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span></footer>
-<script src="catalogo.js"></script><script src="app.js"></script>
-</body></html>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo | POLADENT Casa Dental</title><meta name="description" content="Productos de odontología y laboratorio dental, organizados por marcas. Catálogo de Poladent Casa Dental."><meta name="theme-color" content="#09294c"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"></head><body>
+<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><div class="edition">ODONTOLOGÍA Y<b>LABORATORIO DENTAL</b></div></header>
+<main><section class="intro"><div><p class="eyebrow">NUESTROS PRODUCTOS</p><h1>Tu catálogo.<br>Todas nuestras marcas.</h1><p>Encuentra los productos para tu consultorio y laboratorio.</p></div><p class="outline">Consulta productos por marca y disponibilidad.</p></section>
+<section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
+<p id="catalog-status" role="status">Cargando productos…</p><section id="products" class="product-grid" aria-label="Productos"></section><button id="more" hidden>Ver más productos</button></main>
+<dialog id="detail"><button id="close-detail" aria-label="Cerrar detalle">Cerrar ✕</button><img id="detail-image" alt=""><h2 id="detail-name"></h2><p id="detail-brand"></p><p id="detail-status"></p><p id="detail-description"></p><button id="share-product">Copiar enlace del producto</button><p id="share-status" role="status"></p></dialog>
+<footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span><a href="admin.html">Administración</a></footer><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="public-catalog.js"></script></body></html>

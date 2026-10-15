@@ -1,13 +1,13 @@
 # Catálogo Poladent
 
-Catálogo estático de ADALTA 2026, con 30 páginas originales optimizadas para pantalla. Sin dependencias, fuentes externas ni servicios de terceros.
+Catálogo público por marcas con búsqueda, filtros de disponibilidad y detalle compartible. Incluye panel privado para agregar, editar, eliminar y ocultar productos, con compresión de imágenes en el navegador.
 
-Incluye búsqueda por nombre, índice, navegación con teclado y enlaces a páginas concretas. La vista descarga una imagen por vez. Las 30 imágenes WebP suman aproximadamente 2,6 MB; este tamaño no representa la descarga inicial.
+## Estado
 
-## Publicación
+La vista pública muestra los 27 productos originales de ADALTA mientras no haya conexión. El panel muestra un aviso de configuración y no permite simular guardados. Para activar la administración real, completar CONFIGURACION.md con un proyecto independiente de Supabase y una cuenta autorizada. Sin claves secretas en el repositorio.
 
-En Settings → Pages, seleccionar Deploy from a branch, rama main y carpeta / (root). El enlace será https://polandent223.github.io/catalogo-poladent/ una vez completada la publicación.
+La presentación original de 30 páginas permanece en adalta.html. No refleja cambios de disponibilidad.
 
-## Actualización
+## Verificación
 
-Las páginas y los nombres se definen en catalogo.js; las imágenes están en imagenes/. Conservar los PDF originales para impresión. No incluir datos privados en este repositorio público.
+Sintaxis de módulos comprobada. Pruebas del cliente HTTP con respuestas simuladas: rechazo de cuentas sin autorización, sesión autorizada, separación de acceso público/privado, cierre de sesión y validación de URL. Pendientes pruebas integrales con el proyecto real: permisos RLS, archivos, acceso, edición y consulta pública.
