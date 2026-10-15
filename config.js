@@ -14,6 +14,6 @@ window.CATALOGO_FIREBASE = {
 window.CATALOGO_IMAGES = {
   provider: 'cloudinary',
   workerUrl: '', // URL segura del Cloudflare Worker configurado
-  cloudName: '', // referencia pública de Cloudinary
+  cloudName: 'pewsdgm5', // Cloud name público de POLADENT
   apiKey: '' // API Key pública de Cloudinary
 };
