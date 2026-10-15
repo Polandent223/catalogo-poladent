@@ -14,8 +14,13 @@
 
 ## 2. Crear Cloudflare Worker
 1. Accede a https://dash.cloudflare.com/ y entra en **Workers & Pages → Create → Worker**; usa el plan gratuito.
-2. Crea un Worker llamado `poladent-imagenes` y reemplaza el código inicial con el contenido completo de `cloudinary-upload-worker.js`. Pulsa **Deploy**.
-3. En el Worker, **Settings → Variables and Secrets**, agrega:
+2. Elige **Importar desde GitHub** y conecta el repositorio `Polandent223/catalogo-poladent`, rama `main`. Ya existe `wrangler.jsonc`: declara `poladent-imagenes` como Worker e indica que el archivo principal es `cloudinary-upload-worker.js`. No importa ni sustituye el catálogo de GitHub Pages.
+   - Si aparece **Build command**, déjalo vacío (no se necesita construir una app).
+   - Si aparece **Deploy command**, usa `npx wrangler deploy`.
+   - Si aparece **Root directory**, deja `/` (raíz del repositorio).
+   - Comprueba que el Worker creado se llama `poladent-imagenes`.
+   - Si Cloudflare ofrece una opción de *Pages* para publicar HTML, no la elijas: necesitamos **Workers** para firmar las fotografías.
+3. Después del despliegue, abre **Settings → Variables and Secrets** de ese Worker y agrega:
    - `CLOUDINARY_CLOUD_NAME`: tu Cloud name (texto).
    - `CLOUDINARY_API_KEY`: tu API Key (texto).
    - `CLOUDINARY_API_SECRET`: tu API Secret, marcada como **Secret** (no texto visible ni variable pública).
