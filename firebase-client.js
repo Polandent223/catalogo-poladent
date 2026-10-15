@@ -44,6 +44,16 @@ export async function listProducts(admin = false) {
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
   return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(sortProducts);
 }
+function markCatalogActive(batch) {
+  // Al activarse el catálogo, ya no se volverán a mostrar los datos locales
+  // aunque el administrador oculte o elimine todos los productos.
+  batch.set(doc(db, 'catalogPublic', '_catalog_state'), {
+    status: 'available',
+    type: 'catalog_state',
+    initialized: true,
+    updated_at: new Date().toISOString()
+  });
+}
 function sanitize(body) {
   return {
     name: String(body.name || '').trim().slice(0, 180),
@@ -64,6 +74,7 @@ export async function saveProduct(id, body) {
   if (!validImage(product.image_url)) throw Error('Falta una imagen pública válida.');
   const key = id || doc(collection(db, 'catalogProducts')).id;
   const batch = writeBatch(db);
+  markCatalogActive(batch);
   batch.set(doc(db, 'catalogProducts', key), product);
   if (product.status === 'hidden') batch.delete(doc(db, 'catalogPublic', key));
   else batch.set(doc(db, 'catalogPublic', key), product);
@@ -73,6 +84,7 @@ export async function saveProduct(id, body) {
 export async function deleteProduct(product) {
   await adminCheck();
   const batch = writeBatch(db);
+  markCatalogActive(batch);
   batch.delete(doc(db, 'catalogProducts', product.id));
   batch.delete(doc(db, 'catalogPublic', product.id));
   await batch.commit();
@@ -82,8 +94,8 @@ export async function deleteProduct(product) {
 }
 export async function importProducts(rows) {
   await adminCheck();
-  if (!rows.length) return;
   const batch = writeBatch(db);
+  markCatalogActive(batch);
   for (const body of rows) {
     const product = sanitize(body);
     const key = doc(collection(db, 'catalogProducts')).id;
