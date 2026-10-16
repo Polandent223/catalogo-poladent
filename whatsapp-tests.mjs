@@ -20,7 +20,10 @@ assert.equal(whatsappInquiryURL('hello',product,link),'');
 assert.equal(whatsappInquiryURL('58412?bad',product,link),'');
 const publicScript=readFileSync(new URL('./public-catalog.js',import.meta.url),'utf8');
 assert.ok(publicScript.includes('block.hidden=!selected||contacts.length===0'));
-assert.ok(publicScript.includes('getWhatsAppContacts().catch(() => [])'));
+assert.ok(publicScript.includes('const data=await loadPublicCatalog(cfg)'));
+assert.ok(publicScript.includes('contacts=data.contacts'));
+assert.ok(publicScript.includes('shareIds.has(String(p.id))'));
+
 const adminFile=readFileSync(new URL('./admin.html',import.meta.url),'utf8');
 assert.ok(adminFile.includes('href="contacto.html"'));
 console.log('Consulta por WhatsApp: pruebas aprobadas.');
