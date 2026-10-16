@@ -39,7 +39,7 @@ function renderBrandHero(){
     img.alt='Contraportada de '+name;img.loading='lazy';
     const finish=element('div',null,'brand-back-message');
     finish.append(element('p','CATÁLOGO DE '+name,'eyebrow'),element('h2','Gracias por explorar '+name));
-    finish.append(element('p','¿Te interesa algún producto? Abre su ficha y consulta directamente con nuestro equipo por WhatsApp.'));
+    finish.append(element('p',contacts.length?'¿Te interesa algún producto? Abre su ficha y consulta directamente con nuestro equipo por WhatsApp.':'Explora nuestros productos y descubre las opciones de odontología y laboratorio dental.'));
     back.append(finish,img);
   }
 }
