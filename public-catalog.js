@@ -48,7 +48,7 @@ available.addEventListener('change',()=>{limit=12;render()});
 copyBrand.onclick=async()=>{const url=brandUrl(brand.value);try{await navigator.clipboard.writeText(url);copyBrand.textContent='Enlace copiado';}catch{copyBrand.textContent='Enlace: '+url;}};
 more.onclick=()=>{limit+=12;render()};
 async function load(){try{if(configured){
-        const [remote,brandData]=await Promise.all([listProducts(),listBrands()]);profiles=brandData;
+        const [remote,brandData]=await Promise.all([listProducts(),listBrands().catch(() => [])]);profiles=brandData;
         const initialized=remote.some(p=>p.id==='_catalog_state');
         const visible=remote.filter(p=>p.id!=='_catalog_state');
         products=initialized||visible.length?visible:legacy();
