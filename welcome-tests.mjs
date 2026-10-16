@@ -24,7 +24,7 @@ const welcome=readFileSync('welcome.js','utf8');
 assert.ok(welcome.includes("import('./public-catalog.js')"));
 assert.ok(welcome.includes("getElement")===false);
 assert.ok(welcome.includes("catalogPublic/_catalog_contacts"));
-assert.ok(welcome.includes("data.welcome_enabled?.booleanValue===true"));
+assert.ok(welcome.includes("data.welcome_enabled?.booleanValue!==true"));
 assert.ok(welcome.includes("data.welcome_image_url?.stringValue"));
 assert.ok(welcome.includes("if(shouldSkipWelcome(location.href))enterCatalog()"));
 assert.ok(welcome.includes("$('#welcome-enter').addEventListener('click'"));
