@@ -41,3 +41,12 @@ export async function removeImage(path) {
   try { await client.request('/storage/v1/object/catalog-images', { method: 'DELETE', body: { prefixes: [path] }, auth: true }); }
   catch {}
 }
+
+export async function listImageCleanups() {
+  if (usingFirebase) return client.listImageCleanups();
+  return [];
+}
+export async function retryImageCleanups() {
+  if (usingFirebase) return client.retryImageCleanups();
+  return { deleted: 0, failures: [], pending: 0 };
+}

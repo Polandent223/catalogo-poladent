@@ -2,7 +2,7 @@
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -77,7 +77,7 @@ function sortProducts(a, b) {
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(sortProducts);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup').sort(sortProducts);
 }
 function markCatalogActive(batch) {
   // Al activarse el catálogo, ya no se volverán a mostrar los datos locales
@@ -116,14 +116,69 @@ export async function saveProduct(id, body) {
   await batch.commit();
   return key;
 }
+// El borrado del registro y el archivo son operaciones diferentes.
+// Guardamos una tarea de limpieza en Firestore ANTES de borrar la ficha para
+// que una caída de Cloudinary no haga perder la referencia al archivo.
 export async function deleteProduct(product) {
   await adminCheck();
+  if (!product?.id) throw Error('No encontramos el producto que quieres eliminar.');
+  const needsCloudinaryCleanup = typeof product.image_path === 'string'
+    && product.image_path.startsWith('cloudinary:');
+  const cleanupRef = needsCloudinaryCleanup ? doc(collection(db, 'catalogProducts')) : null;
   const batch = writeBatch(db);
   markCatalogActive(batch);
+  if (cleanupRef) {
+    batch.set(cleanupRef, {
+      kind: 'image_cleanup',
+      image_path: product.image_path,
+      product_name: String(product.name || '').slice(0, 180),
+      created_at: new Date().toISOString()
+    });
+  }
   batch.delete(doc(db, 'catalogProducts', product.id));
   batch.delete(doc(db, 'catalogPublic', product.id));
   await batch.commit();
-  if (product.image_path) await removeImage(product.image_path);
+  if (!cleanupRef) {
+    // Para imágenes externas no somos propietarios del archivo.
+    return { productDeleted: true, imageDeleted: null, pendingCleanup: false };
+  }
+  try {
+    await removeImage(product.image_path);
+    await deleteDoc(cleanupRef);
+    return { productDeleted: true, imageDeleted: true, pendingCleanup: false };
+  } catch (error) {
+    return {
+      productDeleted: true,
+      imageDeleted: false,
+      pendingCleanup: true,
+      error: error?.message || 'No se pudo completar la eliminación de la fotografía.'
+    };
+  }
+}
+
+export async function listImageCleanups() {
+  await adminCheck();
+  const snapshot = await getDocs(collection(db, 'catalogProducts'));
+  return snapshot.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => p.kind === 'image_cleanup' && typeof p.image_path === 'string');
+}
+
+export async function retryImageCleanups() {
+  await adminCheck();
+  const pending = await listImageCleanups();
+  let deleted = 0;
+  const failures = [];
+  for (const item of pending) {
+    try {
+      await removeImage(item.image_path);
+      await deleteDoc(doc(db, 'catalogProducts', item.id));
+      deleted++;
+    } catch (error) {
+      failures.push({ name: item.product_name || 'Fotografía', error: error?.message || 'Error desconocido' });
+    }
+  }
+  return { deleted, failures, pending: failures.length };
 }
 export async function importProducts(rows) {
   await adminCheck();
@@ -183,10 +238,11 @@ export async function uploadImage(file) {
 export async function removeImage(path) {
   if (!path) return;
   if (path.startsWith('cloudinary:')) {
-    if (!signedUploadsReady) return;
-    try { await imageWorker('/delete', { public_id: path.slice('cloudinary:'.length) }); } catch {}
+    if (!signedUploadsReady) throw Error('El Worker de Cloudinary todavía no está configurado.');
+    const result = await imageWorker('/delete', { public_id: path.slice('cloudinary:'.length) });
+    if (result.removed !== true) throw Error('Cloudinary no confirmó que borró la fotografía.');
     return;
   }
-  if (!storage) return;
-  try { await deleteObject(ref(storage, path)); } catch {}
+  if (!storage) throw Error('El almacenamiento Firebase no está configurado.');
+  await deleteObject(ref(storage, path));
 }
