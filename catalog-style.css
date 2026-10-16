@@ -146,7 +146,7 @@ body.has-welcome{margin:0;background:#041a34}
 }
 .welcome-art{
   position:relative;flex:0 0 auto;line-height:0;min-width:0;max-width:none;
-  width:min(99vw,157svh,1920px);margin:auto;
+  width:min(99vw,133.3svh,1920px);margin:auto;
   box-shadow:0 18px 62px #00112366
 }
 .welcome-art img{display:block;width:100%;max-width:100%;height:auto;object-fit:contain;border:0;user-select:none;-webkit-user-drag:none}
