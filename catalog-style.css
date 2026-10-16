@@ -161,7 +161,7 @@ body.has-welcome{margin:0;background:#041a34}
 }
 .welcome-art{
   box-sizing:border-box;
-  width:min(96vw,1920px);
+  width:min(96vw,166svh,1920px);
   max-width:none;
   margin:auto;
   flex:0 0 auto;
