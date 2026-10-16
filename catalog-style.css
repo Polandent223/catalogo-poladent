@@ -28,3 +28,16 @@
 .uid-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .uid-row code{background:#fff;padding:12px;border:1px solid #dfccb0;overflow-wrap:anywhere;min-width:0;max-width:100%;user-select:all}
 .uid-row button{font-size:12px}
+
+/* Presentación editorial de cada marca (sin rediseñar logotipos) */
+.brand-hero{position:relative;max-width:1104px;margin:8px auto 20px;padding:clamp(24px,4vw,48px);background:linear-gradient(115deg,#09294c 0%,#104c6b 72%,#17809b 100%);border-radius:18px;color:white;overflow:hidden;box-shadow:0 16px 45px rgba(9,41,76,.15)}
+.brand-hero::after{content:"";position:absolute;right:-80px;top:-100px;width:310px;height:310px;border:1px solid rgba(255,255,255,.20);border-radius:50%;pointer-events:none}
+.brand-hero .brand-hero-content{position:relative;z-index:1;max-width:750px}
+.brand-hero .eyebrow{color:#a5e4f0;font-weight:800;letter-spacing:.14em;font-size:11px}
+.brand-hero h2{margin:10px 0;font-size:clamp(28px,4vw,46px);line-height:1.12;letter-spacing:-.03em;color:white;overflow-wrap:anywhere}
+.brand-hero p{color:#e5f1f7;line-height:1.6}
+.brand-hero .brand-hero-meta{margin-top:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand-hero-meta span{padding:7px 13px;border:1px solid rgba(255,255,255,.32);border-radius:24px;color:white;font-size:12px}
+.brand-hero .brand-hero-reset{border:1px solid #b8dbe7;background:white;color:#103b5b;font-weight:700;font-size:12px}
+.brand-hero .brand-hero-reset:hover{background:#e4f6f9}
+@media(max-width:700px){.brand-hero{border-radius:12px;padding:25px 20px}.brand-hero::after{width:210px;height:210px;right:-120px;top:-80px}}
