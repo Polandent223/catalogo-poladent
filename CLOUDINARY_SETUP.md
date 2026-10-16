@@ -36,7 +36,8 @@
 ## Funcionamiento / limitaciones
 - Solo puede solicitar firmas una cuenta de Firebase autenticada y autorizada como administradora por Firestore.
 - Las imágenes finales son públicas, como corresponde a un catálogo. Ocultar una ficha no vuelve privada una URL de imagen ya publicada.
-- Al borrar una ficha con imagen propia de Cloudinary, el panel intenta borrar también la imagen. Si el segundo paso falla, el archivo puede quedar huérfano y será necesario retirarlo desde Cloudinary.
+- Al borrar un producto con una foto propia de Cloudinary, primero se crea una tarea de limpieza en `catalogProducts` y luego se elimina el producto. Si Cloudinary no confirma la eliminación, el administrador verá un aviso y el botón **Reintentar eliminación de fotografías**. Las tareas no son visibles al cliente. Una vez confirmado el borrado, se retira también la tarea pendiente.
+- Los archivos huérfanos de productos borrados **antes de instalar esta mejora** no se pueden asociar automáticamente porque su ruta ya se perdió. Localízalos por carpeta `poladent-catalogo` y fecha en Cloudinary Media Library; comprueba que no estén asociados a un producto actual antes de retirarlos.
 - Si sustituyes una foto, el archivo anterior se conserva por seguridad, para evitar pérdida accidental.
 - No se hace ninguna operación ni se factura automáticamente a Cloudinary o Cloudflare hasta crear y conectar ambas cuentas.
 - La edición existente con URLs públicas sigue disponible.
