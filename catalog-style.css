@@ -145,3 +145,68 @@ body.has-welcome{margin:0;background:#041a34}
   .welcome-enter-mobile{display:inline-flex;justify-content:center;align-items:center;gap:12px;width:min(90%,400px);padding:16px 22px;border-radius:999px;border:1px solid #6ee8ff;box-shadow:0 4px 26px #0294ff88;min-height:54px;background:linear-gradient(135deg,#00bbfa,#0872df 70%,#0054cb);color:white;font-weight:800;font-size:17px;cursor:pointer;touch-action:manipulation;margin:16px auto 0}
 }
 @media(prefers-reduced-motion:reduce){.welcome-hotspot{transition:none}}
+
+/* Portada inmersiva v2: imagen oficial intacta; aprovecha el ancho de la PC.
+   No recorta la composición. En pantallas bajas se puede desplazarse para ver el final. */
+#welcome-screen[hidden],#welcome-loading[hidden],#catalog-app[hidden]{display:none!important}
+.welcome-screen{
+  box-sizing:border-box;
+  min-height:100svh;
+  width:100%;
+  padding:0;
+  justify-content:flex-start;
+  overflow-x:clip;
+  overflow-y:visible;
+  background:radial-gradient(ellipse at 50% 42%,#115080 0%,#062a4b 49%,#031527 100%);
+}
+.welcome-art{
+  box-sizing:border-box;
+  width:min(96vw,1920px);
+  max-width:none;
+  margin:auto;
+  flex:0 0 auto;
+  box-shadow:0 6px 55px #00152f65;
+}
+.welcome-art img{width:100%;height:auto;max-width:100%;object-fit:contain}
+.welcome-hotspot{left:31.4%;top:67.25%;width:35.7%;height:9.35%}
+.welcome-mobile-copy{display:none}
+@media(max-width:700px){
+  .welcome-screen{
+    padding:clamp(18px,4svh,44px) 0 28px;
+    gap:0;
+    justify-content:center;
+    min-height:100svh;
+  }
+  .welcome-art{width:100%;max-width:none;margin:0;box-shadow:0 12px 30px #03152c55}
+  .welcome-art img{width:100%;height:auto}
+  .welcome-hotspot{display:none}
+  .welcome-mobile-copy{
+    display:block;
+    box-sizing:border-box;
+    width:min(100% - 40px,500px);
+    margin:clamp(18px,4svh,34px) auto 0;
+    text-align:center;
+    color:#eef8ff;
+  }
+  .welcome-mobile-kicker{font-size:11px;font-weight:750;letter-spacing:.17em;color:#75d9ff;margin:0 0 9px}
+  .welcome-mobile-copy h1{
+    color:#fff;
+    font-size:clamp(23px,6vw,32px);
+    font-weight:850;
+    line-height:1.18;
+    letter-spacing:-.025em;
+    margin:0 0 12px;
+    text-wrap:balance;
+  }
+  .welcome-mobile-copy>p:last-child{font-size:clamp(14px,3.8vw,16px);line-height:1.52;color:#d6ecfc;margin:0}
+  .welcome-enter-mobile{
+    display:inline-flex;
+    width:min(calc(100% - 40px),420px);
+    min-height:58px;
+    padding:15px 20px;
+    margin:22px auto 0;
+    font-size:clamp(16px,4.4vw,19px);
+    box-shadow:0 5px 29px #00aeff70;
+  }
+  .welcome-enter-mobile:focus-visible{outline:3px solid #b3fbff;outline-offset:4px}
+}
