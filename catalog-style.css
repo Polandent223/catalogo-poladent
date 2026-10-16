@@ -118,3 +118,30 @@ dialog#detail .product-dialog-layout img{width:100%;max-width:100%;height:auto;m
   .brand-back-cover .brand-back-message{padding:8px 6px}
   .brand-back-cover img{max-width:320px;max-height:430px}
 }
+
+/* Portada oficial: el botón es HTML interactivo, no parte funcional de la fotografía. */
+#welcome-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;z-index:100;background:radial-gradient(ellipse at 50% 42%,#0b4778,#04152c 74%);color:white;font-size:clamp(24px,4vw,40px);font-weight:900;letter-spacing:.17em}
+#welcome-loading span{font-size:13px;font-weight:500;letter-spacing:.22em}
+body.has-welcome{margin:0;background:#041a34}
+.welcome-screen{min-height:100svh;width:100%;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:radial-gradient(ellipse at 50% 45%,#164d73 0,#062b4b 42%,#031629 85%);overflow:auto;isolation:isolate}
+.welcome-screen:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,#00274544,transparent 50%,#1976bc33)}
+.welcome-art{position:relative;width:min(100vw,133.333svh);max-width:1448px;min-width:0;flex:0 0 auto;line-height:0;box-shadow:0 0 66px #04152e66}
+.welcome-art img{display:block;width:100%;height:auto;object-fit:contain;border:0;user-select:none;-webkit-user-drag:none}
+.welcome-hotspot{position:absolute;left:31.4%;top:67.3%;width:35.7%;height:9.3%;padding:0;border:0;background:transparent;cursor:pointer;border-radius:999px;box-shadow:none;transition:box-shadow .18s ease;z-index:2;touch-action:manipulation}
+.welcome-hotspot:hover{box-shadow:0 0 18px 5px #4bd5ffa1;background:#67c7ff18}
+.welcome-hotspot:focus-visible{outline:3px solid #b3fbff;outline-offset:2px;box-shadow:0 0 0 7px #00a6ff59}
+.welcome-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.welcome-enter-mobile{display:none}
+.home-admin .admin-form{max-width:930px}
+.home-admin .admin-form h2{font-size:22px}
+.welcome-admin-preview{width:100%;height:auto;max-width:850px;max-height:560px;object-fit:contain;border-radius:12px;border:1px solid #b8cddf;background:#061a2d;margin:0 auto;display:block}
+.home-admin .welcome-toggle{display:flex;align-items:center;gap:12px;font-weight:700}
+.home-admin .welcome-toggle input{width:20px;height:20px;flex:none}
+.home-admin #welcome-admin-message{white-space:pre-wrap;line-height:1.6}
+@media (max-width:700px){
+  .welcome-screen{gap:0;padding:16px 0 32px;justify-content:center}
+  .welcome-art{width:100%;max-width:100%}
+  .welcome-hotspot{top:65.4%;height:14%;min-height:44px}
+  .welcome-enter-mobile{display:inline-flex;justify-content:center;align-items:center;gap:12px;width:min(90%,400px);padding:16px 22px;border-radius:999px;border:1px solid #6ee8ff;box-shadow:0 4px 26px #0294ff88;min-height:54px;background:linear-gradient(135deg,#00bbfa,#0872df 70%,#0054cb);color:white;font-weight:800;font-size:17px;cursor:pointer;touch-action:manipulation;margin:16px auto 0}
+}
+@media(prefers-reduced-motion:reduce){.welcome-hotspot{transition:none}}

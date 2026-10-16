@@ -74,3 +74,12 @@ export async function saveWhatsAppContacts(contacts) {
   if (!usingFirebase) throw Error('La configuración de WhatsApp requiere Firebase.');
   return client.saveWhatsAppContacts(contacts);
 }
+
+export async function getWelcomeSettings() {
+  if (usingFirebase) return client.getWelcomeSettings();
+  return {enabled:false,image_url:'',image_path:null};
+}
+export async function saveWelcomeSettings(settings) {
+  if (!usingFirebase) throw Error('La portada necesita Firebase.');
+  return client.saveWelcomeSettings(settings);
+}

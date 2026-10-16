@@ -1,4 +1,15 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo | POLADENT Casa Dental</title><meta name="description" content="Productos de odontología y laboratorio dental, organizados por marcas. Catálogo de Poladent Casa Dental."><meta name="theme-color" content="#09294c"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"></head><body>
+<div id="welcome-loading" role="status" aria-live="polite">POLADENT <span>Casa Dental</span></div>
+<section id="welcome-screen" class="welcome-screen" aria-label="Bienvenido a POLADENT" hidden>
+  <div class="welcome-art">
+    <img id="welcome-image" alt="Portada de bienvenida de POLADENT" width="1448" height="1086" fetchpriority="high">
+    <button type="button" id="welcome-enter" class="welcome-hotspot" aria-label="Entrar al catálogo de POLADENT">
+      <span class="welcome-sr-only">Entrar al catálogo</span>
+    </button>
+  </div>
+  <button type="button" id="welcome-enter-mobile" class="welcome-enter-mobile">Entrar al catálogo <span aria-hidden="true">→</span></button>
+</section>
+<div id="catalog-app" hidden>
 <header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><div class="edition">ODONTOLOGÍA Y<b>LABORATORIO DENTAL</b></div></header>
 <main><section class="intro"><div><p class="eyebrow">NUESTROS PRODUCTOS</p><h1>Tu catálogo.<br>Todas nuestras marcas.</h1><p>Encuentra los productos para tu consultorio y laboratorio.</p></div><p class="outline">Consulta productos por marca y disponibilidad.</p></section>
 <section class="brands-area" aria-label="Marcas del catálogo"><div class="brands-heading"><div><p class="eyebrow">NUESTRAS MARCAS</p><h2>Explora por marca</h2></div><button id="copy-brand" hidden type="button" title="Copiar enlace a esta marca">Copiar enlace de la marca</button></div><div id="brand-shortcuts" class="brand-shortcuts"></div></section>
@@ -21,4 +32,4 @@
 <button id="share-product" type="button">Copiar enlace del producto</button>
 <p id="share-status" role="status"></p>
 </div></div></dialog>
-<footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span><a href="admin.html">Administración</a></footer><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="public-catalog.js"></script></body></html>
+<footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span><a href="admin.html">Administración</a></footer></div><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="welcome.js"></script></body></html>
