@@ -59,3 +59,9 @@ export async function saveBrand(id, body) {
   if (!usingFirebase) throw Error('La administración de marcas necesita Firebase.');
   return client.saveBrand(id, body);
 }
+
+export async function listAdminOverview() {
+  if (usingFirebase) return client.listAdminOverview();
+  const [products, cleanups] = await Promise.all([client.listProducts(true), listImageCleanups()]);
+  return { products, cleanups };
+}
