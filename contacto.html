@@ -1,0 +1,27 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>WhatsApp | Administración POLADENT</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"></head>
+<body><header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Volver al administrador</a></header>
+<main class="admin-wrap contact-admin">
+<h1>Configuración de WhatsApp</h1>
+<p>Configura los teléfonos de atención que pueden elegir los clientes al consultar un producto. Puedes agregar hasta 5 números de la empresa.</p>
+<p id="contact-message" role="status" aria-live="polite"></p>
+<form id="contact-login" class="admin-form contact-login">
+<h2>Acceso privado</h2>
+<label>Correo del administrador<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button class="primary" type="submit">Iniciar sesión</button>
+</form>
+<section id="contact-workspace" hidden>
+<div class="admin-actions"><a class="brand-admin-link" href="admin.html">Administrar productos</a><a class="brand-admin-link" href="./">Ver catálogo público</a><button type="button" id="contact-logout">Cerrar sesión</button></div>
+<form id="contact-form" class="admin-form">
+<h2>Números de atención</h2>
+<p>Los visitantes verán estos contactos para elegir a cuál WhatsApp enviar su consulta. El primero aparecerá seleccionado inicialmente.</p>
+<div id="contact-rows"></div>
+<button id="contact-add" type="button">+ Agregar otro número</button>
+<p class="contact-help">Incluye el código de país. Por ejemplo, los números de Venezuela comienzan por <strong>58</strong> y no llevan el cero inicial: <code>58412XXXXXXX</code>. No escribas el símbolo + ni guiones.</p>
+<button class="primary" type="submit" id="contact-save">Guardar números de WhatsApp</button>
+</form>
+<p class="contact-help">Los números aparecerán públicamente en los enlaces de WhatsApp para que los clientes puedan escribir a la empresa. Si todavía no agregas ninguno, el botón de consulta no se mostrará.</p>
+</section></main>
+<script src="config.js"></script><script type="module" src="contact-admin.js"></script></body></html>
