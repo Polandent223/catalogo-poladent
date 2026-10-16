@@ -103,7 +103,11 @@ export async function saveWelcomeSettings(settings) {
   const url=String(settings.image_url||'').trim();
   if (!url || !validImage(url)) throw Error('Selecciona la portada oficial o proporciona un enlace de imagen HTTPS válido.');
   const data={
+    // Las reglas publicadas solo permiten guardar documentos publicos
+    // con status 'available' o 'sold_out'. Debe incluirse este campo
+    // también en las configuraciones para evitar permission-denied.
     kind:'site_welcome',
+    status:'available',
     enabled:settings.enabled===true,
     image_url:url,
     image_path:settings.image_path||null,

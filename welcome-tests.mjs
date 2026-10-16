@@ -32,6 +32,11 @@ assert.ok(admin.includes('href="portada.html"'));
 const firebase=readFileSync('firebase-client.js','utf8');
 assert.ok(firebase.includes('await adminCheck();\n  const url=String(settings.image_url'));
 assert.ok(firebase.includes("doc(db,'catalogPublic',WELCOME_DOC)"));
+const welcomeData=firebase.slice(firebase.indexOf('export async function saveWelcomeSettings('),firebase.indexOf('// Agenda de WhatsApp'));
+assert.ok(welcomeData.includes("status:'available'"),'La portada debe tener estado permitido por Firestore');
+const rules=readFileSync('firestore.rules','utf8');
+assert.ok(rules.includes("request.resource.data.status in ['available', 'sold_out']"));
+
 const publicJS=readFileSync('catalog-public-data.js','utf8');
 assert.ok(publicJS.includes("if (data.kind || !allowedStatuses.has(data.status)"));
 console.log('Portada oficial: rutas, botón, activación y protección del administrador verificadas.');
