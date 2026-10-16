@@ -41,3 +41,21 @@
 .brand-hero .brand-hero-reset{border:1px solid #b8dbe7;background:white;color:#103b5b;font-weight:700;font-size:12px}
 .brand-hero .brand-hero-reset:hover{background:#e4f6f9}
 @media(max-width:700px){.brand-hero{border-radius:12px;padding:25px 20px}.brand-hero::after{width:210px;height:210px;right:-120px;top:-80px}}
+
+.brand-shortcut{display:inline-flex;align-items:center;gap:6px}
+.brand-shortcut img{height:26px;width:26px;object-fit:contain;border-radius:4px;background:#fff}
+.brand-hero{min-height:200px}
+.brand-hero-content{width:min(100%,700px);padding-right:15px}
+.brand-hero-cover{position:absolute;right:0;top:0;width:47%;height:100%;object-fit:cover;opacity:.54;mask-image:linear-gradient(90deg,transparent,#000 70%)}
+.brand-hero-logo{display:block;max-width:175px;max-height:84px;width:auto;height:auto;object-fit:contain;background:#fff;padding:8px 10px;border-radius:8px;margin:0 0 18px}
+.brand-hero-tagline{font-size:17px;font-weight:700;margin:12px 0}
+.brand-hero-description{font-size:14px;max-width:620px}
+.brand-back-cover{max-width:1104px;margin:32px auto 45px;padding:24px;background:#fff;border:1px solid #dfe6e9;border-radius:14px}
+.brand-back-cover h2{font-size:18px}
+.brand-back-cover img{display:block;width:100%;height:auto;max-height:650px;object-fit:contain;margin:10px auto}
+.brand-admin fieldset{border:1px solid #d0dde4;border-radius:11px;min-width:0;display:grid;gap:12px;margin:0;padding:15px}
+.brand-admin legend{font-size:13px;font-weight:bold;padding:0 5px}
+.brand-admin-preview{display:block;max-height:150px;max-width:100%;object-fit:contain;background:#f4f7fa;border-radius:8px;margin:auto}
+.brand-admin-link{display:inline-flex;align-items:center;border:1px solid #c8d9e3;border-radius:8px;padding:10px 15px;text-decoration:none;color:var(--navy);background:#fff}
+.brand-admin fieldset input{min-width:0}
+@media(max-width:700px){.brand-hero-cover{width:70%;opacity:.23}.brand-hero-content{padding-right:0}.brand-hero-logo{max-width:150px;max-height:75px}.brand-back-cover{padding:14px}}
