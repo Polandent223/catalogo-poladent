@@ -110,6 +110,16 @@ export async function saveBrand(id, entry) {
   await batch.commit();
   return key;
 }
+// Una sola consulta al inventario para evitar cargarlo dos veces en el panel.
+export async function listAdminOverview() {
+  await adminCheck();
+  const snap = await getDocs(collection(db, 'catalogProducts'));
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return {
+    products: all.filter(p => !p.kind && p.id !== '_catalog_state').sort(sortProducts),
+    cleanups: all.filter(p => p.kind === 'image_cleanup' && typeof p.image_path === 'string')
+  };
+}
 function markCatalogActive(batch) {
   // Al activarse el catálogo, ya no se volverán a mostrar los datos locales
   // aunque el administrador oculte o elimine todos los productos.
@@ -213,13 +223,19 @@ export async function retryImageCleanups() {
 }
 export async function importProducts(rows) {
   await adminCheck();
+  if (!Array.isArray(rows) || rows.length > 80) {
+    throw Error('Importa hasta 80 productos por bloque. El panel divide los archivos grandes automáticamente.');
+  }
+  if (!rows.length) return;
   const batch = writeBatch(db);
   markCatalogActive(batch);
   for (const body of rows) {
     const product = sanitize(body);
+    if (!product.name || !product.brand || !['available', 'sold_out', 'hidden'].includes(product.status)
+        || !validImage(product.image_url)) throw Error('Producto incompleto en la importación: ' + (product.name || 'sin nombre'));
     const key = doc(collection(db, 'catalogProducts')).id;
     batch.set(doc(db, 'catalogProducts', key), product);
-    batch.set(doc(db, 'catalogPublic', key), product);
+    if (product.status !== 'hidden') batch.set(doc(db, 'catalogPublic', key), product);
   }
   await batch.commit();
 }
