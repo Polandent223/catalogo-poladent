@@ -65,3 +65,12 @@ export async function listAdminOverview() {
   const [products, cleanups] = await Promise.all([client.listProducts(true), listImageCleanups()]);
   return { products, cleanups };
 }
+
+export async function getWhatsAppContacts() {
+  if (usingFirebase) return client.getWhatsAppContacts();
+  return [];
+}
+export async function saveWhatsAppContacts(contacts) {
+  if (!usingFirebase) throw Error('La configuración de WhatsApp requiere Firebase.');
+  return client.saveWhatsAppContacts(contacts);
+}
