@@ -99,9 +99,12 @@ brand.addEventListener('change',()=>selectBrand(brand.value));
 available.addEventListener('change',()=>{limit=12;render()});
 copyBrand.onclick=async()=>{const url=brandUrl(brand.value);try{await navigator.clipboard.writeText(url);copyBrand.textContent='Enlace copiado';}catch{copyBrand.textContent='Enlace: '+url;}};
 more.onclick=()=>{limit+=12;render()};
-async function load(){try{if(configured){
-        const [remote,brandData,contactData,publishedShares]=await Promise.all([listProducts(),listBrands().catch(() => []),getWhatsAppContacts().catch(() => []),loadShareManifest()]);profiles=brandData;contacts=contactData;shareIds=publishedShares;
+async function load(){
+  // Obtener el manifiesto de vistas previas en paralelo, sin bloquear el catálogo.
+  loadShareManifest().then(ids=>{shareIds=ids;if(selected)renderInquiry();});
+  try{if(configured){
+        const [remote,brandData,contactData]=await Promise.all([listProducts(),listBrands().catch(() => []),getWhatsAppContacts().catch(() => [])]);profiles=brandData;contacts=contactData;
         const initialized=remote.some(p=>p.id==='_catalog_state');
         const visible=remote.filter(p=>p.id!=='_catalog_state');
         products=initialized||visible.length?visible:legacy();
-      }else{products=legacy();shareIds=await loadShareManifest();}for(const name of [...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort()){const option=element('option',name);option.value=name;brand.append(option)}const fromLink=new URLSearchParams(location.search).get('marca');if(fromLink&&[...products.map(p=>p.brand),...profiles.map(p=>p.name)].includes(fromLink))brand.value=fromLink;render();const id=new URLSearchParams(location.hash.slice(1)).get('producto');if(id){const p=products.find(p=>String(p.id)===id);if(p)open(p)}}catch{status.textContent='No pudimos cargar el catálogo. Intenta recargar la página.'}}load();
+      }else{products=legacy();}for(const name of [...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort()){const option=element('option',name);option.value=name;brand.append(option)}const fromLink=new URLSearchParams(location.search).get('marca');if(fromLink&&[...products.map(p=>p.brand),...profiles.map(p=>p.name)].includes(fromLink))brand.value=fromLink;render();const id=new URLSearchParams(location.hash.slice(1)).get('producto');if(id){const p=products.find(p=>String(p.id)===id);if(p)open(p)}}catch{status.textContent='No pudimos cargar el catálogo. Intenta recargar la página.'}}load();
