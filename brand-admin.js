@@ -68,13 +68,13 @@ $('#brand-cancel').onclick = clear;
 $('#brand-logout').onclick = async () => { await logout(); location.reload(); };
 form.onsubmit = async event => {
   event.preventDefault(); if (busy) return;
-  const name = form.elements.name.value.trim();
+  const name = form.elements.namedItem('name').value.trim();
   if (!name) return tell('Debes indicar una marca.',true);
   const duplicate = profiles.find(p => p.name.toLowerCase() === name.toLowerCase() && p.id !== editing?.id);
   if (duplicate) return tell('Ya existe una presentación con este nombre. Edita la existente.', true);
-  const info = { name, tagline: form.elements.tagline.value.trim(),
-    description: form.elements.description.value.trim(),
-    sort_order: Number(form.elements.sort_order.value) || 0 };
+  const info = { name, tagline: form.elements.namedItem('tagline').value.trim(),
+    description: form.elements.namedItem('description').value.trim(),
+    sort_order: Number(form.elements.namedItem('sort_order').value) || 0 };
   const uploaded = [];
   status(true);
   try {
