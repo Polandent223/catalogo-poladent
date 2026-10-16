@@ -77,7 +77,7 @@ function sortProducts(a, b) {
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && p.kind !== 'contact_settings' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
 }
 export async function listBrands(admin = false) {
   if (admin) await adminCheck();
@@ -85,6 +85,46 @@ export async function listBrands(admin = false) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .filter(p => p.kind === 'brand_profile')
     .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || a.name.localeCompare(b.name, 'es'));
+}
+// Agenda de WhatsApp: los números de negocio son públicos, pero editarlos
+// siempre exige iniciar sesión y tener catalogAdmins/{uid}.active=true.
+const CONTACTS_DOC = '_catalog_contacts';
+export async function getWhatsAppContacts() {
+  const snapshot = await getDoc(doc(db, 'catalogPublic', CONTACTS_DOC));
+  if (!snapshot.exists() || snapshot.data().kind !== 'contact_settings') return [];
+  return (Array.isArray(snapshot.data().contacts) ? snapshot.data().contacts : [])
+    .filter(p => typeof p.label === 'string' && typeof p.phone === 'string'
+      && /^[1-9][0-9]{7,14}$/.test(p.phone))
+    .slice(0, 5)
+    .map(p => ({ label: p.label.slice(0, 55), phone: p.phone }));
+}
+export async function saveWhatsAppContacts(contacts) {
+  await adminCheck();
+  if (!Array.isArray(contacts) || contacts.length > 5) {
+    throw Error('Puedes configurar hasta 5 números de WhatsApp.');
+  }
+  const cleaned = [];
+  const seen = new Set();
+  for (const entry of contacts) {
+    const label = String(entry.label || '').trim();
+    const phone = String(entry.phone || '').replace(/[\s()+.\-]/g, '');
+    if (!label || label.length > 55) throw Error('Escribe un nombre de atención válido (máximo 55 caracteres).');
+    if (!/^[1-9][0-9]{7,14}$/.test(phone)) {
+      throw Error('El número de ' + label + ' debe incluir el código de país, sin el cero inicial. Ejemplo: 58412XXXXXXX.');
+    }
+    if (seen.has(phone)) throw Error('El número de ' + label + ' está repetido.');
+    seen.add(phone);
+    cleaned.push({ label, phone });
+  }
+  const data = {
+    kind: 'contact_settings', status: 'available', contacts: cleaned,
+    updated_at: new Date().toISOString()
+  };
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data);
+  batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data);
+  await batch.commit();
+  return cleaned;
 }
 export async function saveBrand(id, entry) {
   await adminCheck();
