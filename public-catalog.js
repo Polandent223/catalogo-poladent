@@ -1,4 +1,5 @@
 import{configured,listProducts,listBrands,getWhatsAppContacts,validImage}from'./catalog-service.js';
+import {whatsappInquiryURL} from './contact-links.js';
 const grid=document.querySelector('#products'),status=document.querySelector('#catalog-status'),search=document.querySelector('#product-search'),brand=document.querySelector('#brand-filter'),available=document.querySelector('#available'),more=document.querySelector('#more'),dialog=document.querySelector('#detail');let products=[],profiles=[],contacts=[],limit=12;const shortcuts=document.querySelector('#brand-shortcuts'),copyBrand=document.querySelector('#copy-brand');
 const labels={available:'Disponible',sold_out:'Agotado'};
 function legacy(){return paginas.filter(p=>![1,16,30].includes(p.pagina)).map(p=>({id:'adalta-'+p.pagina,name:p.nombre,brand:'ADALTA',image_url:p.archivo,status:'available',description:'',sort_order:p.pagina}))}
@@ -48,15 +49,6 @@ function productUrl(p){
   url.searchParams.set('marca',p.brand);
   url.hash='producto='+encodeURIComponent(p.id);
   return url.href;
-}
-export function whatsappInquiryURL(phone,p,link){
-  // El destinatario se establece en Firebase y se valida de nuevo antes de generar el enlace.
-  if(!/^[1-9][0-9]{7,14}$/.test(String(phone)))return '';
-  const greeting=p.status==='sold_out'
-    ? 'Hola, quisiera saber cuándo estará disponible este producto de POLADENT Casa Dental:'
-    : 'Hola, quisiera consultar precio y disponibilidad de este producto de POLADENT Casa Dental:';
-  const message=[greeting,'Producto: '+p.name,'Marca: '+p.brand,'Enlace: '+link].join('\\n');
-  return 'https://wa.me/'+phone+'?text='+encodeURIComponent(message);
 }
 let selected=null;
 function renderInquiry(){
