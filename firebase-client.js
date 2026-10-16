@@ -2,7 +2,7 @@
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -81,9 +81,8 @@ export async function listProducts(admin = false) {
 }
 export async function listBrands(admin = false) {
   if (admin) await adminCheck();
-  const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
+  const snap = await getDocs(query(collection(db, admin ? 'catalogProducts' : 'catalogPublic'), where('kind', '==', 'brand_profile')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-    .filter(p => p.kind === 'brand_profile')
     .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || a.name.localeCompare(b.name, 'es'));
 }
 // Agenda de WhatsApp: los números de negocio son públicos, pero editarlos
