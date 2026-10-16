@@ -59,3 +59,17 @@
 .brand-admin-link{display:inline-flex;align-items:center;border:1px solid #c8d9e3;border-radius:8px;padding:10px 15px;text-decoration:none;color:var(--navy);background:#fff}
 .brand-admin fieldset input{min-width:0}
 @media(max-width:700px){.brand-hero-cover{width:70%;opacity:.23}.brand-hero-content{padding-right:0}.brand-hero-logo{max-width:150px;max-height:75px}.brand-back-cover{padding:14px}}
+
+/* Importación masiva: panel legible sin cargar todas las fichas a la vez */
+.bulk-import{margin:20px 0;padding:24px;border-radius:14px;background:#fff;border:1px solid #d4dfe6;box-shadow:0 3px 13px rgba(10,35,65,.04)}
+.bulk-import h2{font-size:23px;margin:0 0 10px;color:var(--navy)}
+.bulk-import p{font-size:13px;line-height:1.7;color:#496172;max-width:920px}
+.bulk-import .bulk-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.bulk-import label{font-size:13px;display:grid;gap:10px;font-weight:600;min-width:0}
+.bulk-import input{display:block;width:100%;padding:13px;border:1px solid #bac9d5;border-radius:8px;background:#f8fbfd;color:var(--navy)}
+.bulk-import #bulk-preview{padding:14px 16px;background:#eff5f9;border-left:3px solid #0787aa;border-radius:7px;max-width:none}
+.bulk-import #bulk-progress{font-size:13px;font-weight:600;max-width:none;white-space:pre-wrap}
+.admin-list-count{font-size:12px;color:#607282;margin:8px 0}
+#admin-more{display:block;margin:14px auto 25px}
+#admin-more[hidden]{display:none}
+@media(max-width:700px){.bulk-import{padding:16px}.bulk-import .bulk-fields{grid-template-columns:1fr}.bulk-import h2{font-size:20px}}
