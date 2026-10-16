@@ -29,13 +29,13 @@ function showWelcome(url){
 async function readWelcome(){
   const cfg=window.CATALOGO_FIREBASE||{};
   if(!cfg.projectId||!cfg.apiKey)return null;
-  const endpoint=new URL('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(cfg.projectId)+'/databases/(default)/documents/catalogPublic/_site_welcome');
+  const endpoint=new URL('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(cfg.projectId)+'/databases/(default)/documents/catalogPublic/_catalog_contacts');
   endpoint.searchParams.set('key',cfg.apiKey);
   const response=await fetch(endpoint.href,{cache:'no-store',signal:AbortSignal.timeout(4500)});
   if(!response.ok)return null;
   const data=(await response.json()).fields||{};
-  if(data.enabled?.booleanValue!==true || data.kind?.stringValue!=='site_welcome')return null;
-  const raw=data.image_url?.stringValue;
+  if(data.welcome_enabled?.booleanValue!==true || data.kind?.stringValue!=='contact_settings')return null;
+  const raw=data.welcome_image_url?.stringValue;
   if(typeof raw!=='string')return null;
   const image=new URL(raw);
   if(image.protocol!=='https:')return null;

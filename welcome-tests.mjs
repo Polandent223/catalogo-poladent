@@ -23,7 +23,9 @@ assert.ok(!html.includes('src="public-catalog.js"'), 'El catálogo no debe preca
 const welcome=readFileSync('welcome.js','utf8');
 assert.ok(welcome.includes("import('./public-catalog.js')"));
 assert.ok(welcome.includes("getElement")===false);
-assert.ok(welcome.includes("catalogPublic/_site_welcome"));
+assert.ok(welcome.includes("catalogPublic/_catalog_contacts"));
+assert.ok(welcome.includes("data.welcome_enabled?.booleanValue!==true"));
+assert.ok(welcome.includes("data.welcome_image_url?.stringValue"));
 assert.ok(welcome.includes("if(shouldSkipWelcome(location.href))enterCatalog()"));
 assert.ok(welcome.includes("$('#welcome-enter').addEventListener('click'"));
 assert.ok(welcome.includes("$('#welcome-enter-mobile').addEventListener('click'"));
@@ -31,12 +33,25 @@ const admin=readFileSync('admin.html','utf8');
 assert.ok(admin.includes('href="portada.html"'));
 const firebase=readFileSync('firebase-client.js','utf8');
 assert.ok(firebase.includes('await adminCheck();\n  const url=String(settings.image_url'));
-assert.ok(firebase.includes("doc(db,'catalogPublic',WELCOME_DOC)"));
+assert.ok(firebase.includes("doc(db,'catalogPublic',CONTACTS_DOC)"));
+assert.ok(firebase.includes("doc(db,'catalogProducts',CONTACTS_DOC)"));
+assert.ok(firebase.includes("batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true})"));
+assert.ok(firebase.includes("batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true})"));
+assert.ok(firebase.includes("batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data, {merge:true})"));
+assert.ok(firebase.includes("batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data, {merge:true})"));
+assert.ok(firebase.includes("welcome_image_url:url"));
+assert.ok(firebase.includes("welcome_enabled:settings.enabled===true"));
+assert.ok(firebase.includes("contacts: cleaned"));
+
 const welcomeData=firebase.slice(firebase.indexOf('export async function saveWelcomeSettings('),firebase.indexOf('// Agenda de WhatsApp'));
 assert.ok(welcomeData.includes("status:'available'"),'La portada debe tener estado permitido por Firestore');
 const rules=readFileSync('firestore.rules','utf8');
 assert.ok(rules.includes("request.resource.data.status in ['available', 'sold_out']"));
 
+const welcomePanel=readFileSync('welcome-admin.js','utf8');
+assert.ok(welcomePanel.includes("step==='firestore'"));
+assert.ok(welcomePanel.includes("pendingUpload=uploaded"));
+assert.ok(welcomePanel.includes("La fotografía ya está subida"));
 const publicJS=readFileSync('catalog-public-data.js','utf8');
 assert.ok(publicJS.includes("if (data.kind || !allowedStatuses.has(data.status)"));
 console.log('Portada oficial: rutas, botón, activación y protección del administrador verificadas.');

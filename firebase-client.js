@@ -85,43 +85,58 @@ export async function listBrands(admin = false) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || a.name.localeCompare(b.name, 'es'));
 }
-// Portada oficial: solo administradores pueden publicarla o desactivarla.
-const WELCOME_DOC = '_site_welcome';
+// Se guardan los ajustes de portada en el documento de configuración
+// que ya utilizan los teléfonos WhatsApp. Evita crear un registro nuevo
+// cuando las reglas desplegadas de Firebase lo rechazan.
+const WELCOME_DOC = '_site_welcome'; // lectura de versiones anteriores
+const CONTACTS_DOC = '_catalog_contacts';
 export async function getWelcomeSettings() {
   await adminCheck();
-  const snap = await getDoc(doc(db,'catalogProducts',WELCOME_DOC));
-  if (!snap.exists()) return { enabled:false, image_url:'', image_path:null };
-  const value=snap.data();
+  const current=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+  const stored=current.exists()?current.data():{};
+  if (typeof stored.welcome_enabled === 'boolean') {
+    return {
+      enabled:stored.welcome_enabled === true,
+      image_url:String(stored.welcome_image_url||''),
+      image_path:stored.welcome_image_path||null
+    };
+  }
+  // Compatibilidad con los ajustes del primer sistema de portada.
+  const old=await getDoc(doc(db,'catalogProducts',WELCOME_DOC));
+  if(!old.exists())return {enabled:false,image_url:'',image_path:null};
+  const prior=old.data();
   return {
-    enabled:value.kind==='site_welcome' && value.enabled === true,
-    image_url:String(value.image_url||''),
-    image_path:value.image_path||null
+    enabled:prior.kind==='site_welcome'&&prior.enabled===true,
+    image_url:String(prior.image_url||''),
+    image_path:prior.image_path||null
   };
 }
 export async function saveWelcomeSettings(settings) {
   await adminCheck();
   const url=String(settings.image_url||'').trim();
-  if (!url || !validImage(url)) throw Error('Selecciona la portada oficial o proporciona un enlace de imagen HTTPS válido.');
+  if (!url||!validImage(url)) throw Error('Selecciona la portada oficial o proporciona un enlace de imagen HTTPS válido.');
+  // set(..., {merge:true}) conserva 'contacts' y cualquier campo futuro.
+  // Mantiene el mismo kind y status que los números de WhatsApp ya guardados.
   const data={
-    // Las reglas publicadas solo permiten guardar documentos publicos
-    // con status 'available' o 'sold_out'. Debe incluirse este campo
-    // también en las configuraciones para evitar permission-denied.
-    kind:'site_welcome',
+    kind:'contact_settings',
     status:'available',
-    enabled:settings.enabled===true,
-    image_url:url,
-    image_path:settings.image_path||null,
-    updated_at:new Date().toISOString()
+    welcome_enabled:settings.enabled===true,
+    welcome_image_url:url,
+    welcome_image_path:settings.image_path||null,
+    welcome_updated_at:new Date().toISOString()
   };
   const batch=writeBatch(db);
-  batch.set(doc(db,'catalogProducts',WELCOME_DOC),data);
-  batch.set(doc(db,'catalogPublic',WELCOME_DOC),data);
+  batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
   await batch.commit();
-  return data;
+  return {
+    enabled:data.welcome_enabled,
+    image_url:data.welcome_image_url,
+    image_path:data.welcome_image_path
+  };
 }
 // Agenda de WhatsApp: los números de negocio son públicos, pero editarlos
 // siempre exige iniciar sesión y tener catalogAdmins/{uid}.active=true.
-const CONTACTS_DOC = '_catalog_contacts';
 export async function getWhatsAppContacts() {
   const snapshot = await getDoc(doc(db, 'catalogPublic', CONTACTS_DOC));
   if (!snapshot.exists() || snapshot.data().kind !== 'contact_settings') return [];
@@ -154,8 +169,8 @@ export async function saveWhatsAppContacts(contacts) {
     updated_at: new Date().toISOString()
   };
   const batch = writeBatch(db);
-  batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data);
-  batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data);
+  batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data, {merge:true});
+  batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data, {merge:true});
   await batch.commit();
   return cleaned;
 }
