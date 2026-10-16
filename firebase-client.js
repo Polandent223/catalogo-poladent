@@ -85,6 +85,36 @@ export async function listBrands(admin = false) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || a.name.localeCompare(b.name, 'es'));
 }
+// Portada oficial: solo administradores pueden publicarla o desactivarla.
+const WELCOME_DOC = '_site_welcome';
+export async function getWelcomeSettings() {
+  await adminCheck();
+  const snap = await getDoc(doc(db,'catalogProducts',WELCOME_DOC));
+  if (!snap.exists()) return { enabled:false, image_url:'', image_path:null };
+  const value=snap.data();
+  return {
+    enabled:value.kind==='site_welcome' && value.enabled === true,
+    image_url:String(value.image_url||''),
+    image_path:value.image_path||null
+  };
+}
+export async function saveWelcomeSettings(settings) {
+  await adminCheck();
+  const url=String(settings.image_url||'').trim();
+  if (!url || !validImage(url)) throw Error('Selecciona la portada oficial o proporciona un enlace de imagen HTTPS válido.');
+  const data={
+    kind:'site_welcome',
+    enabled:settings.enabled===true,
+    image_url:url,
+    image_path:settings.image_path||null,
+    updated_at:new Date().toISOString()
+  };
+  const batch=writeBatch(db);
+  batch.set(doc(db,'catalogProducts',WELCOME_DOC),data);
+  batch.set(doc(db,'catalogPublic',WELCOME_DOC),data);
+  await batch.commit();
+  return data;
+}
 // Agenda de WhatsApp: los números de negocio son públicos, pero editarlos
 // siempre exige iniciar sesión y tener catalogAdmins/{uid}.active=true.
 const CONTACTS_DOC = '_catalog_contacts';
