@@ -4,7 +4,7 @@ function simple(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 }
 function key(value) { return simple(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
-function parseCSV(text) {
+export function parseCSV(text) {
   text = text.replace(/^\uFEFF/, '');
   const first = text.split(/\r?\n/, 1)[0] || '';
   const separator = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
@@ -54,7 +54,7 @@ function safeHttps(url) {
 }
 function sameProduct(p) { return key(p.brand) + '|' + key(p.name); }
 function safeImageName(name) { return simple(name.replace(/\\/g, '/').split('/').pop()); }
-function readEntries(text) {
+export function readEntries(text) {
   const table = parseCSV(text);
   if (!table.length) throw Error('El archivo CSV está vacío.');
   const head = table.shift().map(normalizeHeader);
