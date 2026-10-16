@@ -1,6 +1,6 @@
 import{configured,listProducts,listBrands,getWhatsAppContacts,validImage}from'./catalog-service.js';
 import {whatsappInquiryURL} from './contact-links.js';
-const grid=document.querySelector('#products'),status=document.querySelector('#catalog-status'),search=document.querySelector('#product-search'),brand=document.querySelector('#brand-filter'),available=document.querySelector('#available'),more=document.querySelector('#more'),dialog=document.querySelector('#detail');let products=[],profiles=[],contacts=[],limit=12;const shortcuts=document.querySelector('#brand-shortcuts'),copyBrand=document.querySelector('#copy-brand');
+const grid=document.querySelector('#products'),status=document.querySelector('#catalog-status'),search=document.querySelector('#product-search'),brand=document.querySelector('#brand-filter'),available=document.querySelector('#available'),more=document.querySelector('#more'),dialog=document.querySelector('#detail');let products=[],profiles=[],contacts=[],shareIds=new Set(),limit=12;const shortcuts=document.querySelector('#brand-shortcuts'),copyBrand=document.querySelector('#copy-brand');
 const labels={available:'Disponible',sold_out:'Agotado'};
 function legacy(){return paginas.filter(p=>![1,16,30].includes(p.pagina)).map(p=>({id:'adalta-'+p.pagina,name:p.nombre,brand:'ADALTA',image_url:p.archivo,status:'available',description:'',sort_order:p.pagina}))}
 function element(tag,text,className){const e=document.createElement(tag);if(text)e.textContent=text;if(className)e.className=className;return e}
@@ -50,6 +50,22 @@ function productUrl(p){
   url.hash='producto='+encodeURIComponent(p.id);
   return url.href;
 }
+// Los enlaces OG se activan únicamente cuando la página individual existe.
+// Los productos recién añadidos mantienen su enlace antiguo hasta la próxima sincronización.
+function shareProductUrl(p){
+  if(shareIds.has(String(p.id)))return new URL('share/'+encodeURIComponent(p.id)+'/',import.meta.url).href;
+  return productUrl(p);
+}
+async function loadShareManifest(){
+  try{
+    const url=new URL('share/manifest.json',import.meta.url);
+    const result=await fetch(url,{cache:'no-cache',signal:AbortSignal.timeout(7500)});
+    if(!result.ok)return new Set();
+    const data=await result.json();
+    if(!Array.isArray(data.ids))return new Set();
+    return new Set(data.ids.filter(v=>typeof v==='string'));
+  }catch{return new Set();}
+}
 let selected=null;
 function renderInquiry(){
   const block=document.querySelector('#product-inquiry'),chooser=document.querySelector('#inquiry-contact');
@@ -62,7 +78,7 @@ function renderInquiry(){
   }
   label.hidden=contacts.length===1;
   function update(){
-    link.href=whatsappInquiryURL(chooser.value,selected,productUrl(selected));
+    link.href=whatsappInquiryURL(chooser.value,selected,shareProductUrl(selected));
     link.textContent=selected.status==='sold_out'?'Consultar disponibilidad por WhatsApp ↗':'Consultar por WhatsApp ↗';
   }
   chooser.onchange=update;
@@ -77,15 +93,18 @@ function open(p){
   renderInquiry();
   if(!dialog.open)dialog.showModal();
 }
-document.querySelector('#close-detail').onclick=()=>dialog.close();dialog.onclose=()=>{selected=null;history.replaceState(null,'',brandUrl(brand.value));};document.querySelector('#share-product').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);document.querySelector('#share-status').textContent='Enlace copiado.'}catch{document.querySelector('#share-status').textContent='Copia el enlace de la barra del navegador.'}};
+document.querySelector('#close-detail').onclick=()=>dialog.close();dialog.onclose=()=>{selected=null;history.replaceState(null,'',brandUrl(brand.value));};document.querySelector('#share-product').onclick=async()=>{try{await navigator.clipboard.writeText(shareProductUrl(selected));document.querySelector('#share-status').textContent='Enlace del producto copiado.'}catch{document.querySelector('#share-status').textContent='Copia el enlace de la barra del navegador.'}};
 search.addEventListener('input',()=>{limit=12;render()});
 brand.addEventListener('change',()=>selectBrand(brand.value));
 available.addEventListener('change',()=>{limit=12;render()});
 copyBrand.onclick=async()=>{const url=brandUrl(brand.value);try{await navigator.clipboard.writeText(url);copyBrand.textContent='Enlace copiado';}catch{copyBrand.textContent='Enlace: '+url;}};
 more.onclick=()=>{limit+=12;render()};
-async function load(){try{if(configured){
+async function load(){
+  // Obtener el manifiesto de vistas previas en paralelo, sin bloquear el catálogo.
+  loadShareManifest().then(ids=>{shareIds=ids;if(selected)renderInquiry();});
+  try{if(configured){
         const [remote,brandData,contactData]=await Promise.all([listProducts(),listBrands().catch(() => []),getWhatsAppContacts().catch(() => [])]);profiles=brandData;contacts=contactData;
         const initialized=remote.some(p=>p.id==='_catalog_state');
         const visible=remote.filter(p=>p.id!=='_catalog_state');
         products=initialized||visible.length?visible:legacy();
-      }else products=legacy();for(const name of [...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort()){const option=element('option',name);option.value=name;brand.append(option)}const fromLink=new URLSearchParams(location.search).get('marca');if(fromLink&&[...products.map(p=>p.brand),...profiles.map(p=>p.name)].includes(fromLink))brand.value=fromLink;render();const id=new URLSearchParams(location.hash.slice(1)).get('producto');if(id){const p=products.find(p=>String(p.id)===id);if(p)open(p)}}catch{status.textContent='No pudimos cargar el catálogo. Intenta recargar la página.'}}load();
+      }else{products=legacy();}for(const name of [...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort()){const option=element('option',name);option.value=name;brand.append(option)}const fromLink=new URLSearchParams(location.search).get('marca');if(fromLink&&[...products.map(p=>p.brand),...profiles.map(p=>p.name)].includes(fromLink))brand.value=fromLink;render();const id=new URLSearchParams(location.hash.slice(1)).get('producto');if(id){const p=products.find(p=>String(p.id)===id);if(p)open(p)}}catch{status.textContent='No pudimos cargar el catálogo. Intenta recargar la página.'}}load();
