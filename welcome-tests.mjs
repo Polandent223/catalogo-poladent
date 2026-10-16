@@ -56,7 +56,7 @@ const publicJS=readFileSync('catalog-public-data.js','utf8');
 assert.ok(publicJS.includes("if (data.kind || !allowedStatuses.has(data.status)"));
 const styles=readFileSync('catalog-style.css','utf8');
 assert.ok(styles.includes('#welcome-screen[hidden],#welcome-loading[hidden],#catalog-app[hidden]{display:none!important}'), 'Pantallas ocultas no deben ocupar espacio');
-assert.ok(styles.includes('width:min(99vw,157svh,1920px)'), 'La portada debe aprovechar el área visual en PC');
+assert.ok(styles.includes('width:min(99vw,133.3svh,1920px)'), 'La portada debe aprovechar el área visual en PC');
 assert.ok(styles.includes('background:var(--welcome-backdrop'), 'Fondo extendido a partir de la portada oficial');
 assert.ok(styles.includes('.welcome-hotspot{display:block'), 'El CTA visible en la imagen debe ser interactivo en móviles');
 assert.ok(styles.includes('min-height:44px'), 'La zona de pulsación táctil debe ser cómoda');
