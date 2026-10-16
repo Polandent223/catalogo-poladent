@@ -1,7 +1,8 @@
 // Genera HTML estático con Open Graph para previsualizaciones individuales de WhatsApp.
 // Lee exclusivamente catalogPublic (Firestore) que ya es público; sin credenciales privadas.
 import {readFile, mkdir, writeFile, readdir, rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const site='https://polandent223.github.io/catalogo-poladent/';
 const publicUrl=new URL('share/',site).href;
@@ -70,7 +71,7 @@ img{display:block;width:100%;max-height:380px;object-fit:contain}a{display:inlin
 }
 async function readPublicProducts(){
   const config=await readFile('config.js','utf8');
-  const apiKey=config.match(/apiKey:\\s*['"]([^'"]+)['"]/)?.[1];
+  const apiKey=config.match(/apiKey:\s*['"]([^'"]+)['"]/)?.[1];
   if(!apiKey||apiKey.length<15)throw Error('No encontramos la API Key pública en config.js');
   const items=[];let token='';
   for(let page=0;page<100;page++){
@@ -98,7 +99,7 @@ async function readPublicProducts(){
   }
   throw Error('El catálogo tiene más páginas de las permitidas por el generador.');
 }
-const main=process.argv[1]&&new URL('file://'+join(process.cwd(),process.argv[1])).href===import.meta.url;
+const main=process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url);
 if(main){
   const products=await readPublicProducts();
   // No borrar vistas anteriores si el catálogo devolvió inesperadamente cero productos.
@@ -115,6 +116,6 @@ if(main){
     await mkdir(folder,{recursive:true});
     await writeFile(join(folder,'index.html'),productPage(p),'utf8');
   }
-  await writeFile(join(output,'manifest.json'),JSON.stringify({ids:[...ids].sort()},null,2)+'\\n','utf8');
+  await writeFile(join(output,'manifest.json'),JSON.stringify({ids:[...ids].sort()},null,2)+'\n','utf8');
   console.log('Previsualizaciones listas:',products.length,'productos públicos.');
 }
