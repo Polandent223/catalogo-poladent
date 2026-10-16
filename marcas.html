@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Marcas | Administración POLADENT</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"></head>
+<body>
+<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrar productos</a></header>
+<main class="admin-wrap brand-admin">
+<h1>Identidad de cada marca.</h1><p>Sube los logotipos originales, portadas y contraportadas de tus marcas. Esto no modifica los productos.</p>
+<p id="brand-message" role="status" aria-live="polite"></p>
+<form id="brand-login" class="admin-form"><h2>Acceso privado</h2>
+<label>Correo del administrador<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button class="primary">Entrar</button></form>
+<section id="brand-workspace" hidden>
+<div class="admin-actions"><button type="button" id="brand-new">Nueva presentación</button><a class="brand-admin-link" href="./">Ver catálogo público</a><button type="button" id="brand-logout">Cerrar sesión</button></div>
+<div class="admin-layout">
+<form id="brand-form" class="admin-form">
+<h2 id="brand-form-title">Nueva marca</h2><p>La marca debe tener el mismo nombre que aparece en sus productos.</p>
+<label>Marca<input name="name" list="existing-brands" maxlength="80" required placeholder="Ej. ADALTA"></label><datalist id="existing-brands"></datalist>
+<label>Frase de presentación<input name="tagline" maxlength="140" placeholder="Odontología y laboratorio dental"></label>
+<label>Descripción<textarea name="description" maxlength="500" placeholder="Describe la marca brevemente"></textarea></label>
+<label>Orden de presentación<input name="sort_order" type="number" min="0" max="100000" value="0"></label>
+<fieldset><legend>Logotipo original</legend>
+<label>Subir imagen JPG, PNG o WebP<input name="logo_file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O enlace público de imagen<input name="logo_url" type="url" placeholder="https://..."></label><img class="brand-admin-preview" id="logo-preview" alt="Logotipo actual" hidden></fieldset>
+<fieldset><legend>Portada de la marca</legend>
+<label>Subir portada<input name="cover_file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O enlace público de imagen<input name="cover_url" type="url" placeholder="https://..."></label><img class="brand-admin-preview" id="cover-preview" alt="Portada actual" hidden></fieldset>
+<fieldset><legend>Contraportada de la marca</legend>
+<label>Subir contraportada<input name="back_cover_file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O enlace público de imagen<input name="back_cover_url" type="url" placeholder="https://..."></label><img class="brand-admin-preview" id="back-cover-preview" alt="Contraportada actual" hidden></fieldset>
+<p>Al editar una marca, deja las imágenes sin seleccionar para conservar las actuales. No modificaremos ni rediseñaremos los logos.</p>
+<button class="primary" type="submit">Guardar presentación</button><button type="button" id="brand-cancel">Cancelar</button>
+</form>
+<section><h2>Marcas configuradas</h2><p>Selecciona Editar para cambiar sus portadas sin tocar los productos.</p><div id="brand-admin-list"></div></section>
+</div>
+</section></main>
+<script src="config.js"></script><script type="module" src="brand-admin.js"></script></body></html>
