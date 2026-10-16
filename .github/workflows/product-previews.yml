@@ -1,0 +1,41 @@
+name: Vistas previas de productos para WhatsApp
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+jobs:
+  previews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar HTML para redes sociales
+        run: node scripts/product-preview-tests.mjs
+      - name: Generar páginas individuales con datos públicos de Firestore
+        run: node scripts/generate-product-share.mjs
+      - name: Actualizar vistas previas y solicitar publicación
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A share/
+          if git diff --cached --quiet; then
+            echo "Vistas previas al día, sin cambios."
+          else
+            git commit -m "Actualizar vistas previas de productos [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            echo "Actualizados los HTML públicos; solicitando nueva publicación de GitHub Pages"
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" || echo "::warning::No se pudo forzar Pages. Revisar configuración de GitHub Pages."
+          fi
