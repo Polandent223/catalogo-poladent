@@ -77,7 +77,38 @@ function sortProducts(a, b) {
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup').sort(sortProducts);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
+}
+export async function listBrands(admin = false) {
+  if (admin) await adminCheck();
+  const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => p.kind === 'brand_profile')
+    .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0) || a.name.localeCompare(b.name, 'es'));
+}
+export async function saveBrand(id, entry) {
+  await adminCheck();
+  const name = String(entry.name || '').trim().slice(0, 80);
+  if (!name) throw Error('Indica el nombre de la marca.');
+  const profile = {
+    kind: 'brand_profile', name,
+    tagline: String(entry.tagline || '').trim().slice(0, 140),
+    description: String(entry.description || '').trim().slice(0, 500),
+    status: 'available', sort_order: Math.max(0, Number(entry.sort_order) || 0),
+    updated_at: new Date().toISOString()
+  };
+  for (const field of ['logo', 'cover', 'back_cover']) {
+    const url = entry[field + '_url'];
+    if (url && !validImage(url)) throw Error('Revisa el enlace de ' + field);
+    profile[field + '_url'] = url || '';
+    profile[field + '_path'] = entry[field + '_path'] || null;
+  }
+  const key = id || doc(collection(db, 'catalogProducts')).id;
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'catalogProducts', key), profile);
+  batch.set(doc(db, 'catalogPublic', key), profile);
+  await batch.commit();
+  return key;
 }
 function markCatalogActive(batch) {
   // Al activarse el catálogo, ya no se volverán a mostrar los datos locales

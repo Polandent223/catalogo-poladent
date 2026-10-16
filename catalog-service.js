@@ -50,3 +50,12 @@ export async function retryImageCleanups() {
   if (usingFirebase) return client.retryImageCleanups();
   return { deleted: 0, failures: [], pending: 0 };
 }
+
+export async function listBrands(admin = false) {
+  if (usingFirebase) return client.listBrands(admin);
+  return [];
+}
+export async function saveBrand(id, body) {
+  if (!usingFirebase) throw Error('La administración de marcas necesita Firebase.');
+  return client.saveBrand(id, body);
+}
