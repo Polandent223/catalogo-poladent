@@ -16,6 +16,10 @@ function enterCatalog(replaceURL=false){
   }
 }
 function showWelcome(url){
+  // La misma imagen sirve como ambientación desenfocada, sin otra descarga.
+  // La pieza gráfica original permanece intacta y el botón HTML es clickable.
+  const backdrop=$('#welcome-screen');
+  backdrop.style.setProperty('--welcome-backdrop','url('+JSON.stringify(url)+')');
   const frame=$('#welcome-image');
   frame.src=url;
   frame.decoding='async';
@@ -42,7 +46,6 @@ async function readWelcome(){
   return image.href;
 }
 $('#welcome-enter').addEventListener('click',()=>enterCatalog(true));
-$('#welcome-enter-mobile').addEventListener('click',()=>enterCatalog(true));
 if(shouldSkipWelcome(location.href))enterCatalog();
 else readWelcome().then(url=>url?showWelcome(url):enterCatalog()).catch(error=>{
   console.warn('Portada temporalmente no disponible; se abre el catálogo:',error);
