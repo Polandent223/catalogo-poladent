@@ -99,8 +99,9 @@ export function initBulkImport({getProducts, refresh, lock, uploadImage, removeI
   const preview = document.querySelector('#bulk-preview'), progress = document.querySelector('#bulk-progress');
   const start = document.querySelector('#bulk-start');
   let entries = [], candidates = [], fileMap = new Map(), valid = false;
-  async function update() {
-    start.disabled = true; valid = false; entries = []; candidates = []; progress.textContent = '';
+  async function update(resetProgress = true) {
+    start.disabled = true; valid = false; entries = []; candidates = [];
+    if (resetProgress) progress.textContent = '';
     if (!input.files?.length) {
       preview.textContent = 'Selecciona un CSV para comenzar.'; return;
     }
@@ -170,7 +171,7 @@ export function initBulkImport({getProducts, refresh, lock, uploadImage, removeI
       tell('Importación parcial: revisa el informe en Importar muchos productos.',true);
     } finally {
       lock(false);
-      try { await refresh(); await update(); }
+      try { await refresh(); await update(false); }
       catch(error) { progress.textContent += ' No se actualizó la lista: '+error.message; }
     }
   };
