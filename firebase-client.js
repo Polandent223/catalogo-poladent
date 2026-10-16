@@ -77,7 +77,7 @@ function sortProducts(a, b) {
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile').sort(sortProducts);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
 }
 export async function listBrands(admin = false) {
   if (admin) await adminCheck();
