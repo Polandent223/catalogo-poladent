@@ -228,3 +228,28 @@ body.has-welcome{margin:0;background:#041a34}
   .analytics-insight-row{align-items:flex-start}
   .analytics-insight-row>span{padding-top:2px}
 }
+
+/* Portada independiente para teléfono: 9:16 sin recortes ni duplicación de textos.
+   Si aún no se configuró una imagen vertical, el aspecto anterior sigue intacto. */
+.welcome-picture{display:block;width:100%;height:auto;line-height:0}
+.welcome-picture img{display:block;width:100%;height:auto}
+.welcome-mobile-fields{display:grid;gap:11px;border-top:1px solid #cbdde8;padding-top:20px;margin-top:12px}
+.welcome-mobile-fields h3{font-size:19px;margin:0}
+.welcome-mobile-fields p{font-size:13px;color:#536c80;line-height:1.6;margin:0}
+.welcome-mobile-preview{max-width:340px;max-height:560px;aspect-ratio:9/16}
+@media(max-width:700px) and (orientation:portrait){
+  .welcome-screen.has-mobile-art{padding:0;min-height:100svh;justify-content:center;overflow:hidden}
+  .welcome-screen.has-mobile-art::before{
+    background:var(--welcome-mobile-backdrop,var(--welcome-backdrop));
+    background-size:cover;background-position:center
+  }
+  .welcome-screen.has-mobile-art .welcome-art{
+    width:min(100vw,56.28svh);
+    max-width:100vw;min-width:0;margin:auto;
+    box-shadow:0 12px 43px #00162c70
+  }
+  .welcome-screen.has-mobile-art .welcome-hotspot{
+    display:block;left:10.2%;top:71.1%;width:79.6%;height:9%;
+    min-height:44px;max-height:none;border-radius:999px
+  }
+}
