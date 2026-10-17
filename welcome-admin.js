@@ -1,86 +1,128 @@
 import {configured,login,logout,restoreSession,adminCheck,getWelcomeSettings,saveWelcomeSettings,uploadImage,validImage} from './catalog-service.js';
 const $=q=>document.querySelector(q),form=$('#welcome-form'),message=$('#welcome-admin-message');
-let current={enabled:false,image_url:'',image_path:null},busy=false,pendingUpload=null;
+let current={enabled:false,image_url:'',image_path:null,mobile_image_url:'',mobile_image_path:null};
+let busy=false,pendingDesktop=null,pendingMobile=null;
 function tell(value,error=false){message.textContent=value;message.className=error?'error':'';}
 function lock(value){busy=value;for(const field of document.querySelectorAll('#welcome-admin-workspace input,#welcome-admin-workspace button'))field.disabled=value;}
-function preview(url) {
-  const img=$('#welcome-admin-preview');img.hidden=!url;
+function preview(id,url){
+  const img=$(id);
+  img.hidden=!url;
   if(url)img.src=validImage(url);
   else img.removeAttribute('src');
 }
-async function show() {
+function previewFile(id,file,fallback){
+  if(!file)return preview(id,fallback);
+  const objectURL=URL.createObjectURL(file),img=$(id);
+  img.onload=()=>URL.revokeObjectURL(objectURL);
+  img.onerror=()=>URL.revokeObjectURL(objectURL);
+  img.src=objectURL;
+  img.hidden=false;
+}
+async function show(){
   await adminCheck();
   current=await getWelcomeSettings();
   $('#welcome-login').hidden=true;$('#welcome-admin-workspace').hidden=false;
   $('#welcome-active').checked=current.enabled;
-  preview(current.image_url);
+  preview('#welcome-admin-preview',current.image_url);
+  preview('#welcome-mobile-preview',current.mobile_image_url);
   tell(current.enabled?'La portada está activa para los clientes.':'La portada no está activa. El catálogo público sigue funcionando normalmente.');
 }
 $('#welcome-login').onsubmit=async e=>{
   e.preventDefault();const submit=e.submitter;submit.disabled=true;
-  try {
+  try{
     tell('Verificando acceso…');
     const data=new FormData(e.target);
     await login(String(data.get('email')).trim(),String(data.get('password')));
-    e.target.elements.password.value='';await show();
-  } catch(error){tell(error.message,true);}finally{submit.disabled=false;}
+    e.target.elements.password.value='';
+    await show();
+  }catch(error){tell(error.message,true);}finally{submit.disabled=false;}
 };
 $('#welcome-logout').onclick=async()=>{await logout();location.reload();};
-$('#welcome-file').addEventListener('change',event=>{
-  const file=event.target.files[0];
-  if(!file){preview(current.image_url);return;}
-  const temp=URL.createObjectURL(file);
-  const img=$('#welcome-admin-preview');
-  img.onload=()=>URL.revokeObjectURL(temp);
-  img.src=temp;img.hidden=false;
-});
+$('#welcome-file').addEventListener('change',e=>
+  previewFile('#welcome-admin-preview',e.target.files[0],current.image_url));
+$('#welcome-mobile-file').addEventListener('change',e=>
+  previewFile('#welcome-mobile-preview',e.target.files[0],current.mobile_image_url));
 $('#welcome-url').addEventListener('input',()=>{
   const value=$('#welcome-url').value.trim();
-  if(value && validImage(value))preview(value);
-  else if(!value)preview(current.image_url);
+  if(value&&validImage(value))preview('#welcome-admin-preview',value);
+  else if(!value)preview('#welcome-admin-preview',current.image_url);
+});
+$('#welcome-mobile-url').addEventListener('input',()=>{
+  const value=$('#welcome-mobile-url').value.trim();
+  if(value&&validImage(value))preview('#welcome-mobile-preview',value);
+  else if(!value)preview('#welcome-mobile-preview',current.mobile_image_url);
 });
 form.onsubmit=async e=>{
   e.preventDefault();if(busy)return;
-  const file=$('#welcome-file').files[0];
-  const url=$('#welcome-url').value.trim();
+  const desktopFile=$('#welcome-file').files[0];
+  const mobileFile=$('#welcome-mobile-file').files[0];
+  const desktopURL=$('#welcome-url').value.trim();
+  const mobileURL=$('#welcome-mobile-url').value.trim();
   const enabled=$('#welcome-active').checked;
-  if(url&&!validImage(url))return tell('Utiliza un enlace HTTPS válido.',true);
-  if(!file&&!url&&!current.image_url)return tell('Primero selecciona la imagen oficial aprobada.',true);
-  lock(true);let uploaded=null,step='image';
+  if(desktopURL&&!validImage(desktopURL))return tell('Utiliza un enlace HTTPS válido para la portada de PC.',true);
+  if(mobileURL&&(!validImage(mobileURL)||!mobileURL.startsWith('https://')))
+    return tell('La portada vertical necesita un enlace HTTPS válido.',true);
+  if(!desktopFile&&!desktopURL&&!current.image_url)return tell('Primero selecciona la portada horizontal oficial.',true);
+
+  lock(true);
+  let uploadedDesktop=null,uploadedMobile=null,step='desktop';
   try{
-    tell(file?'Subiendo imagen a Cloudinary…':'Guardando configuración en Firebase…');
-    if(file){
-      uploaded=await uploadImage(file);
-      pendingUpload=uploaded;
-    } else if(pendingUpload&&url===pendingUpload.url)uploaded=pendingUpload;
+    if(desktopFile){
+      tell('Subiendo portada horizontal a Cloudinary…');
+      uploadedDesktop=await uploadImage(desktopFile);
+      pendingDesktop=uploadedDesktop;
+    }else if(pendingDesktop&&desktopURL===pendingDesktop.url){
+      uploadedDesktop=pendingDesktop;
+    }
+
+    step='mobile';
+    if(mobileFile){
+      tell('Subiendo portada vertical a Cloudinary…');
+      uploadedMobile=await uploadImage(mobileFile);
+      pendingMobile=uploadedMobile;
+    }else if(pendingMobile&&mobileURL===pendingMobile.url){
+      uploadedMobile=pendingMobile;
+    }
+
     step='firestore';
-    tell('Fotografía lista. Guardando configuración en Firebase…');
-    const changedURL=Boolean(url&&url!==current.image_url);
-    const update={
+    tell('Imágenes listas. Guardando ambas configuraciones en Firebase…');
+    const desktopChanged=Boolean(desktopURL&&desktopURL!==current.image_url);
+    const mobileChanged=Boolean(mobileURL&&mobileURL!==current.mobile_image_url);
+    const nextDesktop=uploadedDesktop?.url||desktopURL||current.image_url;
+    const nextMobile=uploadedMobile?.url||mobileURL||current.mobile_image_url||'';
+    const updated=await saveWelcomeSettings({
       enabled,
-      image_url:uploaded?.url||url||current.image_url,
-      image_path:uploaded?.path||(changedURL?null:current.image_path)||null
-    };
-    current=await saveWelcomeSettings(update);
-    pendingUpload=null;
+      image_url:nextDesktop,
+      image_path:uploadedDesktop?.path||(desktopChanged?null:current.image_path)||null,
+      mobile_image_url:nextMobile,
+      mobile_image_path:uploadedMobile?.path||(mobileChanged?null:current.mobile_image_path)||null
+    });
+    current=updated;
+    pendingDesktop=null;pendingMobile=null;
     $('#welcome-file').value='';$('#welcome-url').value='';
-    preview(current.image_url);
-    tell(current.enabled?'Portada guardada y ACTIVADA. Puedes abrir el catálogo público para comprobar el botón.':'Portada guardada y DESACTIVADA. El catálogo sigue abriendo directamente.');
+    $('#welcome-mobile-file').value='';$('#welcome-mobile-url').value='';
+    preview('#welcome-admin-preview',current.image_url);
+    preview('#welcome-mobile-preview',current.mobile_image_url);
+    tell(current.enabled
+      ? 'Portadas guardadas y ACTIVADAS. Revisa desde un teléfono y una computadora.'
+      : 'Portadas guardadas, pero la bienvenida está DESACTIVADA.');
   }catch(error){
     const detail=error?.code?' ('+error.code+')':'';
-    const stage=step==='firestore'?'Firebase rechazó la configuración':'No se pudo subir la imagen';
-    const suggestion=error?.code==='permission-denied'
-      ? 'Revisa que las reglas actuales permitan actualizar catalogPublic/_catalog_contacts a tu administrador. No las abras a todos.'
-      : '';
-    if(uploaded){
-      pendingUpload=uploaded;
+    const stage=step==='firestore'?'Firebase rechazó la configuración'
+      :step==='mobile'?'No se pudo subir la portada vertical':'No se pudo subir la portada horizontal';
+    if(pendingDesktop){
       $('#welcome-file').value='';
-      $('#welcome-url').value=uploaded.url;
-      preview(uploaded.url);
+      $('#welcome-url').value=pendingDesktop.url;
+      preview('#welcome-admin-preview',pendingDesktop.url);
+    }
+    if(pendingMobile){
+      $('#welcome-mobile-file').value='';
+      $('#welcome-mobile-url').value=pendingMobile.url;
+      preview('#welcome-mobile-preview',pendingMobile.url);
     }
     tell(stage+': '+(error?.message||'error inesperado')+detail+
-      (suggestion?' '+suggestion:'')+
-      (uploaded?' La fotografía ya está subida: vuelve a guardar sin cargarla otra vez.':''),true);
+      (error?.code==='permission-denied'?' Comprueba los permisos de tu administrador; no abras las reglas al público.':'')+
+      (pendingDesktop||pendingMobile?' La imagen ya subida se conserva: pulsa Guardar otra vez sin volver a cargarla.':''),true);
   }finally{lock(false);}
 };
 if(!configured){$('#welcome-login').hidden=true;tell('La portada necesita Firebase configurado.',true);}
