@@ -1,5 +1,6 @@
 // Datos mínimos de una cotización; no se almacenan en Firebase.
 export const PURCHASE_TIMINGS=Object.freeze({
+  today:'Hoy',
   this_week:'Esta semana',
   this_month:'Este mes',
   later:'Más adelante',
