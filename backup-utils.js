@@ -22,7 +22,10 @@ export function verifyBackupStructure(data){
       throw Error('Conteo incorrecto de documentos en '+name);
     const seen=new Set();
     for(const doc of data.collections[name]){
-      if(typeof doc?.name!=='string'||!doc.name.includes('/documents/'+name+'/'))
+      const marker='/documents/'+name+'/';
+      if(typeof doc?.name!=='string'||!doc.name.includes(marker)||
+         !doc.name.slice(doc.name.indexOf(marker)+marker.length)||
+         doc.name.slice(doc.name.indexOf(marker)+marker.length).includes('/'))
         throw Error('Ruta de documento inesperada en '+name);
       if(!doc.fields||typeof doc.fields!=='object'||Array.isArray(doc.fields))
         throw Error('Campos inválidos en '+name);
