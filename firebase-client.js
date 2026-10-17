@@ -98,23 +98,30 @@ export async function getWelcomeSettings() {
     return {
       enabled:stored.welcome_enabled === true,
       image_url:String(stored.welcome_image_url||''),
-      image_path:stored.welcome_image_path||null
+      image_path:stored.welcome_image_path||null,
+      mobile_image_url:String(stored.welcome_mobile_image_url||''),
+      mobile_image_path:stored.welcome_mobile_image_path||null
     };
   }
   // Compatibilidad con los ajustes del primer sistema de portada.
   const old=await getDoc(doc(db,'catalogProducts',WELCOME_DOC));
-  if(!old.exists())return {enabled:false,image_url:'',image_path:null};
+  if(!old.exists())return {enabled:false,image_url:'',image_path:null,mobile_image_url:'',mobile_image_path:null};
   const prior=old.data();
   return {
     enabled:prior.kind==='site_welcome'&&prior.enabled===true,
     image_url:String(prior.image_url||''),
-    image_path:prior.image_path||null
+    image_path:prior.image_path||null,
+    mobile_image_url:'',
+    mobile_image_path:null
   };
 }
 export async function saveWelcomeSettings(settings) {
   await adminCheck();
   const url=String(settings.image_url||'').trim();
   if (!url||!validImage(url)) throw Error('Selecciona la portada oficial o proporciona un enlace de imagen HTTPS válido.');
+  const mobileURL=String(settings.mobile_image_url||'').trim();
+  if(mobileURL && (!validImage(mobileURL)||new URL(mobileURL).protocol!=='https:'))
+    throw Error('La portada móvil necesita una imagen con enlace HTTPS.');
   // set(..., {merge:true}) conserva 'contacts' y cualquier campo futuro.
   // Mantiene el mismo kind y status que los números de WhatsApp ya guardados.
   const data={
@@ -123,6 +130,8 @@ export async function saveWelcomeSettings(settings) {
     welcome_enabled:settings.enabled===true,
     welcome_image_url:url,
     welcome_image_path:settings.image_path||null,
+    welcome_mobile_image_url:mobileURL,
+    welcome_mobile_image_path:mobileURL?(settings.mobile_image_path||null):null,
     welcome_updated_at:new Date().toISOString()
   };
   const batch=writeBatch(db);
@@ -132,7 +141,9 @@ export async function saveWelcomeSettings(settings) {
   return {
     enabled:data.welcome_enabled,
     image_url:data.welcome_image_url,
-    image_path:data.welcome_image_path
+    image_path:data.welcome_image_path,
+    mobile_image_url:data.welcome_mobile_image_url,
+    mobile_image_path:data.welcome_mobile_image_path
   };
 }
 // Agenda de WhatsApp: los números de negocio son públicos, pero editarlos
