@@ -253,3 +253,14 @@ body.has-welcome{margin:0;background:#041a34}
     min-height:44px;max-height:none;border-radius:999px
   }
 }
+
+/* Respaldo privado y verificación local del archivo JSON */
+.backup-admin{max-width:900px}
+.backup-admin #backup-login{max-width:540px}
+.backup-guidance{border:1px solid #cbdde9;padding:clamp(18px,3vw,28px);border-radius:14px;background:#f7fbfd;margin:24px 0}
+.backup-guidance h2{font-size:21px;margin:0 0 12px}
+.backup-guidance ul{padding-left:21px;line-height:1.8}
+.backup-guidance p{font-size:13px;line-height:1.75;color:#37546a}
+.backup-guidance button{margin:15px 0}
+#backup-message.error{color:#a23232}
+#backup-overview{overflow-wrap:anywhere;font-size:12px;line-height:1.7;color:#264963}

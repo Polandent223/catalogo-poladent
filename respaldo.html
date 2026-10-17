@@ -1,0 +1,32 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Respaldo privado | POLADENT Casa Dental</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"></head>
+<body><header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Volver al administrador</a></header>
+<main class="admin-wrap backup-admin">
+<p class="eyebrow">SEGURIDAD · SOLO ADMINISTRADORES</p>
+<h1>Respaldo privado del catálogo</h1>
+<p>Descarga una copia de los documentos de productos, configuraciones y estadísticas. Este proceso <strong>solo lee</strong> Firestore: no borra, modifica, restaura ni cambia las reglas.</p>
+<p id="backup-message" role="status" aria-live="polite"></p>
+<form id="backup-login" class="admin-form">
+<h2>Acceso privado</h2>
+<label>Correo de administrador<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button class="primary" type="submit">Entrar</button></form>
+<section id="backup-workspace" hidden>
+<div class="admin-actions"><a class="brand-admin-link" href="admin.html">Volver a productos</a>
+<button id="backup-logout" type="button">Cerrar sesión</button></div>
+<div class="backup-guidance">
+<h2>¿Qué incluye esta descarga?</h2>
+<ul>
+<li><strong>catalogProducts:</strong> productos privados, portadas, marcas y configuración de contactos</li>
+<li><strong>catalogPublic:</strong> productos públicos y configuración compartida</li>
+<li><strong>catalogAnalyticsEvents:</strong> historial de visitas, tiempo y clics de WhatsApp</li>
+</ul>
+<p>Se descargará un archivo JSON con nombres e identificadores originales y valores tipados de Firestore, conteos de documentos y una huella SHA-256. No se entregan archivos parciales si falla una colección.</p>
+<p><strong>No incluye:</strong> fotografías originales guardadas en Cloudinary, usuarios de Authentication, otras colecciones o un respaldo automático de todo Firebase. Si necesitas una copia de recuperación integral, también debes respaldar esos sistemas por separado.</p>
+<p><strong>Privacidad:</strong> el archivo puede incluir números de WhatsApp y datos internos. No lo compartas públicamente ni lo subas a GitHub.</p>
+<button id="backup-download" class="primary" type="button">Descargar respaldo privado JSON</button>
+<div id="backup-overview" role="status" aria-live="polite"></div>
+</div>
+</section>
+</main><script src="config.js"></script><script type="module" src="backup-admin.js"></script></body></html>
