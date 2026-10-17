@@ -1,0 +1,11 @@
+# POLADENT Casa Dental: contenido comercial público.
+# La exclusión de robots NO sustituye la autenticación de las páginas privadas.
+User-agent: *
+Allow: /catalogo-poladent/
+Disallow: /catalogo-poladent/admin.html
+Disallow: /catalogo-poladent/marcas.html
+Disallow: /catalogo-poladent/contacto.html
+Disallow: /catalogo-poladent/portada.html
+Disallow: /catalogo-poladent/estadisticas.html
+Disallow: /catalogo-poladent/respaldo.html
+Sitemap: https://polandent223.github.io/catalogo-poladent/sitemap.xml
