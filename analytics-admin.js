@@ -34,7 +34,7 @@ function appendInsightRow(container,name,detail,count,labelText){
   container.append(row);
 }
 function renderComparisons(current,previous,label){
-  setContent('analytics-comparison-description',label+'. En el mes actual los resultados son provisionales.');
+  setContent('analytics-comparison-description',label+(label.startsWith('Mismos días')?' · Mes actual, cifras provisionales.':'.'));
   setContent('compare-visits',metricChange(current.visits,previous.visits));
   setContent('compare-whatsapp',metricChange(current.whatsappClicks,previous.whatsappClicks));
   setContent('compare-visits-values',current.visits+' visitas frente a '+previous.visits);
