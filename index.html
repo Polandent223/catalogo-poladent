@@ -2,7 +2,10 @@
 <div id="welcome-loading" role="status" aria-live="polite">POLADENT <span>Casa Dental</span></div>
 <section id="welcome-screen" class="welcome-screen" aria-label="Bienvenido a POLADENT" hidden>
   <div class="welcome-art">
-    <img id="welcome-image" alt="Portada de bienvenida de POLADENT" width="1448" height="1086" fetchpriority="high">
+    <picture class="welcome-picture">
+      <source id="welcome-mobile-source" media="(max-width:700px)" width="941" height="1672">
+      <img id="welcome-image" alt="Portada de bienvenida de POLADENT" width="1448" height="1086" fetchpriority="high">
+    </picture>
     <button type="button" id="welcome-enter" class="welcome-hotspot" aria-label="Entrar al catálogo de POLADENT">
       <span class="welcome-sr-only">Entrar al catálogo</span>
     </button>
