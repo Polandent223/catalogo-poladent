@@ -66,7 +66,7 @@ assert.ok(welcomePanel.includes("$('#welcome-mobile-file')"));
 assert.ok(welcomePanel.includes("$('#welcome-mobile-url')"));
 assert.ok(welcomePanel.includes("mobile_image_path:"));
 assert.ok(!welcomePanel.includes('deleteObject('));
-assert.ok(welcomePanel.includes("La fotografía ya está subida"));
+assert.ok(welcomePanel.includes("La imagen ya subida se conserva"));
 const publicJS=readFileSync('catalog-public-data.js','utf8');
 assert.ok(publicJS.includes("if (data.kind || !allowedStatuses.has(data.status)"));
 const styles=readFileSync('catalog-style.css','utf8');
