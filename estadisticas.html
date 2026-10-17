@@ -22,10 +22,25 @@
 <article><span>Consultas iniciadas por WhatsApp</span><strong id="metric-whatsapp">—</strong></article>
 <article><span>Productos abiertos</span><strong id="metric-products">—</strong></article>
 </div>
+<section class="analytics-panel analytics-comparison" aria-labelledby="analytics-comparison-heading">
+<h3 id="analytics-comparison-heading">Comparación con el periodo anterior</h3>
+<p id="analytics-comparison-description" class="analytics-comparison-description">Las diferencias aparecerán al cargar el historial.</p>
+<div class="analytics-comparison-grid">
+<div><span>Visitas</span><strong id="compare-visits">—</strong><small id="compare-visits-values"></small></div>
+<div><span>Consultas iniciadas por WhatsApp</span><strong id="compare-whatsapp">—</strong><small id="compare-whatsapp-values"></small></div>
+</div></section>
 <div class="analytics-columns">
 <section class="analytics-panel"><h3>Visitas por día</h3><div id="analytics-chart"></div></section>
 <section class="analytics-panel"><h3>Marcas más exploradas</h3><div id="analytics-brands"></div></section>
 </div>
-<p class="analytics-note">Se cuentan <strong>visitas</strong>, no personas únicas. El tiempo es aproximado y solo considera la página visible. Las consultas son clics para abrir WhatsApp; no significa que el mensaje se haya enviado. El historial comienza cuando se activan las reglas de estadísticas en Firebase. No se almacenan teléfonos ni mensajes de los visitantes.</p>
+<div class="analytics-columns analytics-insights">
+<section class="analytics-panel"><h3>Productos más abiertos</h3>
+<p class="analytics-panel-description">Cantidad de veces que se abrió la ficha del producto. Incluye los clics hacia WhatsApp iniciados desde esa ficha.</p>
+<div id="analytics-products"></div></section>
+<section class="analytics-panel"><h3>Consultas por WhatsApp según la marca</h3>
+<p class="analytics-panel-description">Clics en el botón «Consultar por WhatsApp», no mensajes enviados.</p>
+<div id="analytics-whatsapp-brands"></div></section>
+</div>
+<p class="analytics-note">Se cuentan <strong>visitas</strong>, no personas únicas. El tiempo es aproximado y solo considera la página visible. Las consultas son clics para abrir WhatsApp; no significa que el mensaje se haya enviado. El historial comienza cuando se activaron las reglas de estadísticas en Firebase. Los productos eliminados pueden aparecer únicamente con su identificador histórico; sus registros no se borran. No se almacenan teléfonos ni mensajes de los visitantes.</p>
 </section></main>
 <script src="config.js"></script><script type="module" src="analytics-admin.js"></script></body></html>
