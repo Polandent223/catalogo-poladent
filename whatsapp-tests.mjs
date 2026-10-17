@@ -21,6 +21,11 @@ assert.ok(message.includes(link));
 assert.ok(!message.includes('null'));
 assert.ok(!message.includes('undefined'));
 
+const today=whatsappInquiryURL('584121234567',product,link,{...details,timing:'today'});
+assert.ok(new URL(today).searchParams.get('text').includes('Compra prevista: Hoy'));
+const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert.ok(html.includes('<option value="today">Hoy</option>'));
+assert.ok(html.indexOf('<option value="today">Hoy</option>')<html.indexOf('<option value="this_week">Esta semana</option>'));
 const one=whatsappInquiryURL('584121234567',product,link,{...details,quantity:'1'});
 assert.ok(new URL(one).searchParams.get('text').includes('1 unidad\n'));
 const unavailable=whatsappInquiryURL('584121234567',{...product,status:'sold_out'},link,details);
@@ -56,7 +61,6 @@ assert.ok(publicScript.includes('quoteForm.reset()'), 'No reutilizar los datos d
 assert.ok(publicScript.includes('quoteForm.reportValidity()'));
 assert.ok(publicScript.includes('quoteLink.removeAttribute(\'href\')'));
 assert.ok(publicScript.includes('whatsappInquiryURL(\'')===false,'La URL de WhatsApp utiliza el contacto seleccionado');
-const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const id of ['quote-form','quote-quantity','quote-city','quote-timing','inquiry-contact','inquiry-whatsapp']){
   assert.ok(html.includes('id="'+id+'"'));
 }
