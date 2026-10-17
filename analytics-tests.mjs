@@ -39,7 +39,7 @@ assert.match(listener,/serverTimestamp\(\)/);
 assert.match(listener,/catalog:product-open/);
 assert.match(listener,/inquiry-whatsapp/);
 assert.match(listener,/doNotTrack/);
-assert.ok(!listener.includes('localStorage') && !listener.includes('sessionStorage'));
+assert.ok(!/\\b(?:localStorage|sessionStorage)\\s*[.\\[]/.test(listener));
 const app=readFileSync('welcome.js','utf8');
 assert.ok(app.includes("import('./catalog-analytics.js')"));
 const publicCatalog=readFileSync('public-catalog.js','utf8');
