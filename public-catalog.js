@@ -158,9 +158,30 @@ function selectBrand(name){
   renderProducts();
   history.replaceState(null,'',brandUrl(name));
 }
+const quoteForm=$('#quote-form'),quoteLink=$('#inquiry-whatsapp');
+function updateQuoteLink(){
+  if(!selected||!contacts.length)return;
+  const details={
+    quantity:$('#quote-quantity').value,
+    city:$('#quote-city').value,
+    timing:$('#quote-timing').value
+  };
+  const url=whatsappInquiryURL($('#inquiry-contact').value,selected,shareProductUrl(selected),details);
+  if(url){
+    quoteLink.href=url;
+    quoteLink.setAttribute('aria-disabled','false');
+    quoteLink.textContent=selected.status==='sold_out'
+      ?'Solicitar cotización y disponibilidad por WhatsApp ↗'
+      :'Solicitar cotización por WhatsApp ↗';
+  }else{
+    quoteLink.removeAttribute('href');
+    quoteLink.setAttribute('aria-disabled','true');
+    quoteLink.textContent='Completa los datos para solicitar cotización ↗';
+  }
+}
 function renderInquiry(){
   const block=$('#product-inquiry'),chooser=$('#inquiry-contact'),
-    label=$('#inquiry-contact-label'),link=$('#inquiry-whatsapp');
+    label=$('#inquiry-contact-label');
   const previous=chooser.value;
   block.hidden=!selected||contacts.length===0;
   chooser.replaceChildren();
@@ -170,16 +191,32 @@ function renderInquiry(){
   }
   if(contacts.some(c=>c.phone===previous))chooser.value=previous;
   label.hidden=contacts.length===1;
-  function update(){
-    link.href=whatsappInquiryURL(chooser.value,selected,shareProductUrl(selected));
-    link.textContent=selected.status==='sold_out'
-      ?'Consultar disponibilidad por WhatsApp ↗':'Consultar por WhatsApp ↗';
-  }
-  chooser.onchange=update;
-  update();
+  $('#quote-title').textContent=selected.status==='sold_out'
+    ?'Consulta disponibilidad y solicita cotización':'Solicita una cotización';
+  updateQuoteLink();
 }
+quoteForm.addEventListener('input',updateQuoteLink);
+quoteForm.addEventListener('change',updateQuoteLink);
+quoteForm.addEventListener('submit',event=>{
+  // El formulario no debe recargar la página; al completarlo el usuario
+  // activa el enlace real de WhatsApp con Enter o tocándolo.
+  event.preventDefault();
+  updateQuoteLink();
+  if(quoteForm.reportValidity())quoteLink.focus();
+});
+quoteLink.addEventListener('click',event=>{
+  updateQuoteLink();
+  if(!quoteLink.hasAttribute('href')||!quoteForm.reportValidity())event.preventDefault();
+});
+quoteLink.addEventListener('keydown',event=>{
+  if(quoteLink.getAttribute('aria-disabled')==='true'&&['Enter',' '].includes(event.key)){
+    event.preventDefault();
+    quoteForm.reportValidity();
+  }
+});
 function open(p){
   selected=p;
+  quoteForm.reset();
   const image=$('#detail-image');
   image.src=imageUrl(p.image_url);image.alt=p.name;
   for(const [id,value] of [
