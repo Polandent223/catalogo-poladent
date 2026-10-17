@@ -290,3 +290,92 @@ body.has-welcome{margin:0;background:#041a34}
 @media(max-width:700px){
   #quote-form input,#quote-form select{font-size:16px;min-height:44px}
 }
+
+/* Carrito de cotización sin precios: visible y accesible en PC y teléfono. */
+.cart-toolbar{
+  max-width:1104px;margin:10px auto 16px;padding:14px 16px;
+  background:#edf5f9;border:1px solid #c9dce8;border-radius:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px
+}
+.cart-toolbar p{margin:0;font-size:13px;line-height:1.55;color:#29445c}
+.cart-open-button{
+  flex:none;background:#0b466c;color:white;border:0;border-radius:11px;
+  padding:13px 19px;min-height:46px;font-weight:800;cursor:pointer
+}
+.cart-open-button:disabled{opacity:.5;cursor:wait}
+.cart-feedback{
+  max-width:1104px;margin:0 auto 12px;min-height:1.2em;
+  color:#175f4e;font-size:12px;line-height:1.4
+}
+.product-card .card-cart-add{
+  display:block;margin:10px 16px 0;font-size:12px;width:calc(100% - 32px);
+  padding:12px 8px;border:1px solid #91c0aa;border-radius:9px;
+  background:#edf9f2;color:#14583c;font-weight:800;cursor:pointer
+}
+.product-card .card-cart-add:hover{background:#d8f1e3}
+.detail-cart-add{
+  display:block;width:100%;margin:7px 0 14px;padding:13px 12px;
+  border:1px solid #1c7956;border-radius:9px;background:white;color:#116143;
+  font-weight:800;cursor:pointer
+}
+.detail-cart-add:hover{background:#e9f8f0}
+.cart-dialog{
+  box-sizing:border-box;width:min(95vw,760px);max-width:760px;
+  max-height:90dvh;padding:clamp(17px,3vw,28px);overflow-y:auto
+}
+.cart-dialog-header{display:flex;justify-content:space-between;align-items:start;gap:15px}
+.cart-dialog-header h2{font-size:clamp(21px,3vw,28px);margin:3px 0 10px}
+.cart-dialog-header button{flex:none;padding:10px 12px;border:1px solid #d1dae2;border-radius:9px}
+.cart-dialog>p{font-size:13px;line-height:1.5;color:#4e6679}
+.cart-items{display:grid;gap:10px;max-height:40vh;overflow-y:auto;margin:16px 0}
+.cart-item{
+  display:grid;grid-template-columns:76px minmax(0,1fr) auto;
+  align-items:center;gap:12px;border:1px solid #d8e5ec;border-radius:12px;padding:10px;
+  background:#fff
+}
+.cart-item img{
+  width:76px;height:76px;max-width:76px;object-fit:contain;border-radius:7px;
+  background:#f4f7f9
+}
+.cart-item-details{min-width:0;display:grid;gap:5px}
+.cart-item-details strong{font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.cart-item-details span{font-size:11px;color:#5a7385}
+.cart-item-details .cart-sold-out{color:#935a14;font-weight:700}
+.cart-item-controls{display:flex;align-items:end;gap:8px}
+.cart-item-controls label{display:grid;gap:5px;font-size:11px;color:#4d6578}
+.cart-item-controls input{
+  box-sizing:border-box;width:83px;min-height:40px;border:1px solid #b8cddc;
+  border-radius:8px;padding:8px;font-size:15px;color:#16364c
+}
+.cart-item-controls button{
+  padding:10px 8px;min-height:40px;border:1px solid #d7bac0;color:#9c2a3d;
+  background:#fff;border-radius:8px;font-size:12px;cursor:pointer
+}
+.cart-totals{font-size:13px;font-weight:800;color:#104c68;margin:16px 0}
+.cart-form{
+  padding:18px;border:1px solid #d0e7d9;background:#f2faf5;border-radius:13px;
+  display:grid;gap:12px
+}
+.cart-form label{display:grid;gap:7px;font-size:13px;font-weight:700}
+.cart-form input,.cart-form select{
+  box-sizing:border-box;width:100%;min-height:45px;padding:10px 12px;
+  border:1px solid #accbb9;border-radius:9px;background:white;
+  color:#244836;font-size:16px
+}
+.cart-form .whatsapp-contact{margin-top:4px;min-height:48px;display:flex;
+  justify-content:center;align-items:center}
+.cart-form .whatsapp-contact[aria-disabled="true"]{background:#718a7d}
+#cart-message{margin:0;color:#456657;line-height:1.5;font-size:12px}
+#cart-message.error{color:#9a2738}
+.cart-empty{background:#f3f8fb;padding:18px;border-radius:10px}
+@media(max-width:700px){
+  .cart-toolbar{flex-wrap:wrap;gap:10px}
+  .cart-open-button{width:100%}
+  .cart-dialog{width:96vw;padding:14px}
+  .cart-item{grid-template-columns:62px minmax(0,1fr);gap:9px}
+  .cart-item img{width:62px;height:62px}
+  .cart-item-controls{grid-column:2;justify-content:flex-start}
+}
+@media(max-width:420px){
+  .product-card .card-cart-add{margin:10px 9px 0;width:calc(100% - 18px)}
+}
