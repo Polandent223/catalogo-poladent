@@ -25,7 +25,7 @@ export function createEventGate(now=()=>performance.now()){
   };
 }
 export function isRealWhatsAppClick(event,link){
-  if(event?.isTrusted!==true||!link||!link.href)return false;
+  if(event?.isTrusted!==true||event.defaultPrevented===true||!link||!link.href)return false;
   try{
     const target=new URL(link.href);
     // Contar exclusivamente el clic humano al enlace real de consulta.
