@@ -178,3 +178,29 @@ body.has-welcome{margin:0;background:#041a34}
   .welcome-hotspot{top:63.5%;height:17%}
 }
 @media(prefers-reduced-motion:reduce){.welcome-hotspot{transition:none}}
+
+/* Estadísticas privadas de POLADENT: métricas claras en móvil y escritorio */
+.analytics-admin{max-width:1060px}
+.analytics-admin #analytics-login{max-width:560px}
+.analytics-filters{display:flex;flex-wrap:wrap;align-items:end;gap:14px;margin:24px 0}
+.analytics-filters label{display:grid;gap:6px;font-size:13px;font-weight:700;min-width:160px}
+.analytics-filters select{width:100%;border:1px solid #b9cbdc;border-radius:9px;padding:11px;background:white}
+.analytics-filters button{min-height:43px}
+.analytics-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 23px}
+.analytics-metrics article{border:1px solid #d5e3ed;background:#f6fafc;border-radius:14px;padding:16px;min-width:0}
+.analytics-metrics article span{display:block;font-size:12px;color:#486174;line-height:1.4}
+.analytics-metrics article strong{display:block;font-size:clamp(22px,2.7vw,33px);font-weight:800;letter-spacing:-.02em;margin-top:9px;font-variant-numeric:tabular-nums;color:#0c3454}
+.analytics-columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+.analytics-panel{padding:18px;background:#fff;border:1px solid #d5e3ed;border-radius:14px}
+.analytics-panel h3{font-size:17px;margin:0 0 17px}
+#analytics-chart{display:grid;gap:8px;max-height:440px;overflow-y:auto}
+.analytics-chart-row{display:grid;grid-template-columns:52px minmax(0,1fr) 32px;gap:10px;align-items:center;font-size:12px}
+.analytics-chart-row strong{text-align:right;font-variant-numeric:tabular-nums}
+.analytics-bar-track{height:11px;background:#eaf3f8;border-radius:8px;overflow:hidden}
+.analytics-bar{height:100%;background:linear-gradient(90deg,#0967b3,#05bddd);min-width:0;border-radius:8px}
+.analytics-brand{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e5edf2;padding:12px 0;margin:0;font-size:13px}
+.analytics-brand strong{white-space:nowrap;color:#0a668e}
+.analytics-note{color:#52687c;line-height:1.7;font-size:13px;max-width:900px;margin:20px 0}
+#analytics-message.error{color:#a33b3b}
+@media(max-width:770px){.analytics-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-columns{grid-template-columns:1fr}}
+@media(max-width:430px){.analytics-filters{display:grid}.analytics-metrics article{padding:12px}}

@@ -190,6 +190,7 @@ function open(p){
   history.replaceState(null,'',productUrl(p));
   renderInquiry();
   if(!dialog.open)dialog.showModal();
+  document.dispatchEvent(new CustomEvent('catalog:product-open',{detail:{id:String(p.id),brand:String(p.brand)}}));
 }
 $('#close-detail').onclick=()=>dialog.close();
 dialog.onclose=()=>{selected=null;history.replaceState(null,'',brandUrl(brand.value));};

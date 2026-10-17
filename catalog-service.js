@@ -83,3 +83,8 @@ export async function saveWelcomeSettings(settings) {
   if (!usingFirebase) throw Error('La portada necesita Firebase.');
   return client.saveWelcomeSettings(settings);
 }
+
+export async function listAnalyticsEvents(start,end) {
+  if(!usingFirebase)throw Error('Las estadísticas necesitan Firebase.');
+  return client.listAnalyticsEvents(start,end);
+}
