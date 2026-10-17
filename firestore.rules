@@ -11,6 +11,26 @@ service cloud.firestore {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow list, create, update, delete: if false;
     }
+    // Eventos de estadísticas. Cualquiera puede registrar una acción estrictamente
+    // validada, pero SOLO los administradores pueden leer el historial.
+    // Los registros son inmutables: nadie puede editarlos ni borrarlos.
+    match /catalogAnalyticsEvents/{id} {
+      allow get, list: if isAdmin();
+      allow create: if
+        request.resource.data.keys().hasOnly(['type','seconds','brand','product_id','created_at'])
+        && request.resource.data.keys().hasAll(['type','seconds','brand','product_id','created_at'])
+        && request.resource.data.type in ['visit','engagement','whatsapp','product_open']
+        && request.resource.data.seconds is int
+        && (request.resource.data.type == 'engagement'
+          ? request.resource.data.seconds >= 5 && request.resource.data.seconds <= 60
+          : request.resource.data.seconds == 0)
+        && request.resource.data.brand is string
+        && request.resource.data.brand.size() <= 80
+        && request.resource.data.product_id is string
+        && request.resource.data.product_id.size() <= 140
+        && request.resource.data.created_at == request.time;
+      allow update, delete: if false;
+    }
     // Inventario completo. Solo administradores autorizados.
     match /catalogProducts/{id} {
       allow read, write: if isAdmin();
