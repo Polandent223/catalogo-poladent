@@ -37,3 +37,18 @@ Abre `portada.html` y desmarca la casilla **Mostrar esta pantalla**. Guarda. El 
 ## Pruebas de publicación
 
 `node welcome-tests.mjs` y las verificaciones normales de GitHub Actions validan que el botón real exista, que los enlaces de marcas y productos salten la portada, y que el acceso administrativo esté protegido. La prueba en teléfono y ordenador debe hacerse luego de subir la imagen oficial desde el panel.
+
+## Portada vertical independiente (teléfonos)
+
+El administrador tiene **dos imágenes separadas** en `portada.html`:
+
+- **PC / horizontal**: la fotografía oficial que ya estaba publicada permanece intacta.
+- **Teléfono / vertical 9:16**: nuevo campo opcional para subir el archivo `POLADENT_portada_movil_oficial_9x16.webp`. Usa las mismas credenciales de administración y el mismo sistema de subida a Cloudinary que ya funciona.
+
+Cuando se guarda, `catalogProducts/_catalog_contacts` y `catalogPublic/_catalog_contacts` conservan los contactos de WhatsApp, el estado de la portada y los campos anteriores mediante `merge:true`, y añaden `welcome_mobile_image_url` y `welcome_mobile_image_path`. **No hay migración de datos, cambios en reglas Firebase ni borrado de archivos**.
+
+El público usa `<picture>` para escoger la imagen vertical en pantallas de hasta 700px en orientación retrato. En PC o teléfono horizontal se mantiene la imagen horizontal. Si no hay portada móvil configurada, sigue mostrándose la anterior; si la imagen móvil falla, intenta automáticamente la horizontal. El botón sigue siendo un solo elemento HTML real sobre el botón de la fotografía; no hay texto ni botón duplicado.
+
+**Publicación final**: tras fusionar los cambios de GitHub, entra a [portada.html](https://polandent223.github.io/catalogo-poladent/portada.html), selecciona el archivo vertical en «Portada para teléfonos · 9:16» y pulsa «Guardar portada y configuración». Este único paso necesita el inicio de sesión del propietario; desde GitHub no se pueden subir bytes directamente a Cloudinary con credenciales del administrador. Prueba en teléfono, PC y con enlaces directos a productos.
+
+**Protección**: ninguna fotografía, producto, número de contacto o estadística se borra al añadir la portada vertical. El campo móvil es opcional, por lo que un despliegue anterior a su configuración es seguro.

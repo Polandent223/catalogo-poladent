@@ -18,19 +18,45 @@ function enterCatalog(replaceURL=false){
     });
   }
 }
-function showWelcome(url){
-  // La misma imagen sirve como ambientación desenfocada, sin otra descarga.
-  // La pieza gráfica original permanece intacta y el botón HTML es clickable.
-  const backdrop=$('#welcome-screen');
-  backdrop.style.setProperty('--welcome-backdrop','url('+JSON.stringify(url)+')');
+function secureImage(value){
+  try {
+    const u=new URL(value);
+    return u.protocol==='https:'?u.href:'';
+  } catch{return '';}
+}
+function showWelcome(settings){
+  const screen=$('#welcome-screen');
   const frame=$('#welcome-image');
-  frame.src=url;
+  const mobile=$('#welcome-mobile-source');
+  const desktopURL=settings.image_url;
+  const mobileURL=settings.mobile_image_url||'';
+  screen.classList.toggle('has-mobile-art',Boolean(mobileURL));
+  screen.style.setProperty('--welcome-backdrop','url('+JSON.stringify(desktopURL)+')');
+  if(mobileURL){
+    mobile.srcset=mobileURL;
+    screen.style.setProperty('--welcome-mobile-backdrop','url('+JSON.stringify(mobileURL)+')');
+  }else{
+    mobile.removeAttribute('srcset');
+    screen.style.removeProperty('--welcome-mobile-backdrop');
+  }
+  let recovered=false;
+  frame.onerror=()=>{
+    // Si falla la portada vertical, restaurar la imagen de PC sin bloquear la entrada.
+    if(mobileURL&&!recovered){
+      recovered=true;
+      mobile.removeAttribute('srcset');
+      screen.classList.remove('has-mobile-art');
+      frame.src=desktopURL;
+      return;
+    }
+    enterCatalog();
+  };
+  frame.src=desktopURL;
   frame.decoding='async';
-  frame.alt='Bienvenido a tu catálogo POLADENT. Encuentra los productos para tu consultorio y laboratorio. Entrar al catálogo.';
-  frame.onerror=()=>enterCatalog();
+  frame.alt='Bienvenido a tu catálogo POLADENT. Encuentra productos para consultorio y laboratorio. Entrar al catálogo.';
   $('#welcome-loading').hidden=true;
   $('#catalog-app').hidden=true;
-  $('#welcome-screen').hidden=false;
+  screen.hidden=false;
   document.body.classList.add('has-welcome');
 }
 async function readWelcome(){
@@ -42,15 +68,16 @@ async function readWelcome(){
   if(!response.ok)return null;
   const data=(await response.json()).fields||{};
   if(data.welcome_enabled?.booleanValue!==true || data.kind?.stringValue!=='contact_settings')return null;
-  const raw=data.welcome_image_url?.stringValue;
-  if(typeof raw!=='string')return null;
-  const image=new URL(raw);
-  if(image.protocol!=='https:')return null;
-  return image.href;
+  const desktopURL=secureImage(data.welcome_image_url?.stringValue);
+  if(!desktopURL)return null;
+  return {
+    image_url:desktopURL,
+    mobile_image_url:secureImage(data.welcome_mobile_image_url?.stringValue)
+  };
 }
 $('#welcome-enter').addEventListener('click',()=>enterCatalog(true));
 if(shouldSkipWelcome(location.href))enterCatalog();
-else readWelcome().then(url=>url?showWelcome(url):enterCatalog()).catch(error=>{
+else readWelcome().then(settings=>settings?showWelcome(settings):enterCatalog()).catch(error=>{
   console.warn('Portada temporalmente no disponible; se abre el catálogo:',error);
   enterCatalog();
 });
