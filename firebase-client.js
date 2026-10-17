@@ -2,7 +2,7 @@
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -380,4 +380,25 @@ export async function removeImage(path) {
   }
   if (!storage) throw Error('El almacenamiento Firebase no está configurado.');
   await deleteObject(ref(storage, path));
+}
+
+/** Historial privado: la consulta exige sesión y catalogAdmins/{uid}.active=true. */
+export async function listAnalyticsEvents(start, end) {
+  await adminCheck();
+  if(!(start instanceof Date)||!(end instanceof Date)||!(start<end))throw Error('Selecciona un periodo válido.');
+  const snapshot=await getDocs(query(
+    collection(db,'catalogAnalyticsEvents'),
+    where('created_at','>=',Timestamp.fromDate(start)),
+    where('created_at','<',Timestamp.fromDate(end))
+  ));
+  return snapshot.docs.map(d=>{
+    const item=d.data();
+    return {
+      type:item.type,
+      seconds:Number(item.seconds)||0,
+      brand:String(item.brand||''),
+      product_id:String(item.product_id||''),
+      created_at:item.created_at?.toDate?.()||new Date(0)
+    };
+  });
 }
