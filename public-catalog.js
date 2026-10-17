@@ -217,6 +217,9 @@ function updateCartLink(){
     cartWhatsApp.removeAttribute('href');
     cartWhatsApp.setAttribute('aria-disabled','true');
     cartWhatsApp.textContent='Completa los datos para cotizar ↗';
+    if(cartLines.length && contacts.length && cartForm.checkValidity()){
+      showCartMessage('El mensaje sería demasiado largo para algunos teléfonos. Quita algunos productos y envía dos cotizaciones.',true);
+    }
   }
 }
 function renderCart(){
