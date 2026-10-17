@@ -3,7 +3,9 @@ export function summarizeAnalytics(events) {
   const metrics={visits:0,productViews:0,whatsappClicks:0,activeSeconds:0,brands:[],days:[]};
   const perBrand=new Map(),perDay=new Map();
   for(const event of events){
-    const kind=event.type,day=(event.created_at instanceof Date?event.created_at:new Date(event.created_at)).toISOString().slice(0,10);
+    const kind=event.type,date=event.created_at instanceof Date?event.created_at:new Date(event.created_at);
+    if(Number.isNaN(date.getTime()))continue;
+    const day=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
     if(!perDay.has(day))perDay.set(day,{day,visits:0,whatsapp:0});
     const d=perDay.get(day);
     if(kind==='visit'){metrics.visits++;d.visits++;}
