@@ -1,6 +1,7 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
+import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
 const $=selector=>document.querySelector(selector);
@@ -11,6 +12,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 let selected=null,filtered=[],limit=12,searchTimer=0;
+let cartLines=[],catalogLoaded=false;
 const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function legacy(){
   if(typeof paginas==='undefined')return [];
@@ -128,7 +130,10 @@ function buildCard(p,index){
     element('span',labels[p.status]||'Disponible','badge '+p.status));
   const view=element('button','Ver producto');view.type='button';
   view.addEventListener('click',()=>open(p));
-  card.append(view);return card;
+  const add=element('button','+ Agregar a cotización','card-cart-add');
+  add.type='button';add.dataset.cartAdd=String(p.id);
+  add.addEventListener('click',()=>addToCart(p));
+  card.append(view,add);return card;
 }
 function appendCards(rows,start){
   const fragment=document.createDocumentFragment();
@@ -149,6 +154,7 @@ function renderProducts(){
   appendCards(filtered.slice(0,limit),0);
   status.textContent=filtered.length?filtered.length+' productos':'No encontramos productos con estos filtros.';
   updatePagination();
+  refreshCartButtons();
 }
 function selectBrand(name){
   brand.value=name;
@@ -158,6 +164,153 @@ function selectBrand(name){
   renderProducts();
   history.replaceState(null,'',brandUrl(name));
 }
+const cartDialog=$('#cart-dialog'),cartForm=$('#cart-form'),cartOpen=$('#cart-open'),
+  cartWhatsApp=$('#cart-whatsapp'),cartItems=$('#cart-items'),cartMessage=$('#cart-message');
+function restoreCart(){
+  try{
+    const stored=JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY)||'[]');
+    const result=normalizeCartLines(stored,products);
+    // Productos eliminados/ocultos se purgan; solo guardamos IDs y cantidades.
+    cartLines=result;
+    persistCart();
+    return result;
+  }catch{return [];}
+}
+function persistCart(){
+  try{sessionStorage.setItem(CART_STORAGE_KEY,JSON.stringify(cartLines));}
+  catch{/* El carrito también funciona en memoria si el navegador bloquea almacenamiento. */}
+}
+function refreshCartButtons(){
+  const amounts=new Map(cartLines.map(x=>[x.id,x.quantity]));
+  for(const btn of document.querySelectorAll('[data-cart-add]')){
+    const q=amounts.get(btn.dataset.cartAdd)||0;
+    btn.textContent=q?'✓ Agregado · '+q+' (+1)':'+ Agregar a cotización';
+  }
+  const detailAdd=$('#detail-cart-add');
+  if(selected){
+    const q=amounts.get(String(selected.id))||0;
+    detailAdd.textContent=q?'✓ Agregado · '+q+' (añadir 1 más)':'+ Agregar a mi cotización';
+  }
+}
+function showCartMessage(value,error=false){
+  cartMessage.textContent=value;
+  cartMessage.classList.toggle('error',error);
+}
+function cartContactOptions(){
+  const chooser=$('#cart-contact'),previous=chooser.value;
+  chooser.replaceChildren();
+  for(const c of contacts){
+    const option=element('option',c.label);option.value=c.phone;chooser.append(option);
+  }
+  if(contacts.some(c=>c.phone===previous))chooser.value=previous;
+}
+function updateCartLink(){
+  if(!catalogLoaded)return;
+  const details={city:$('#cart-city').value,timing:$('#cart-timing').value};
+  const url=cartWhatsAppURL($('#cart-contact').value,cartLines,products,details,shareProductUrl);
+  if(url){
+    cartWhatsApp.href=url;
+    cartWhatsApp.setAttribute('aria-disabled','false');
+    cartWhatsApp.textContent='Enviar una sola cotización por WhatsApp ↗';
+    if(cartMessage.classList.contains('error'))showCartMessage('WhatsApp abrirá el mensaje preparado; debes pulsar Enviar allí.');
+  }else{
+    cartWhatsApp.removeAttribute('href');
+    cartWhatsApp.setAttribute('aria-disabled','true');
+    cartWhatsApp.textContent='Completa los datos para cotizar ↗';
+    if(cartLines.length && contacts.length && cartForm.checkValidity()){
+      showCartMessage('El mensaje sería demasiado largo para algunos teléfonos. Quita algunos productos y envía dos cotizaciones.',true);
+    }
+  }
+}
+function renderCart(){
+  const amounts=cartTotals(cartLines);
+  $('#cart-count').textContent=String(amounts.products);
+  cartOpen.disabled=!catalogLoaded;
+  $('#cart-empty').hidden=amounts.products>0;
+  cartForm.hidden=amounts.products===0;
+  cartItems.replaceChildren();
+  for(const line of cartLines){
+    const p=products.find(p=>String(p.id)===line.id);
+    if(!p)continue;
+    const item=element('article',null,'cart-item');
+    const img=element('img');img.src=cloudinaryImage(imageUrl(p.image_url),240);
+    img.alt='';img.loading='lazy';img.width=100;img.height=100;
+    const detail=element('div',null,'cart-item-details');
+    detail.append(element('strong',p.name),element('span',p.brand));
+    if(p.status==='sold_out')detail.append(element('span','Agotado · consultar disponibilidad','cart-sold-out'));
+    const controls=element('div',null,'cart-item-controls');
+    const countLabel=element('label','Cantidad');
+    const quantity=element('input');
+    quantity.type='number';quantity.min='1';quantity.max='9999';quantity.step='1';
+    quantity.inputMode='numeric';quantity.value=String(line.quantity);
+    quantity.setAttribute('aria-label','Cantidad para '+p.name);
+    countLabel.append(quantity);
+    quantity.addEventListener('change',()=>{
+      const n=cartQuantity(quantity.value);
+      if(n===null){
+        quantity.value=String(line.quantity);
+        showCartMessage('Indica entre 1 y 9.999 unidades.',true);
+        return;
+      }
+      cartLines=updateCartLine(cartLines,line.id,n,products);
+      persistCart();renderCart();
+    });
+    const remove=element('button','Quitar');remove.type='button';
+    remove.setAttribute('aria-label','Quitar '+p.name+' de la cotización');
+    remove.addEventListener('click',()=>{
+      cartLines=removeCartLine(cartLines,line.id,products);
+      persistCart();renderCart();showCartMessage('Producto retirado de la cotización.');
+    });
+    controls.append(countLabel,remove);
+    item.append(img,detail,controls);cartItems.append(item);
+  }
+  $('#cart-totals').textContent=amounts.products+' producto'+(amounts.products===1?' diferente':'s diferentes')+
+    ' · '+amounts.units+' unidad'+(amounts.units===1?'':'es')+' · Sin precios';
+  cartContactOptions();
+  if(!contacts.length&&cartLines.length)showCartMessage('Los contactos de WhatsApp no están configurados. Intenta de nuevo más tarde.',true);
+  updateCartLink();
+  refreshCartButtons();
+}
+function addToCart(p){
+  try{
+    cartLines=addCartLine(cartLines,String(p.id),products);
+    persistCart();
+    renderCart();
+    $('#cart-feedback').textContent=p.name+' agregado. Tienes '+cartLines.length+
+      ' de '+CART_LIMIT+' productos posibles en tu cotización.';
+  }catch(error){
+    $('#cart-feedback').textContent=error.message;
+  }
+}
+$('#detail-cart-add').addEventListener('click',()=>{if(selected)addToCart(selected);});
+cartOpen.addEventListener('click',()=>{
+  if(!catalogLoaded)return;
+  renderCart();
+  if(dialog.open)dialog.close();
+  cartDialog.showModal();
+});
+$('#cart-close').addEventListener('click',()=>cartDialog.close());
+cartForm.addEventListener('input',updateCartLink);
+cartForm.addEventListener('change',updateCartLink);
+cartForm.addEventListener('submit',event=>{
+  event.preventDefault();
+  updateCartLink();
+  if(cartForm.reportValidity())cartWhatsApp.focus();
+});
+cartWhatsApp.addEventListener('click',event=>{
+  updateCartLink();
+  if(!cartWhatsApp.hasAttribute('href')||!cartForm.reportValidity()){
+    event.preventDefault();
+    showCartMessage('Completa los datos de la cotización antes de abrir WhatsApp.',true);
+  }
+});
+cartWhatsApp.addEventListener('keydown',event=>{
+  if(cartWhatsApp.getAttribute('aria-disabled')==='true'&&['Enter',' '].includes(event.key)){
+    event.preventDefault();
+    cartForm.reportValidity();
+  }
+});
+
 const quoteForm=$('#quote-form'),quoteLink=$('#inquiry-whatsapp');
 function updateQuoteLink(){
   if(!selected||!contacts.length)return;
@@ -254,10 +407,11 @@ more.onclick=()=>{
   limit+=12;
   appendCards(filtered.slice(previous,limit),previous);
   updatePagination();
+  refreshCartButtons();
 };
 async function load(){
   // No bloquear el catálogo esperando a las vistas previas de WhatsApp.
-  loadShareManifest().then(ids=>{shareIds=ids;if(selected)renderInquiry();});
+  loadShareManifest().then(ids=>{shareIds=ids;if(selected)renderInquiry();updateCartLink();});
   try{
     const cfg=window.CATALOGO_FIREBASE||{};
     if(cfg.apiKey&&cfg.projectId&&cfg.appId){
@@ -266,6 +420,9 @@ async function load(){
       profiles=data.profiles;
       contacts=data.contacts;
     }else products=legacy();
+    cartLines=restoreCart();
+    catalogLoaded=true;
+    renderCart();
     searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand)]));
     const names=[...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort();
     const fragment=document.createDocumentFragment();

@@ -29,6 +29,11 @@
 <section class="brands-area" aria-label="Marcas del catálogo"><div class="brands-heading"><div><p class="eyebrow">NUESTRAS MARCAS</p><h2>Explora por marca</h2></div><button id="copy-brand" hidden type="button" title="Copiar enlace a esta marca">Copiar enlace de la marca</button></div><div id="brand-shortcuts" class="brand-shortcuts"></div></section>
 <section id="brand-hero" class="brand-hero" aria-label="Presentación de la marca" hidden></section>
 <section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
+<div class="cart-toolbar">
+<p><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
+<button id="cart-open" class="cart-open-button" type="button" aria-haspopup="dialog" aria-controls="cart-dialog" disabled>Mi cotización (<span id="cart-count">0</span>)</button>
+</div>
+<p id="cart-feedback" class="cart-feedback" role="status" aria-live="polite"></p>
 <p id="catalog-status" role="status">Cargando productos…</p><section id="products" class="product-grid" aria-label="Productos"></section><button id="more" hidden>Ver más productos</button><section id="brand-back-cover" class="brand-back-cover" hidden></section></main>
 <dialog id="detail" aria-labelledby="detail-name">
 <button id="close-detail" aria-label="Cerrar detalle">Cerrar ✕</button>
@@ -60,7 +65,35 @@
 <p id="quote-help">Al continuar, se abrirá WhatsApp con el producto, la cantidad, la ciudad y el plazo elegido. No se enviará ningún mensaje automáticamente.</p>
 </form>
 </div>
+<button id="detail-cart-add" class="detail-cart-add" type="button">+ Agregar a mi cotización</button>
 <button id="share-product" type="button">Copiar enlace del producto</button>
 <p id="share-status" role="status"></p>
 </div></div></dialog>
+<dialog id="cart-dialog" aria-labelledby="cart-title" class="cart-dialog">
+<div class="cart-dialog-header">
+<div><p class="eyebrow">POLADENT CASA DENTAL</p><h2 id="cart-title">Mi cotización sin precios</h2></div>
+<button id="cart-close" type="button" aria-label="Cerrar cotización">Cerrar ✕</button>
+</div>
+<p>Revisa productos y cantidades. Se enviará una sola solicitud a nuestro equipo.</p>
+<p id="cart-empty" class="cart-empty">Aún no has agregado productos. Regresa al catálogo y toca «Agregar a cotización».</p>
+<div id="cart-items" class="cart-items" aria-live="polite"></div>
+<p id="cart-totals" class="cart-totals"></p>
+<form id="cart-form" class="cart-form">
+<label for="cart-city">¿En qué ciudad te encuentras?
+<input id="cart-city" name="city" type="text" autocomplete="address-level2" minlength="2" maxlength="60" placeholder="Ej. Valencia" required></label>
+<label for="cart-timing">¿Cuándo piensas comprar?
+<select id="cart-timing" name="timing" required>
+<option value="">Selecciona una opción</option>
+<option value="today">Hoy</option>
+<option value="this_week">Esta semana</option>
+<option value="this_month">Este mes</option>
+<option value="later">Más adelante</option>
+<option value="comparing">Solo estoy comparando opciones</option>
+</select></label>
+<label for="cart-contact">Enviar cotización a
+<select id="cart-contact" name="contact" required></select></label>
+<a id="cart-whatsapp" class="whatsapp-contact" role="button" tabindex="0" aria-disabled="true" target="_blank" rel="noopener noreferrer">Completa los datos para solicitar cotización ↗</a>
+<p id="cart-message" role="status" aria-live="polite">WhatsApp abrirá el mensaje preparado. No se enviará automáticamente.</p>
+</form>
+</dialog>
 <footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span><a href="aviso-estadisticas.html">Privacidad y estadísticas</a><a href="admin.html">Administración</a></footer></div><noscript><p>POLADENT Casa Dental: para navegar el catálogo interactivo necesitas JavaScript. También puedes consultar el <a href="adalta.html">catálogo ADALTA</a>.</p></noscript><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="welcome.js"></script></body></html>

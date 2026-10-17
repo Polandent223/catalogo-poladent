@@ -73,8 +73,13 @@ export function startCatalogAnalytics() {
     record('product_open',0,detail.brand,detail.id);
   });
   document.addEventListener('click',event=>{
-    const link=event.target?.closest?.('a#inquiry-whatsapp');
+    const link=event.target?.closest?.('a#inquiry-whatsapp, a#cart-whatsapp');
     if(!isRealWhatsAppClick(event,link))return;
+    if(link.id==='cart-whatsapp'){
+      // Una solicitud múltiple representa un clic, no uno por producto.
+      record('whatsapp',0,'Cotización múltiple','');
+      return;
+    }
     const id=new URLSearchParams(location.hash.replace(/^#/, '')).get('producto')||'';
     const brand=document.getElementById('detail-brand')?.textContent||'';
     record('whatsapp',0,brand,id);
