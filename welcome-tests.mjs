@@ -28,7 +28,14 @@ assert.ok(welcome.includes("data.welcome_enabled?.booleanValue!==true"));
 assert.ok(welcome.includes("data.welcome_image_url?.stringValue"));
 assert.ok(welcome.includes("if(shouldSkipWelcome(location.href))enterCatalog()"));
 assert.ok(welcome.includes("$('#welcome-enter').addEventListener('click'"));
-assert.ok(welcome.includes("backdrop.style.setProperty('--welcome-backdrop'"));
+assert.ok(welcome.includes("screen.style.setProperty('--welcome-backdrop'"));
+assert.ok(welcome.includes("screen.style.setProperty('--welcome-mobile-backdrop'"));
+assert.ok(welcome.includes("mobile.srcset=mobileURL"));
+assert.ok(welcome.includes("mobile.removeAttribute('srcset')"));
+assert.ok(welcome.includes("secureImage(data.welcome_mobile_image_url?.stringValue)"));
+assert.ok(html.includes('id="welcome-mobile-source"'));
+assert.ok(html.includes('orientation:portrait'));
+assert.ok(html.includes('width="941" height="1672"'));
 const admin=readFileSync('admin.html','utf8');
 assert.ok(admin.includes('href="portada.html"'));
 const firebase=readFileSync('firebase-client.js','utf8');
@@ -40,6 +47,9 @@ assert.ok(firebase.includes("batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data
 assert.ok(firebase.includes("batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data, {merge:true})"));
 assert.ok(firebase.includes("batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data, {merge:true})"));
 assert.ok(firebase.includes("welcome_image_url:url"));
+assert.ok(firebase.includes("welcome_mobile_image_url:mobileURL"));
+assert.ok(firebase.includes("welcome_mobile_image_path:mobileURL"));
+assert.ok(firebase.includes("mobile_image_url:data.welcome_mobile_image_url"));
 assert.ok(firebase.includes("welcome_enabled:settings.enabled===true"));
 assert.ok(firebase.includes("contacts: cleaned"));
 
@@ -50,7 +60,12 @@ assert.ok(rules.includes("request.resource.data.status in ['available', 'sold_ou
 
 const welcomePanel=readFileSync('welcome-admin.js','utf8');
 assert.ok(welcomePanel.includes("step==='firestore'"));
-assert.ok(welcomePanel.includes("pendingUpload=uploaded"));
+assert.ok(welcomePanel.includes("pendingMobile=uploadedMobile"));
+assert.ok(welcomePanel.includes("pendingDesktop=uploadedDesktop"));
+assert.ok(welcomePanel.includes("$('#welcome-mobile-file')"));
+assert.ok(welcomePanel.includes("$('#welcome-mobile-url')"));
+assert.ok(welcomePanel.includes("mobile_image_path:"));
+assert.ok(!welcomePanel.includes('deleteObject('));
 assert.ok(welcomePanel.includes("La fotografía ya está subida"));
 const publicJS=readFileSync('catalog-public-data.js','utf8');
 assert.ok(publicJS.includes("if (data.kind || !allowedStatuses.has(data.status)"));
@@ -60,6 +75,11 @@ assert.ok(styles.includes('width:min(99vw,133.3svh,1920px)'), 'La portada debe a
 assert.ok(styles.includes('background:var(--welcome-backdrop'), 'Fondo extendido a partir de la portada oficial');
 assert.ok(styles.includes('.welcome-hotspot{display:block'), 'El CTA visible en la imagen debe ser interactivo en móviles');
 assert.ok(styles.includes('min-height:44px'), 'La zona de pulsación táctil debe ser cómoda');
+assert.ok(styles.includes('.welcome-screen.has-mobile-art .welcome-art'), 'La portada vertical debe conservar su proporción');
+assert.ok(styles.includes('width:min(100vw,56.28svh)'), 'Imagen 9:16 debe ajustarse a la pantalla sin recorte');
+assert.ok(styles.includes('.welcome-screen.has-mobile-art .welcome-hotspot'), 'Botón real sobre diseño vertical');
+assert.ok(readFileSync('portada.html','utf8').includes('id="welcome-mobile-file"'));
+assert.ok(readFileSync('portada.html','utf8').includes('id="welcome-mobile-preview"'));
 assert.ok(!html.includes('class="welcome-mobile-copy"'), 'No repetir textos que ya existen en la portada oficial');
 assert.ok(!html.includes('id="welcome-enter-mobile"'), 'No repetir botón de entrada en móviles');
 console.log('Portada oficial: rutas, botón, activación y protección del administrador verificadas.');
