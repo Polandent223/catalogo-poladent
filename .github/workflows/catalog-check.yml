@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validar JavaScript como módulos
         run: |
-          for file in admin.js app.js catalogo.js public-catalog.js config.js data-client.js firebase-client.js catalog-service.js cloudinary-upload-worker.js brand-admin.js bulk-import.js contact-admin.js contact-links.js catalog-public-data.js catalog-images.js welcome.js welcome-routing.js welcome-admin.js catalog-analytics.js analytics-admin.js analytics-summary.js backup-utils.js backup-admin.js; do
+          for file in admin.js app.js catalogo.js public-catalog.js config.js data-client.js firebase-client.js catalog-service.js cloudinary-upload-worker.js brand-admin.js bulk-import.js contact-admin.js contact-links.js catalog-public-data.js catalog-images.js welcome.js welcome-routing.js welcome-admin.js catalog-analytics.js analytics-admin.js analytics-summary.js analytics-quality.js backup-utils.js backup-admin.js; do
             node --input-type=module --check < "$file"
           done
       - name: Verificar lectura e importación de CSV
@@ -26,6 +26,8 @@ jobs:
         run: node analytics-tests.mjs
       - name: Probar respaldo privado sin escrituras
         run: node backup-tests.mjs
+      - name: Comprobar SEO y calidad del contador
+        run: node seo-quality-tests.mjs
       - name: Validar enlaces y reglas mínimas
         run: |
           grep -q 'catalogPublic' firestore.rules
