@@ -78,5 +78,5 @@ export function startCatalogAnalytics() {
     const id=new URLSearchParams(location.hash.replace(/^#/, '')).get('producto')||'';
     const brand=document.getElementById('detail-brand')?.textContent||'';
     record('whatsapp',0,brand,id);
-  },{capture:true});
+  });
 }
