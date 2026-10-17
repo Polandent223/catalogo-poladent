@@ -33,3 +33,14 @@ En `catalog-analytics.js` se generan los eventos `visit`, `engagement`, `product
 
 ## Pruebas
 Ejecuta `node analytics-tests.mjs` y el conjunto de pruebas GitHub Actions. Confirma luego una prueba real con un navegador sin bloquear estadísticas y una cuenta autorizada del administrador.
+
+## Ampliación de inteligencia comercial
+
+El panel `estadisticas.html` incluye, además del historial original:
+
+- **Productos más abiertos**: ordenados por aperturas de ficha, con marca y número de clics a WhatsApp para ese producto.
+- **Consultas por marca**: muestra cuántas pulsaciones del botón WhatsApp corresponden a cada marca. No cuenta mensajes efectivamente enviados.
+- **Comparación**: últimos 7 días contra los 7 previos, meses cerrados contra el mes anterior completo, y mes en curso contra los mismos días del mes anterior (por ejemplo del 1 al 17 frente al 1 al 17). Si el periodo anterior tuvo cero visitas, se muestra «Nuevo» en lugar de un porcentaje falso.
+- **Historial sin pérdidas**: los nuevos informes se calculan a partir de los eventos ya registrados; no se borran ni editan los documentos en Firestore. Se muestran nombres de productos que todavía existen en inventario; los retirados mantienen su identificador histórico.
+
+Estas mejoras leen desde el **administrador** los eventos de dos periodos y consultan los nombres de productos una sola vez por sesión. No añaden nuevas peticiones ni campos al contador del escaparate público, ni requieren cambiar de nuevo las reglas Firebase que ya están funcionando. Cuando crezca muchísimo la actividad, convendrá agregar resúmenes diarios automáticos para no consultar cada evento individualmente.

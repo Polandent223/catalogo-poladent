@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {summarizeAnalytics,monthRange,weekRange,formatDuration} from './analytics-summary.js';
+import {summarizeAnalytics,monthRange,weekRange,comparisonRanges,metricChange,formatDuration} from './analytics-summary.js';
 const event=(type,date,seconds=0,brand='')=>({type,created_at:new Date(date),seconds,brand});
 const summary=summarizeAnalytics([
   event('visit','2026-10-15T10:00:00Z'),
@@ -53,4 +53,64 @@ for(const id of ['analytics-login','analytics-period','analytics-month','metric-
 const firestore=readFileSync('firebase-client.js','utf8');
 assert.ok(firestore.includes("collection(db,'catalogAnalyticsEvents')"));
 assert.ok(firestore.includes("await adminCheck();"));
+
+// Rankings: un mismo producto puede recibir múltiples aperturas y consultas.
+const extended=[
+  {type:'visit',created_at:new Date(2026,9,17,9)},
+  {type:'product_open',created_at:new Date(2026,9,17,9,1),product_id:'vrc-01',brand:'VRC'},
+  {type:'product_open',created_at:new Date(2026,9,17,9,2),product_id:'vrc-01',brand:'VRC'},
+  {type:'product_open',created_at:new Date(2026,9,17,9,3),product_id:'adalta-01',brand:'ADALTA'},
+  {type:'whatsapp',created_at:new Date(2026,9,17,9,4),product_id:'vrc-01',brand:'VRC'},
+  {type:'whatsapp',created_at:new Date(2026,9,17,9,5),product_id:'vrc-01',brand:'VRC'},
+  {type:'whatsapp',created_at:new Date(2026,9,17,9,6),product_id:'adalta-01',brand:'ADALTA'},
+  {type:'whatsapp',created_at:new Date(2026,9,17,9,7),product_id:'old-item',brand:'IMODONTO'},
+  // Historic event without product ID: count brand, but never invent product.
+  {type:'whatsapp',created_at:new Date(2026,9,17,9,8),product_id:'',brand:'VRC'}
+];
+const full=summarizeAnalytics(extended);
+assert.deepEqual(full.whatsappByBrand,[
+  {name:'VRC',clicks:3},{name:'ADALTA',clicks:1},{name:'IMODONTO',clicks:1}
+]);
+assert.deepEqual(full.products.slice(0,2),[
+  {id:'vrc-01',brand:'VRC',views:2,whatsappClicks:2},
+  {id:'adalta-01',brand:'ADALTA',views:1,whatsappClicks:1}
+]);
+assert.deepEqual(full.products.find(p=>p.id==='old-item'),
+  {id:'old-item',brand:'IMODONTO',views:0,whatsappClicks:1});
+assert.equal(full.whatsappClicks,5);
+assert.equal(metricChange(20,10),'+100 %');
+assert.equal(metricChange(5,10),'-50 %');
+assert.equal(metricChange(0,0),'Sin cambio');
+assert.equal(metricChange(10,0),'Nuevo');
+const now=new Date(2026,9,17,10,35);
+const currentMonth=comparisonRanges('month','2026-9',now);
+assert.equal(currentMonth.current.start.getMonth(),9);
+assert.equal(currentMonth.current.end.getDate(),18);
+assert.equal(currentMonth.previous.start.getMonth(),8);
+assert.equal(currentMonth.previous.end.getDate(),18);
+assert.match(currentMonth.label,/Mismos días/);
+const historic=comparisonRanges('month','2026-7',now);
+assert.equal(historic.current.end.getMonth(),8);
+assert.equal(historic.previous.end.getMonth(),7);
+assert.match(historic.label,/Mes anterior completo/);
+const febClamp=comparisonRanges('month','2026-2',new Date(2026,2,31,12));
+assert.equal(febClamp.previous.end.getMonth(),2);
+assert.equal(febClamp.previous.end.getDate(),1);
+const weekly=comparisonRanges('week','',now);
+assert.equal((weekly.current.start-weekly.previous.start)/86400000,7);
+assert.equal((weekly.current.end-weekly.current.start)/86400000,7);
+const adminScript=readFileSync('analytics-admin.js','utf8');
+assert.ok(adminScript.includes('listProducts(true)'));
+assert.ok(adminScript.includes('productNames()'));
+assert.ok(adminScript.includes('Promise.all(['));
+assert.ok(adminScript.includes('listAnalyticsEvents(previous.start,previous.end)'));
+assert.ok(adminScript.includes('renderProductInsights'));
+assert.ok(adminScript.includes('renderWhatsappByBrand'));
+assert.ok(!adminScript.includes('.innerHTML'));
+for (const id of ['analytics-products','analytics-whatsapp-brands','compare-visits','compare-whatsapp']){
+  assert.ok(dashboard.includes('id="'+id+'"'));
+}
+// El recopilador público y las reglas históricas permanecen intactos.
+assert.ok(!listener.includes('analytics-products'));
+assert.ok(!firestore.includes('deleteDoc(doc(db,\'catalogAnalyticsEvents\''));
 console.log('Estadísticas POLADENT: cálculos, privacidad, reglas y botones verificados');
