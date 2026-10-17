@@ -1,3 +1,4 @@
+import {createEventGate,isRealWhatsAppClick} from './analytics-quality.js';
 // Estadísticas anónimas de POLADENT.
 // No utiliza cookies, localStorage, identificadores de dispositivos, IP, teléfonos,
 // contenido del mensaje ni información personal de visitantes.
@@ -14,6 +15,7 @@ export function startCatalogAnalytics() {
   if(navigator.globalPrivacyControl===true || navigator.doNotTrack==='1')return;
 
   let warned=false;
+  const allowEvent=createEventGate();
   const firestore=Promise.all([
     import('https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js'),
     import('https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js')
@@ -22,7 +24,7 @@ export function startCatalogAnalytics() {
     return {db:fs.getFirestore(application),fs};
   });
   function record(type,seconds=0,brand='',product_id=''){
-    if(!TYPES.has(type))return;
+    if(!TYPES.has(type)||!allowEvent(type,brand,product_id))return;
     // No impedir navegación ni apertura de WhatsApp por motivos de estadísticas.
     firestore.then(({db,fs})=>fs.addDoc(fs.collection(db,'catalogAnalyticsEvents'),{
       type,seconds,brand:String(brand).slice(0,80),product_id:String(product_id).slice(0,140),
@@ -71,7 +73,8 @@ export function startCatalogAnalytics() {
     record('product_open',0,detail.brand,detail.id);
   });
   document.addEventListener('click',event=>{
-    if(!event.target.closest?.('#inquiry-whatsapp'))return;
+    const link=event.target?.closest?.('a#inquiry-whatsapp');
+    if(!isRealWhatsAppClick(event,link))return;
     const id=new URLSearchParams(location.hash.replace(/^#/, '')).get('producto')||'';
     const brand=document.getElementById('detail-brand')?.textContent||'';
     record('whatsapp',0,brand,id);
