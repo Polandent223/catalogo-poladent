@@ -77,6 +77,19 @@ assert.ok(styles.includes('.welcome-hotspot{display:block'), 'El CTA visible en 
 assert.ok(styles.includes('min-height:44px'), 'La zona de pulsación táctil debe ser cómoda');
 assert.ok(styles.includes('.welcome-screen.has-mobile-art .welcome-art'), 'La portada vertical debe conservar su proporción');
 assert.ok(styles.includes('width:min(100vw,56.28svh)'), 'Imagen 9:16 debe ajustarse a la pantalla sin recorte');
+const mobileTap=styles.slice(styles.indexOf('/* Acceso táctil a la portada: un toque en CUALQUIER punto'));
+assert.ok(mobileTap.startsWith('/* Acceso táctil'), 'La portada debe habilitar toque completo en móviles');
+assert.ok(mobileTap.includes('(max-width:700px)'), 'En teléfonos estrechos toda la portada debe ser clicable');
+assert.ok(mobileTap.includes('(max-width:950px) and (hover:none) and (pointer:coarse)'), 'Incluir teléfonos apaisados');
+assert.ok(mobileTap.includes('#welcome-screen #welcome-enter {'), 'Reutilizar el botón existente para toda la portada');
+assert.ok(mobileTap.includes('position:fixed;'), 'Botón debe abarcar el viewport');
+assert.ok(mobileTap.includes('inset:0;'), 'El botón debe partir de todas las esquinas');
+assert.ok(mobileTap.includes('width:100vw;') && mobileTap.includes('height:100svh;'), 'Un toque en cualquier lugar debe abrir el catálogo');
+assert.ok(mobileTap.includes('background:transparent;'), 'No cubrir el diseño oficial con colores');
+assert.ok(welcome.includes("$('#welcome-enter').addEventListener('click',()=>enterCatalog(true))"),
+  'Conservar el mismo botón funcional y enlace de entrada');
+assert.equal((html.match(/id="welcome-enter"/g)||[]).length,1,'No duplicar botones en la portada');
+
 assert.ok(styles.includes('.welcome-screen.has-mobile-art .welcome-hotspot'), 'Botón real sobre diseño vertical');
 assert.ok(readFileSync('portada.html','utf8').includes('id="welcome-mobile-file"'));
 assert.ok(readFileSync('portada.html','utf8').includes('id="welcome-mobile-preview"'));

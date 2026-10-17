@@ -379,3 +379,34 @@ body.has-welcome{margin:0;background:#041a34}
 @media(max-width:420px){
   .product-card .card-cart-add{margin:10px 9px 0;width:calc(100% - 18px)}
 }
+
+
+/* Acceso táctil a la portada: un toque en CUALQUIER punto abre el catálogo.
+   Se amplía el botón HTML original a todo el viewport solo en teléfonos:
+   no modifica ni recorta la imagen, no añade botones y mantiene el PC intacto. */
+@media (max-width:700px), (max-width:950px) and (hover:none) and (pointer:coarse) {
+  #welcome-screen #welcome-enter {
+    position:fixed;
+    inset:0;
+    top:0;left:0;
+    width:100vw;
+    height:100svh;
+    min-height:100svh;
+    max-height:none;
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+    cursor:pointer;
+    z-index:5;
+    touch-action:manipulation;
+  }
+  #welcome-screen #welcome-enter:hover{
+    box-shadow:none;
+    background:transparent;
+  }
+  #welcome-screen #welcome-enter:focus-visible{
+    outline:3px solid #b3fbff;
+    outline-offset:-6px;
+    box-shadow:none;
+  }
+}
