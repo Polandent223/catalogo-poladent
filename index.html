@@ -38,10 +38,26 @@
 <p class="eyebrow" id="detail-brand"></p><h2 id="detail-name"></h2>
 <p id="detail-status"></p><p id="detail-description"></p>
 <div id="product-inquiry" class="product-inquiry" hidden>
-<label id="inquiry-contact-label" for="inquiry-contact">Enviar consulta a
-<select id="inquiry-contact"></select></label>
-<a id="inquiry-whatsapp" class="whatsapp-contact" href="#" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp ↗</a>
-<p>Se abrirá WhatsApp con el nombre, la marca y el enlace de este producto.</p>
+<h3 id="quote-title">Solicita una cotización</h3>
+<p class="quote-intro">Indícanos lo que necesitas para atenderte más rápido. No es necesario registrarse.</p>
+<form id="quote-form">
+<label for="quote-quantity">¿Cuántas unidades necesitas?
+<input id="quote-quantity" name="quantity" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="Ej. 2" required></label>
+<label for="quote-city">¿En qué ciudad te encuentras?
+<input id="quote-city" name="city" type="text" autocomplete="address-level2" minlength="2" maxlength="60" placeholder="Ej. Valencia" required></label>
+<label for="quote-timing">¿Cuándo piensas comprar?
+<select id="quote-timing" name="timing" required>
+<option value="">Selecciona una opción</option>
+<option value="this_week">Esta semana</option>
+<option value="this_month">Este mes</option>
+<option value="later">Más adelante</option>
+<option value="comparing">Solo estoy comparando opciones</option>
+</select></label>
+<label id="inquiry-contact-label" for="inquiry-contact">Enviar cotización a
+<select id="inquiry-contact" name="contact"></select></label>
+<a id="inquiry-whatsapp" class="whatsapp-contact" role="button" tabindex="0" aria-disabled="true" target="_blank" rel="noopener noreferrer">Completa los datos para solicitar cotización ↗</a>
+<p id="quote-help">Al continuar, se abrirá WhatsApp con el producto, la cantidad, la ciudad y el plazo elegido. No se enviará ningún mensaje automáticamente.</p>
+</form>
 </div>
 <button id="share-product" type="button">Copiar enlace del producto</button>
 <p id="share-status" role="status"></p>
