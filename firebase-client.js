@@ -4,6 +4,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
+import {normalizeStorefront} from './storefront-settings.js';
 import {brandKey,planBrandRename} from './brand-management.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -454,4 +455,30 @@ export async function listAnalyticsEvents(start, end) {
       created_at:item.created_at?.toDate?.()||new Date(0)
     };
   });
+}
+
+
+// Diseño comercial independiente de la pantalla de bienvenida.
+// Usamos el documento público de contactos y merge:true, como la portada
+// oficial, para respetar las reglas ya desplegadas sin sobrescribir los contactos.
+export async function getStorefrontSettings(){
+  await adminCheck();
+  const found=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+  return normalizeStorefront(found.exists()?found.data().storefront:null);
+}
+export async function saveStorefrontSettings(settings){
+  await adminCheck();
+  const normalized=normalizeStorefront(settings);
+  for(const field of ['banner_desktop','banner_mobile']){
+    const key=field+'_url';
+    if(settings?.[key] && !normalized[key])
+      throw Error('El banner debe tener un enlace seguro HTTPS.');
+  }
+  const data={kind:'contact_settings',status:'available',storefront:normalized,
+    storefront_updated_at:new Date().toISOString()};
+  const batch=writeBatch(db);
+  batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  await batch.commit();
+  return normalized;
 }
