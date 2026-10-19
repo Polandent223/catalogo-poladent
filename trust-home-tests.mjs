@@ -7,6 +7,10 @@ const {TRUST_HOME_DEFAULTS,normalizeTrustHome,validateTrustHomeForPublish}=await
 const defaults=normalizeTrustHome();
 assert.equal(defaults.enabled,false,'El diseño nuevo inicia desactivado');
 assert.equal(defaults.style,'premium');
+assert.equal(normalizeTrustHome({style:'clinica'}).style,'clinica');
+assert.equal(normalizeTrustHome({style:'minimalista'}).style,'minimalista');
+assert.equal(normalizeTrustHome({style:'comercial'}).style,'comercial');
+assert.equal(normalizeTrustHome({style:'desconocida'}).style,'premium');
 assert.equal(defaults.branches.length,2);
 assert.equal(defaults.branches[0].id,'valencia');
 assert.equal(defaults.branches[1].id,'maracay');
