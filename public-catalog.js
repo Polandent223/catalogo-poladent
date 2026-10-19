@@ -1,6 +1,7 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
+import {normalizeStorefront} from './storefront-settings.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -11,6 +12,8 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
+const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
+let storefrontSettings=null,storefrontDraft=null;
 let selected=null,filtered=[],limit=12,searchTimer=0;
 let cartLines=[],catalogLoaded=false;
 const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -120,6 +123,85 @@ function renderBrandHero(){
     back.append(finish,img);
   }
 }
+
+function renderStorefront(){
+  const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
+  const active=(previewStorefront||values.enabled)&&!brand.value;
+  const stage=$('#storefront-home');
+  stage.hidden=!active;
+  $('.intro').hidden=active;
+  document.body.classList.toggle('storefront-active',active);
+  $('#storefront-brands-title').textContent=active?values.brands_title:'Explora por marca';
+  if(!active)return;
+  const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
+    primary:values.primary_label,secondary:values.secondary_label,
+    'featured-title':values.featured_title};
+  for(const [key,value]of Object.entries(field))$('#storefront-'+key).textContent=value;
+  values.trust_items.forEach((t,i)=>$('#storefront-trust-'+(i+1)).textContent=t);
+  const picture=$('#storefront-picture'),banner=$('#storefront-banner'),source=$('#storefront-mobile-source'),
+    art=$('#storefront-products-art'),heroStage=$('#storefront-hero');
+  const desktop=values.banner_desktop_url,mobile=values.banner_mobile_url;
+  const hasBanner=Boolean(desktop||mobile);
+  picture.hidden=!hasBanner;
+  art.hidden=hasBanner;
+  heroStage.classList.toggle('storefront-has-banner',hasBanner);
+  if(hasBanner){
+    banner.src=desktop||mobile;
+    if(mobile)source.srcset=mobile;
+    else source.removeAttribute('srcset');
+  }else{
+    banner.removeAttribute('src');
+    source.removeAttribute('srcset');
+    if(!art.childElementCount){
+      const samples=products.filter(p=>p.status==='available'&&p.image_url)
+        .filter((p,i,a)=>a.findIndex(x=>x.brand===p.brand)===i).slice(0,2);
+      for(const p of samples){
+        const img=element('img');img.src=cloudinaryImage(imageUrl(p.image_url),400);
+        img.alt='';img.loading='lazy';art.append(img);
+      }
+    }
+  }
+  const counts=new Map();
+  for(const p of products)counts.set(p.brand,(counts.get(p.brand)||0)+1);
+  const selectedBrands=values.featured_brands.filter(n=>counts.has(n)).slice(0,4);
+  if(!selectedBrands.length){
+    selectedBrands.push(...[...counts.keys()].slice(0,3));
+  }
+  const block=$('#storefront-featured');
+  block.hidden=selectedBrands.length===0;
+  const grid=$('#storefront-featured-grid');
+  grid.replaceChildren();
+  for(const name of selectedBrands){
+    const item=element('button',null,'storefront-brand-card');item.type='button';
+    const profile=profiles.find(p=>p.name===name);
+    const img=element('img');const thumb=profile?.logo_url||products.find(p=>p.brand===name)?.image_url||'';
+    img.src=cloudinaryImage(imageUrl(thumb),240);img.alt='';img.loading='lazy';img.decoding='async';
+    const info=element('div',null,'storefront-brand-info');
+    info.append(element('strong',name),element('span',(counts.get(name)||0)+' productos disponibles o agotados'));
+    item.append(img,info,element('span','Ver →','storefront-brand-arrow'));
+    item.addEventListener('click',()=>{
+      selectBrand(name);
+      $('.brands-area').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    grid.append(item);
+  }
+}
+if(previewStorefront){
+  // Sólo mensajes desde la página administradora del mismo dominio.
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==window.parent ||
+       event.data?.type!=='poladent:storefront-draft')return;
+    storefrontDraft=normalizeStorefront(event.data.settings,true);
+    renderStorefront();
+  });
+}
+$('#storefront-primary').addEventListener('click',()=>setTimeout(()=>{
+  $('#brand-shortcuts')?.scrollIntoView({behavior:'smooth',block:'start'});
+},0));
+$('#storefront-secondary').addEventListener('click',()=>setTimeout(()=>{
+  $('#product-search')?.focus({preventScroll:true});
+},0));
+
 function buildCard(p,index){
   const card=element('article',null,'product-card'),button=element('button',null,'image-button');
   button.type='button';button.setAttribute('aria-label','Ver '+p.name);
@@ -163,6 +245,7 @@ function selectBrand(name){
   renderBrandHero();
   renderProducts();
   history.replaceState(null,'',brandUrl(name));
+  renderStorefront();
 }
 const cartDialog=$('#cart-dialog'),cartForm=$('#cart-form'),cartOpen=$('#cart-open'),
   cartWhatsApp=$('#cart-whatsapp'),cartItems=$('#cart-items'),cartMessage=$('#cart-message');
@@ -419,6 +502,7 @@ async function load(){
       products=data.hasCatalogState||data.products.length?data.products:legacy();
       profiles=data.profiles;
       contacts=data.contacts;
+      storefrontSettings=data.storefront;
     }else products=legacy();
     cartLines=restoreCart();
     catalogLoaded=true;
@@ -435,6 +519,7 @@ async function load(){
     drawBrands();
     renderBrandHero();
     renderProducts();
+    renderStorefront();
     const productId=new URLSearchParams(location.hash.slice(1)).get('producto');
     if(productId){
       const product=products.find(p=>String(p.id)===productId);
