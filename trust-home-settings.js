@@ -10,6 +10,7 @@ const DEFAULT_BRANCHES=[
    hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',
    direct_purchase:true,pickup:true,visible:true,photos:[]}
 ];
+export const TRUST_HOME_STYLES=Object.freeze(['premium','clinica','minimalista','comercial']);
 export const TRUST_HOME_DEFAULTS={
   enabled:false,style:'premium',eyebrow:'POLADENT CASA DENTAL',
   title:'Todo para odontología y laboratorio dental',
@@ -55,7 +56,8 @@ export function normalizeTrustHome(raw={},allowBlob=false){
     };
   });
   return {
-    enabled:input.enabled===true,style:'premium',
+    enabled:input.enabled===true,
+    style:TRUST_HOME_STYLES.includes(input.style)?input.style:'premium',
     eyebrow:text(input.eyebrow,60,TRUST_HOME_DEFAULTS.eyebrow),
     title:text(input.title,120,TRUST_HOME_DEFAULTS.title),
     subtitle:text(input.subtitle,300,TRUST_HOME_DEFAULTS.subtitle),
