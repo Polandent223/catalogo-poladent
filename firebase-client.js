@@ -213,8 +213,10 @@ export async function saveBrand(id, entry, sourceName = '') {
   if (original) {
     if (!id && !products.some(p => !p.kind && brandKey(p.brand) === brandKey(original)))
       throw Error('Esta marca ya no tiene productos. Actualiza la lista de marcas.');
-    const plan = planBrandRename(original, name, products, profiles, id || null);
-    if (plan.renameRequired) changes = plan.products;
+    if (original !== name) {
+      const plan = planBrandRename(original, name, products, profiles, id || null);
+      if (plan.renameRequired) changes = plan.products;
+    }
   } else {
     // Una presentación nueva para una marca en inventario debe escribir el
     // nombre EXACTO, para que su portada se muestre en el catálogo público.
