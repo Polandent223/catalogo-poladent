@@ -1,7 +1,9 @@
 // Diseño del escaparate: valores públicos, sin secretos ni datos personales.
 // Ausente/desactivado: POLADENT conserva la portada INTERNA anterior.
+export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','comercial']);
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
+  theme:'premium',
   eyebrow:'CATÁLOGO PARA PROFESIONALES',
   title:'Todo en odontología y laboratorio dental',
   subtitle:'Descubre nuestras marcas, selecciona tus productos y solicita una cotización por WhatsApp.',
@@ -38,6 +40,7 @@ export function normalizeStorefront(input={},allowBlob=false) {
   const featured_brands=[...new Set(brands.slice(0,4).map(x=>bounded(x,80)).filter(Boolean))];
   return {
     enabled:s.enabled===true,
+    theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
     eyebrow:bounded(s.eyebrow,60,STORE_DEFAULTS.eyebrow),
     title:bounded(s.title,120,STORE_DEFAULTS.title),
     subtitle:bounded(s.subtitle,250,STORE_DEFAULTS.subtitle),
