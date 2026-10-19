@@ -97,3 +97,20 @@ export async function listAnalyticsEvents(start,end) {
   if(!usingFirebase)throw Error('Las estadísticas necesitan Firebase.');
   return client.listAnalyticsEvents(start,end);
 }
+
+export async function getTrustHomeEditor(){
+  if(!usingFirebase)throw Error('La portada necesita Firebase.');
+  return client.getTrustHomeEditor();
+}
+export async function saveTrustHomeDraft(settings){
+  if(!usingFirebase)throw Error('La portada necesita Firebase.');
+  return client.saveTrustHomeDraft(settings);
+}
+export async function publishTrustHomeDraft(){
+  if(!usingFirebase)throw Error('La portada necesita Firebase.');
+  return client.publishTrustHomeDraft();
+}
+export async function unpublishTrustHome(){
+  if(!usingFirebase)throw Error('La portada necesita Firebase.');
+  return client.unpublishTrustHome();
+}

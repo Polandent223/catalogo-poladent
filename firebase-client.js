@@ -1,3 +1,4 @@
+import {normalizeTrustHome,validateTrustHomeForPublish} from './trust-home-settings.js';
 // Adaptador Firebase: Authentication + Firestore + Storage.
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
@@ -481,4 +482,58 @@ export async function saveStorefrontSettings(settings){
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
   await batch.commit();
   return normalized;
+}
+
+// Portada comercial nueva: borradores PRIVADOS y publicación explícita.
+// No crea colecciones nuevas ni modifica documentos de productos, contactos ni historial.
+export async function getTrustHomeEditor(){
+  await adminCheck();
+  const snap=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+  const data=snap.exists()?snap.data():{};
+  return {
+    draft:normalizeTrustHome(data.trust_home_draft||data.trust_home),
+    published:normalizeTrustHome(data.trust_home),
+    has_draft:Boolean(data.trust_home_draft),
+    draft_updated_at:data.trust_home_draft_updated_at||''
+  };
+}
+export async function saveTrustHomeDraft(settings){
+  await adminCheck();
+  const draft=normalizeTrustHome({...settings,enabled:false});
+  const checkURLs=[draft.hero_image_url,draft.logo_url,
+    ...draft.branches.flatMap(b=>b.photos.map(p=>p.url))];
+  if(checkURLs.some(url=>url&&!url.startsWith('https://')))throw Error('Utiliza imágenes HTTPS.');
+  await setDoc(doc(db,'catalogProducts',CONTACTS_DOC),{
+    kind:'contact_settings',status:'available',
+    trust_home_draft:draft,trust_home_draft_updated_at:new Date().toISOString()
+  },{merge:true});
+  return draft;
+}
+export async function publishTrustHomeDraft(){
+  await adminCheck();
+  const ref=doc(db,'catalogProducts',CONTACTS_DOC);
+  const snap=await getDoc(ref);
+  if(!snap.exists()||!snap.data().trust_home_draft)
+    throw Error('Primero guarda el borrador de la portada.');
+  const published=validateTrustHomeForPublish({...snap.data().trust_home_draft,enabled:true});
+  const payload={kind:'contact_settings',status:'available',
+    trust_home:published,trust_home_updated_at:new Date().toISOString()};
+  const batch=writeBatch(db);
+  batch.set(ref,payload,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),payload,{merge:true});
+  await batch.commit();
+  return published;
+}
+export async function unpublishTrustHome(){
+  await adminCheck();
+  const snap=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+  const current=normalizeTrustHome(snap.exists()?snap.data().trust_home:{});
+  const payload={kind:'contact_settings',status:'available',
+    trust_home:{...current,enabled:false},
+    trust_home_updated_at:new Date().toISOString()};
+  const batch=writeBatch(db);
+  batch.set(doc(db,'catalogProducts',CONTACTS_DOC),payload,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),payload,{merge:true});
+  await batch.commit();
+  return payload.trust_home;
 }

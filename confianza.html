@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Portada premium y sedes | POLADENT</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css">
+<style>
+.trust-editor{max-width:1180px;margin:auto;padding:18px}
+.trust-editor h1{font-size:clamp(25px,3vw,36px)}
+.trust-editor p{line-height:1.55;color:#496578;font-size:13px}
+.trust-admin-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,.83fr);gap:20px;align-items:start}
+.trust-editor fieldset{border:1px solid #d6e3ec;border-radius:14px;min-width:0;padding:15px;display:grid;gap:12px;background:#fff;margin:0 0 17px}
+.trust-editor legend{font-weight:800;color:#153f61;font-size:15px;padding:0 8px}
+.trust-editor label{font-weight:650;font-size:12px;color:#244a66;display:grid;gap:5px}
+.trust-editor input,.trust-editor textarea,.trust-editor select{width:100%;min-width:0;border:1px solid #b8cedd;border-radius:9px;padding:11px;font:inherit;color:#173a53;background:#fff}
+.trust-editor input[type=file]{font-size:12px}
+.trust-editor input[type=checkbox]{width:18px;height:18px}
+.trust-editor .checkbox-row{display:flex;align-items:center;gap:9px}
+.trust-editor .checkbox-row span{flex:1}
+.trust-editor .trust-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.trust-editor .branch-editor{border:1px solid #c9deeb;background:#f4f9fc;border-radius:13px;padding:14px;display:grid;gap:13px}
+.trust-editor .branch-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.trust-editor .branch-heading h3{font-size:15px;margin:0;color:#124b75}
+.trust-editor .branch-photo-row{background:#fff;border:1px solid #d7e5ee;border-radius:10px;padding:10px;display:grid;gap:7px}
+.trust-editor .branch-photo-row p{margin:0;font-weight:750}
+.trust-editor .trust-actions{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}
+.trust-editor .trust-actions button{flex:1;min-width:160px;font-weight:750}
+.trust-editor .trust-publish{background:#096d93;color:#fff}
+.trust-editor .trust-draft{background:#e4f4fc;color:#074e79}
+.trust-editor .trust-danger{background:#fff1ef;border:1px solid #d9a39b;color:#9e2720}
+.trust-editor .preview-panel{position:sticky;top:15px;padding:16px;background:#edf3f8;border:1px solid #cbdce8;border-radius:17px;text-align:center}
+.trust-editor .preview-panel h2{font-size:19px;margin:0 0 8px}
+.trust-editor .preview-panel iframe{height:690px;width:min(100%,390px);border:6px solid #163651;border-radius:25px;background:#fff}
+.trust-editor #trust-status{min-height:20px}
+.trust-editor #trust-status.error{color:#b42517}
+.trust-editor #trust-status.ok{color:#14734d}
+.trust-editor .tip{background:#eaf7f9;border-left:4px solid #06809a;padding:10px;border-radius:6px}
+.trust-editor a{color:#076b9d}
+@media(max-width:880px){.trust-admin-grid{grid-template-columns:1fr}.trust-editor .preview-panel{position:static}.trust-editor{padding:12px}}
+@media(max-width:420px){.trust-editor .trust-two{grid-template-columns:1fr}}
+</style></head>
+<body><header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrador</a></header>
+<main class="trust-editor">
+<p class="eyebrow">PRESENTACIÓN EMPRESARIAL</p><h1>Portada premium y sedes oficiales</h1>
+<p>Edita fotos reales, información comercial, sucursales y secciones. <strong>Guardar borrador nunca publica.</strong> El catálogo de productos, el carrito y las cuatro plantillas anteriores no se modifican.</p>
+<p id="trust-status" role="status" aria-live="polite"></p>
+<form id="trust-login" class="admin-form"><h2>Acceso privado</h2>
+<label>Correo<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button type="submit" class="primary">Entrar al administrador</button></form>
+<section id="trust-workspace" hidden>
+<div class="admin-actions"><a class="brand-admin-link" href="diseno.html">Cuatro plantillas y banners</a><a class="brand-admin-link" href="portada.html">Portada de bienvenida</a><button id="trust-logout" type="button">Cerrar sesión</button></div>
+<div class="trust-admin-grid"><div>
+<form id="trust-form">
+<fieldset><legend>Presentación principal</legend>
+<label>Plantilla de la portada
+<select name="style"><option value="premium">Premium</option><option value="clinica">Clínica</option><option value="minimalista">Minimalista</option><option value="comercial">Comercial</option></select></label>
+<label>Texto superior<input name="eyebrow" maxlength="60" required></label>
+<label>Título principal<textarea name="title" rows="2" maxlength="120" required></textarea></label>
+<label>Descripción<textarea name="subtitle" rows="3" maxlength="300" required></textarea></label>
+<p class="tip">Los botones «Explorar marcas» y «Buscar productos» siguen utilizando el catálogo actual. Se añaden «Ver nuestras sedes» y WhatsApp cuando corresponde.</p>
+<div class="trust-two">
+<label>Foto principal de la portada<input id="trust-hero-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>Logo alternativo (opcional)<input id="trust-logo-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+</div>
+<label>URL HTTPS de foto principal<input id="trust-hero-url" type="url" placeholder="https://..."></label>
+<label>URL HTTPS de logo<input id="trust-logo-url" type="url" placeholder="https://..."></label>
+<p>Las fotos que subas se guardan de forma privada en un borrador. Las anteriores no se eliminan automáticamente.</p>
+</fieldset>
+<fieldset><legend>Secciones visibles</legend>
+<label class="checkbox-row"><input name="show_branches" type="checkbox"><span>Nuestras sedes oficiales</span></label>
+<label class="checkbox-row"><input name="show_benefits" type="checkbox"><span>Razones para elegir POLADENT</span></label>
+<label class="checkbox-row"><input name="show_steps" type="checkbox"><span>Cómo comprar</span></label>
+<label class="checkbox-row"><input name="show_contact" type="checkbox"><span>Cierre comercial y WhatsApp</span></label>
+</fieldset>
+<fieldset><legend>Texto de las sucursales</legend>
+<label>Título de la sección<input name="section_title" maxlength="80" required></label>
+<label>Descripción de la sección<textarea name="section_subtitle" maxlength="180" rows="2" required></textarea></label>
+</fieldset>
+<fieldset><legend>Administrar sucursales</legend>
+<p>Cambia la fachada, fotos interiores, horario, WhatsApp o dirección cuando quieras. Puedes agregar hasta 6 sedes. Cada una admite 3 fotografías.</p>
+<div id="trust-branches"></div>
+<button id="trust-add-branch" type="button">+ Agregar otra sede</button>
+</fieldset>
+<fieldset><legend>Mensajes de confianza</legend>
+<label>Ventaja 1<input name="benefit_1" maxlength="70" required></label>
+<label>Ventaja 2<input name="benefit_2" maxlength="70" required></label>
+<label>Ventaja 3<input name="benefit_3" maxlength="70" required></label>
+<label>Ventaja 4<input name="benefit_4" maxlength="70" required></label>
+</fieldset>
+<fieldset><legend>Cómo comprar</legend>
+<label>Paso 1<input name="step_1" maxlength="100" required></label>
+<label>Paso 2<input name="step_2" maxlength="100" required></label>
+<label>Paso 3<input name="step_3" maxlength="100" required></label>
+<label>Paso 4<input name="step_4" maxlength="100" required></label>
+</fieldset>
+<fieldset><legend>Cierre comercial</legend>
+<label>Título<input name="closing_title" maxlength="110" required></label>
+<label>Descripción<textarea name="closing_text" maxlength="210" rows="2" required></textarea></label>
+</fieldset>
+<div class="trust-actions">
+<button id="trust-save-draft" class="trust-draft" type="button">Guardar borrador privado</button>
+<button id="trust-publish" class="trust-publish" type="button">Publicar portada aprobada</button>
+<button id="trust-restore" type="button">Restaurar borrador guardado</button>
+<button id="trust-unpublish" class="trust-danger" type="button">Desactivar portada premium</button>
+</div>
+<p id="trust-publish-status" role="status"></p>
+</form></div>
+<aside class="preview-panel"><h2>Vista previa en teléfono</h2>
+<p>Los cambios se muestran aquí sin afectar a ningún cliente.</p>
+<iframe id="trust-frame" title="Vista previa privada de la portada de POLADENT" src="./?catalogo=1&amp;vista=1" loading="lazy"></iframe>
+</aside></div></section>
+</main>
+<template id="trust-branch-template">
+<section class="branch-editor">
+<div class="branch-heading"><h3 class="branch-title">Sucursal</h3><button class="branch-remove trust-danger" type="button">Quitar sede</button></div>
+<div class="trust-two">
+<label>Nombre de sede<input data-field="name" maxlength="85" required></label>
+<label>Ciudad y estado<input data-field="city" maxlength="75" required></label></div>
+<label>Dirección completa<textarea data-field="address" maxlength="200" rows="2" required></textarea></label>
+<div class="trust-two"><label>RIF<input data-field="rif" maxlength="32"></label>
+<label>Horario de atención<input data-field="hours" maxlength="85"></label></div>
+<label>WhatsApp con código de país<input data-field="phone" inputmode="tel" maxlength="22" required placeholder="584226710634"></label>
+<div class="trust-two">
+<label class="checkbox-row"><input data-field="visible" type="checkbox"><span>Mostrar sede</span></label>
+<label class="checkbox-row"><input data-field="direct_purchase" type="checkbox"><span>Compra directa</span></label>
+<label class="checkbox-row"><input data-field="pickup" type="checkbox"><span>Retiro en tienda</span></label>
+</div>
+<div class="branch-photo-row"><p>Foto 1 · Fachada o entrada</p><input data-photo-url="0" type="url" placeholder="URL HTTPS o sube foto"><input data-photo-file="0" type="file" accept="image/jpeg,image/png,image/webp"></div>
+<div class="branch-photo-row"><p>Foto 2 · Interior</p><input data-photo-url="1" type="url" placeholder="URL HTTPS o sube foto"><input data-photo-file="1" type="file" accept="image/jpeg,image/png,image/webp"></div>
+<div class="branch-photo-row"><p>Foto 3 · Productos</p><input data-photo-url="2" type="url" placeholder="URL HTTPS o sube foto"><input data-photo-file="2" type="file" accept="image/jpeg,image/png,image/webp"></div>
+</section></template>
+<script src="config.js"></script><script type="module" src="trust-admin.js"></script>
+</body></html>

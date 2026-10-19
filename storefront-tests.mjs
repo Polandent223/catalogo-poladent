@@ -107,7 +107,8 @@ assert.ok(publicCode.includes('storefrontSettings=data.storefront'));
 assert.ok(publicCode.includes("if(event.origin!==location.origin||event.source!==window.parent"),
   'Bloquear mensajes desde sitios no autorizados');
 assert.ok(publicCode.includes('renderStorefront()'));
-assert.ok(publicCode.includes("if(design)document.body.classList.add('storefront-theme-'+values.theme)"));
+assert.ok(publicCode.includes("if(design)document.body.classList.add('storefront-theme-'+(trustOn?trust.style:values.theme))"),
+  'La portada premium solo cambia el tema cuando está activada');
 assert.ok(publicCode.includes("for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name)"),
   'Eliminar la plantilla cuando el diseño está desactivado');
 for(const theme of STORE_THEMES){
