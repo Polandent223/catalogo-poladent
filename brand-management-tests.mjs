@@ -81,5 +81,5 @@ assert.ok(!renameFunction.includes('deleteDoc('));
 assert.ok(!renameFunction.includes('removeImage('));
 assert.ok(!renameFunction.includes('image_url:product'), 'No reescribir imágenes del inventario');
 assert.ok(renameFunction.includes("saved.data().kind !== 'brand_profile'"));
-assert.ok(renameFunction.includes('originalName ='));
+assert.ok(renameFunction.includes("sourceName = ''"));
 console.log('Marcas POLADENT: descubrimiento desde productos y corrección global segura correctos.');
