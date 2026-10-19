@@ -33,3 +33,17 @@
 5. Si prefieres volver al diseño anterior, desmarcar **Activar este diseño** y guardar.
 
 Pruebas automáticas: `node storefront-tests.mjs` (además de CI anterior). Sin acceso al navegador autenticado no se puede certificar una subida real de banner ni el guardado de configuración; el usuario autorizado debe comprobar la operación.
+
+
+## Plantillas rápidas para teléfono y computadora
+El apartado **Plantillas prediseñadas** ofrece cuatro opciones:
+- **Premium:** azul profundo, iluminación estilizada, detalles elegantes y botones celestes.
+- **Clínica:** blanco luminoso y turquesa, limpieza visual y estilo odontológico profesional.
+- **Minimalista:** fondo blanco cálido, pocos elementos decorativos y líneas discretas.
+- **Comercial:** azul brillante, acentos cálidos y botones visibles para solicitar cotizaciones.
+
+El administrador selecciona una tarjeta y ve el resultado inmediatamente en el simulador del teléfono. La selección se conserva como `storefront.theme` junto con los ajustes actuales, sin crear nuevos documentos ni reglas de Firebase. Cambiar la plantilla no sustituye los títulos, banners, mensajes de confianza ni marcas destacadas; solo varía la presentación visual (colores, superficies, bordes, botones y estilo del hero).
+
+Las configuraciones ya existentes sin `theme` se mantienen en **Premium** por compatibilidad. Un valor desconocido también vuelve a Premium para impedir estilos rotos. La selección no se publica por sí sola: solo al pulsar **Guardar configuración**. Si **Activar este diseño** está desactivado, el catálogo original sigue igual. Si ya está activado y se guarda una nueva plantilla, esta aparecerá para los clientes después de que Firebase y sus navegadores carguen la configuración actualizada.
+
+El enlace de vista previa general `?catalogo=1&vista=1` muestra el tema guardado y, dentro del editor, se actualiza con los cambios del formulario sin guardarlos ni compartir los borradores. Probar todas las plantillas en móvil y PC antes de dejar una activa para todos los clientes.
