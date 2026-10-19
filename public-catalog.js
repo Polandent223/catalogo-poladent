@@ -1,7 +1,7 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
-import {normalizeStorefront} from './storefront-settings.js';
+import {normalizeStorefront,STORE_THEMES} from './storefront-settings.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -132,6 +132,8 @@ function renderStorefront(){
   stage.hidden=!active;
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
+  for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
+  if(design)document.body.classList.add('storefront-theme-'+values.theme);
   $('#storefront-brands-title').textContent=design?values.brands_title:'Explora por marca';
   if(!active)return;
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,

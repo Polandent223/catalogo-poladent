@@ -3,7 +3,7 @@ import {
   listBrands,listProducts,getStorefrontSettings,saveStorefrontSettings,
   uploadImage,removeImage
 } from './catalog-service.js';
-import {STORE_DEFAULTS,normalizeStorefront} from './storefront-settings.js';
+import {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront} from './storefront-settings.js';
 
 const $=q=>document.querySelector(q);
 const form=$('#design-form'),msg=$('#design-message'),frame=$('#design-frame');
@@ -29,6 +29,8 @@ function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
   form.querySelector('#design-enabled').checked=published.enabled;
+  const preset=form.querySelector('input[name="theme"][value="'+published.theme+'"]');
+  if(preset)preset.checked=true;
   for(const key of ['eyebrow','title','subtitle','primary_label','secondary_label','featured_title','brands_title'])
     form.elements.namedItem(key).value=published[key];
   published.trust_items.forEach((text,i)=>{
@@ -49,6 +51,7 @@ function formSettings(useFilePreview=true){
   const read=name=>form.elements.namedItem(name).value.trim();
   return {
     enabled:$('#design-enabled').checked,
+    theme:form.elements.namedItem('theme').value,
     eyebrow:read('eyebrow'),
     title:read('title'),
     subtitle:read('subtitle'),
@@ -66,6 +69,9 @@ function sendPreview(){
   if(!frame?.contentWindow || busy)return;
   // No se envían credenciales ni se guardan borradores en el servidor.
   const settings=normalizeStorefront(formSettings(),true);
+  const labels={premium:'Premium',clinica:'Clínica',minimalista:'Minimalista',comercial:'Comercial'};
+  $('#design-theme-description').textContent='Vista previa: '+labels[settings.theme]+
+    '. Se conservan los textos, imágenes y marcas elegidos.';
   frame.contentWindow.postMessage({type:'poladent:storefront-draft',settings},location.origin);
 }
 function updateLocalImage(field){

@@ -27,6 +27,65 @@
 .storefront-admin .design-preview img{max-width:260px;max-height:160px;object-fit:contain;border-radius:8px}
 .storefront-admin .design-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .storefront-admin .design-actions button{flex:1}
+
+.storefront-admin .design-template-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px
+}
+.storefront-admin .design-template-option{
+  position:relative;display:grid;gap:8px;padding:9px;
+  border:2px solid #dbe5ed;border-radius:13px;background:#fff;cursor:pointer;
+  transition:border-color .15s ease,box-shadow .15s ease
+}
+.storefront-admin .design-template-option:hover{border-color:#77b4d1}
+.storefront-admin .design-template-option:has(input:checked){
+  border-color:#087db2;box-shadow:0 0 0 3px #1a9fce20
+}
+.storefront-admin .design-template-option:focus-within{
+  outline:2px solid #0a8db8;outline-offset:2px
+}
+.storefront-admin .design-template-option>input{
+  position:absolute;right:15px;top:15px;width:19px;height:19px;margin:0;
+  accent-color:#087db2;z-index:2
+}
+.storefront-admin .design-template-sample{
+  position:relative;display:block;height:88px;border-radius:9px;
+  overflow:hidden;border:1px solid #dae4e9
+}
+.storefront-admin .design-template-sample::before{
+  content:"";position:absolute;left:12px;top:13px;width:45%;height:9px;
+  background:var(--sample-text);border-radius:2px;box-shadow:0 15px var(--sample-text)
+}
+.storefront-admin .design-template-sample::after{
+  content:"";position:absolute;left:12px;bottom:12px;width:32%;height:17px;
+  background:var(--sample-button);border-radius:5px
+}
+.storefront-admin .design-template-sample>span{
+  position:absolute;right:13px;bottom:12px;width:34%;height:43px;
+  background:var(--sample-card);border:1px solid #ffffff6b;border-radius:10px;
+  transform:rotate(-5deg);box-shadow:0 5px 13px #00000021
+}
+.storefront-admin .design-template-option[data-theme="premium"] .design-template-sample{
+  background:linear-gradient(125deg,#071a36,#087aab);
+  --sample-text:#eaf7ff;--sample-button:#50c8f5;--sample-card:#d9f2fd
+}
+.storefront-admin .design-template-option[data-theme="clinica"] .design-template-sample{
+  background:linear-gradient(125deg,#ffffff,#c6f1ed);
+  --sample-text:#1a5968;--sample-button:#00868d;--sample-card:#ffffff
+}
+.storefront-admin .design-template-option[data-theme="minimalista"] .design-template-sample{
+  background:linear-gradient(125deg,#fffefa,#ebe8dd);
+  --sample-text:#353a3c;--sample-button:#2a2e32;--sample-card:#fbf9f0
+}
+.storefront-admin .design-template-option[data-theme="comercial"] .design-template-sample{
+  background:linear-gradient(125deg,#112d88,#0e8fc4);
+  --sample-text:#ffffff;--sample-button:#ffcb64;--sample-card:#edf9ff
+}
+.storefront-admin .design-template-copy{display:grid;gap:5px;padding:0 3px 4px;line-height:1.25}
+.storefront-admin .design-template-copy strong{font-size:13px;color:#163e57}
+.storefront-admin .design-template-copy small{font-size:11px;color:#536f7e;line-height:1.35}
+.storefront-admin #design-theme-description{
+  margin:4px 0 0;font-size:12px;color:#21647a;line-height:1.5
+}
 @media(max-width:890px){.storefront-admin .design-columns{grid-template-columns:1fr}
   .storefront-admin .design-preview{position:static}
   .storefront-admin .design-preview iframe{height:620px}}
@@ -38,7 +97,7 @@
 <main class="admin-wrap storefront-admin">
 <p class="eyebrow">PRESENTACIÓN COMERCIAL</p>
 <h1>Diseño del catálogo</h1>
-<p>Controla el banner, títulos, botones, marcas destacadas y mensajes de confianza. <strong>La portada principal de bienvenida es independiente.</strong> Puedes revisar todos los cambios en el teléfono simulado antes de activar este diseño para tus clientes.</p>
+<p>Elige entre Premium, Clínica, Minimalista y Comercial y personaliza el banner, los textos, las marcas destacadas y los mensajes de confianza. <strong>La portada principal de bienvenida es independiente.</strong> Puedes revisar todos los cambios en el teléfono simulado antes de activar este diseño para tus clientes.</p>
 <p id="design-message" class="design-status" role="status" aria-live="polite"></p>
 <form id="design-login" class="admin-form">
 <h2>Acceso privado</h2>
@@ -54,6 +113,33 @@
 <fieldset><legend>Publicación</legend>
 <label class="design-toggle"><input id="design-enabled" type="checkbox"> Activar este diseño para TODOS los clientes</label>
 <p>Si está desactivado, el catálogo público conserva el diseño actual. La vista previa funciona igualmente. Al guardar se publica únicamente si marcas esta opción.</p>
+</fieldset>
+<fieldset id="design-theme-chooser" aria-describedby="design-theme-description">
+<legend>Plantillas prediseñadas</legend>
+<p>Elige una plantilla con un toque. La vista previa cambiará sin borrar tus textos, las marcas destacadas ni las fotografías que hayas seleccionado.</p>
+<div class="design-template-grid" role="radiogroup" aria-label="Estilo del catálogo">
+<label class="design-template-option" data-theme="premium">
+<input type="radio" name="theme" value="premium" checked required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Premium</strong><small>Azul profundo y estética cinematográfica elegante.</small></span>
+</label>
+<label class="design-template-option" data-theme="clinica">
+<input type="radio" name="theme" value="clinica" required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Clínica</strong><small>Blanco luminoso, turquesa y aspecto profesional.</small></span>
+</label>
+<label class="design-template-option" data-theme="minimalista">
+<input type="radio" name="theme" value="minimalista" required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Minimalista</strong><small>Espacios limpios, tonos suaves y líneas discretas.</small></span>
+</label>
+<label class="design-template-option" data-theme="comercial">
+<input type="radio" name="theme" value="comercial" required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Comercial</strong><small>Colores vivos y botones llamativos para consultar.</small></span>
+</label>
+</div>
+<p id="design-theme-description" role="status" aria-live="polite">Vista previa: Premium. Tus imágenes y textos se conservan.</p>
 </fieldset>
 <fieldset><legend>Banner principal</legend>
 <p>Puedes subir una imagen distinta para computadora y teléfono, igual que en la portada principal. Si no subes ninguna, se mostrará un banner azul premium con fotografías de productos reales del catálogo.</p>

@@ -2,11 +2,30 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const load=async name=>import('data:text/javascript;base64,'+Buffer.from(read(name)).toString('base64'));
-const {STORE_DEFAULTS,normalizeStorefront,secureBannerURL}=await load('storefront-settings.js');
+const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL}=await load('storefront-settings.js');
 const {parseCatalogDocuments}=await load('catalog-public-data.js');
 
 const original=normalizeStorefront();
 assert.equal(original.enabled,false,'Por defecto nadie ve el rediseño hasta la aprobación');
+assert.equal(original.theme,'premium','Conservar como predeterminada la propuesta aprobada');
+assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial']);
+for(const theme of STORE_THEMES){
+  const selected=normalizeStorefront({
+    ...STORE_DEFAULTS,theme,
+    title:'Título personalizado',banner_mobile_url:'https://example.com/portada-movil.webp',
+    trust_items:['Primer mensaje','Segundo mensaje','Tercer mensaje'],
+    featured_brands:['ICE','ADALTA']
+  });
+  assert.equal(selected.theme,theme);
+  assert.equal(selected.title,'Título personalizado','Cambiar la plantilla no modifica textos');
+  assert.equal(selected.banner_mobile_url,'https://example.com/portada-movil.webp',
+    'Cambiar la plantilla no modifica banners');
+  assert.deepEqual(selected.featured_brands,['ICE','ADALTA']);
+  assert.deepEqual(selected.trust_items,['Primer mensaje','Segundo mensaje','Tercer mensaje']);
+}
+assert.equal(normalizeStorefront({theme:'unsupported'}).theme,'premium');
+assert.equal(normalizeStorefront({theme:'premium; color:red'}).theme,'premium');
+assert.equal(normalizeStorefront({}).theme,'premium','Los ajustes viejos deben conservar su apariencia');
 assert.match(original.title,/odontología/);
 assert.equal(original.trust_items.length,3);
 assert.equal(original.featured_brands.length,3);
@@ -17,7 +36,7 @@ assert.equal(secureBannerURL('https://user:pass@example.com/x.webp'),'');
 assert.equal(secureBannerURL('blob:https://example.com/a'), '');
 assert.equal(secureBannerURL('blob:https://example.com/a',true),'blob:https://example.com/a');
 const candidate=normalizeStorefront({
-  enabled:true,title:'Nueva vitrina POLADENT',
+  enabled:true,theme:'clinica',title:'Nueva vitrina POLADENT',
   eyebrow:'OFERTAS SIN PRECIOS', subtitle:'Laboratorio e instrumental.',
   banner_desktop_url:'https://example.com/pc.webp',
   banner_mobile_url:'https://example.com/mobile.webp',
@@ -25,6 +44,7 @@ const candidate=normalizeStorefront({
   featured_brands:['ICE','ADALTA','ICE','EASYINSMILE','VRC','IMODONTO']
 });
 assert.equal(candidate.enabled,true);
+assert.equal(candidate.theme,'clinica');
 assert.equal(candidate.title,'Nueva vitrina POLADENT');
 assert.equal(candidate.banner_mobile_url,'https://example.com/mobile.webp');
 assert.deepEqual(candidate.trust_items,['Asesoría','Cotización','Envíos']);
@@ -36,6 +56,7 @@ const untrusted=normalizeStorefront({
   trust_items:['texto\nsegundo']
 });
 assert.equal(untrusted.enabled,false);
+assert.equal(untrusted.theme,'premium');
 assert.equal(untrusted.title,STORE_DEFAULTS.title);
 assert.equal(untrusted.banner_mobile_url,'');
 assert.equal(untrusted.trust_items[0],'texto segundo');
@@ -86,6 +107,18 @@ assert.ok(publicCode.includes('storefrontSettings=data.storefront'));
 assert.ok(publicCode.includes("if(event.origin!==location.origin||event.source!==window.parent"),
   'Bloquear mensajes desde sitios no autorizados');
 assert.ok(publicCode.includes('renderStorefront()'));
+assert.ok(publicCode.includes("if(design)document.body.classList.add('storefront-theme-'+values.theme)"));
+assert.ok(publicCode.includes("for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name)"),
+  'Eliminar la plantilla cuando el diseño está desactivado');
+for(const theme of STORE_THEMES){
+  assert.ok(style.includes('body.storefront-active.storefront-theme-'+theme),
+    'Faltan estilos de la plantilla '+theme);
+  assert.ok(adminPage.includes('data-theme="'+theme+'"'),'Falta tarjeta '+theme);
+  assert.ok(adminPage.includes('name="theme" value="'+theme+'"'),'Falta control accesible '+theme);
+}
+assert.ok(style.includes('--sf-hero-bg'),'Los estilos incluyen fondos diferenciados');
+assert.ok(style.includes('--sf-primary'),'Los botones incluyen acentos diferenciados');
+assert.ok(style.includes('--sf-hero-title'),'Los títulos contrastan en fondos claros y oscuros');
 assert.ok(publicCode.includes("window.parent.postMessage({type:'poladent:storefront-ready'},location.origin)"));
 assert.ok(style.includes('body.storefront-active'));
 assert.ok(style.includes('.storefront-hero'));
@@ -98,6 +131,13 @@ for(const id of ['design-enabled','design-desktop-file','design-desktop-url',
 assert.ok(adminPage.includes('src="./?catalogo=1&amp;vista=1"'));
 assert.ok(read('admin.html').includes('href="diseno.html"'));
 assert.ok(adminCode.includes('getStorefrontSettings()'));
+assert.ok(adminCode.includes("theme:form.elements.namedItem('theme').value"));
+assert.ok(adminCode.includes("input[name=\"theme\"][value=\"'+published.theme+'\"]"),
+  'Restaurar la plantilla elegida desde Firebase');
+assert.ok(adminCode.includes("frame.contentWindow.postMessage({type:'poladent:storefront-draft',settings}"),
+  'Cambiar de plantilla debe verse en tiempo real en el teléfono');
+assert.ok(adminPage.includes('id="design-theme-description"'));
+assert.ok(adminPage.includes('id="design-enabled"'),'No activar plantilla al escogerla');
 assert.ok(adminCode.includes('saveStorefrontSettings(requested)'));
 assert.ok(adminCode.includes("type:'poladent:storefront-draft'"));
 assert.ok(adminCode.includes('await uploadImage(file)'));
