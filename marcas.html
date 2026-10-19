@@ -5,7 +5,9 @@
 <body>
 <header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrar productos</a></header>
 <main class="admin-wrap brand-admin">
-<h1>Identidad de cada marca.</h1><p>Sube los logotipos originales, portadas y contraportadas de tus marcas. Esto no modifica los productos.</p>
+<h1>Gestionar marcas del catálogo</h1>
+<p>Las marcas que escribas en productos o importaciones aparecerán automáticamente aquí, aunque aún no tengan logotipo o portada. Puedes configurar su presentación o corregir su nombre.</p>
+<p><strong>Corregir una marca:</strong> pulsa «Editar marca» o «Configurar / corregir», cambia el nombre y guarda. Si el nombre cambia, también se corregirá en todos los productos de esa marca (incluidos agotados y ocultos), conservando sus fotografías y demás datos. Confirmaremos la operación antes de guardarla.</p>
 <p id="brand-message" role="status" aria-live="polite"></p>
 <form id="brand-login" class="admin-form"><h2>Acceso privado</h2>
 <label>Correo del administrador<input name="email" type="email" autocomplete="username" required></label>
@@ -15,7 +17,7 @@
 <div class="admin-actions"><button type="button" id="brand-new">Nueva presentación</button><a class="brand-admin-link" href="./">Ver catálogo público</a><button type="button" id="brand-logout">Cerrar sesión</button></div>
 <div class="admin-layout">
 <form id="brand-form" class="admin-form">
-<h2 id="brand-form-title">Nueva marca</h2><p>La marca debe tener el mismo nombre que aparece en sus productos.</p>
+<h2 id="brand-form-title">Nueva marca</h2><p>Selecciona una marca existente de la lista o escribe una nueva. Si vas a corregir un nombre, hazlo desde «Editar marca» o «Configurar / corregir» para que también se actualicen sus productos.</p>
 <label>Marca<input name="name" list="existing-brands" maxlength="80" required placeholder="Ej. ADALTA"></label><datalist id="existing-brands"></datalist>
 <label>Frase de presentación<input name="tagline" maxlength="140" placeholder="Odontología y laboratorio dental"></label>
 <label>Descripción<textarea name="description" maxlength="500" placeholder="Describe la marca brevemente"></textarea></label>
@@ -29,10 +31,13 @@
 <fieldset><legend>Contraportada de la marca</legend>
 <label>Subir contraportada<input name="back_cover_file" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <label>O enlace público de imagen<input name="back_cover_url" type="url" placeholder="https://..."></label><img class="brand-admin-preview" id="back-cover-preview" alt="Contraportada actual" hidden></fieldset>
-<p>Al editar una marca, deja las imágenes sin seleccionar para conservar las actuales. No modificaremos ni rediseñaremos los logos.</p>
+<p>Si dejas las imágenes sin seleccionar se conservarán las actuales. No modificaremos ni rediseñaremos los logos. Al corregir el nombre, se actualiza solamente el campo de marca de los productos asociados.</p>
 <button class="primary" type="submit">Guardar presentación</button><button type="button" id="brand-cancel">Cancelar</button>
 </form>
-<section><h2>Marcas configuradas</h2><p>Selecciona Editar para cambiar sus portadas sin tocar los productos.</p><div id="brand-admin-list"></div></section>
+<section><h2>Todas las marcas</h2>
+<p id="brand-total" role="status" aria-live="polite">Cargando marcas del inventario…</p>
+<p>Las marcas sin presentación también aparecerán aquí. Puedes añadirles imágenes o corregir su nombre sin entrar producto por producto.</p>
+<div id="brand-admin-list"></div></section>
 </div>
 </section></main>
 <script src="config.js"></script><script type="module" src="brand-admin.js"></script></body></html>
