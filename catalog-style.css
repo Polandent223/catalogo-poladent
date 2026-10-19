@@ -575,3 +575,161 @@ body.storefront-active .cart-toolbar{background:#e6f3fb;border-color:#c4e1f0}
 @media(prefers-reduced-motion:reduce){
   .storefront-actions a{transition:none}
 }
+
+/* Plantillas POLADENT. Solamente se aplican cuando el escaparate está activo;
+   la portada bienvenida, el carrito y la administración permanecen intactos. */
+body.storefront-active.storefront-theme-premium{
+  --sf-bg:#f3f7fb;--sf-panel:#ffffff;--sf-ink:#133753;--sf-muted:#607c8d;
+  --sf-hero-bg:radial-gradient(circle at 91% 18%,#278cb8 0%,transparent 47%),linear-gradient(122deg,#06172d,#093f69 62%,#096082);
+  --sf-hero-title:#ffffff;--sf-hero-copy:#e2f4ff;--sf-hero-eyebrow:#a8dfff;
+  --sf-overlay:linear-gradient(90deg,#061d38e8 0%,#082949c8 51%,#082c4e24 100%);
+  --sf-primary:#50c8f5;--sf-primary-ink:#082944;
+  --sf-secondary:#ffffff18;--sf-secondary-ink:#fff;--sf-secondary-border:#ffffffb8;
+  --sf-border:#d9e5ed;--sf-trust:#fff;--sf-card-hover:#f8fdff;--sf-radius:22px;
+  --sf-shadow:0 20px 45px #12375626;--sf-cart:#e6f3fb;--sf-accent:#1081a7
+}
+body.storefront-active.storefront-theme-clinica{
+  --sf-bg:#f1fbfb;--sf-panel:#fff;--sf-ink:#174859;--sf-muted:#52777b;
+  --sf-hero-bg:radial-gradient(ellipse at 86% 14%,#b9eaf4 0%,transparent 49%),linear-gradient(128deg,#ffffff,#e6f8fa 65%,#c8eff2);
+  --sf-hero-title:#123b50;--sf-hero-copy:#345b64;--sf-hero-eyebrow:#097d86;
+  --sf-overlay:linear-gradient(90deg,#effdfff5 0%,#e5f9f6da 55%,#d8f5f269 100%);
+  --sf-primary:#007b87;--sf-primary-ink:#fff;
+  --sf-secondary:#ffffffb5;--sf-secondary-ink:#105866;--sf-secondary-border:#9bd2d7;
+  --sf-border:#cce6e9;--sf-trust:#fff;--sf-card-hover:#edfcf9;--sf-radius:17px;
+  --sf-shadow:0 10px 30px #0d858018;--sf-cart:#dff5f3;--sf-accent:#087e85
+}
+body.storefront-active.storefront-theme-minimalista{
+  --sf-bg:#faf9f6;--sf-panel:#fffefa;--sf-ink:#21272b;--sf-muted:#6b7172;
+  --sf-hero-bg:linear-gradient(130deg,#fffefa,#eeeae1);
+  --sf-hero-title:#1f2529;--sf-hero-copy:#525b60;--sf-hero-eyebrow:#595e60;
+  --sf-overlay:linear-gradient(90deg,#faf8f2f4 0%,#faf8f2dc 60%,#faf8f263 100%);
+  --sf-primary:#21272b;--sf-primary-ink:#fff;
+  --sf-secondary:#fffefa;--sf-secondary-ink:#21272b;--sf-secondary-border:#9b9e9e;
+  --sf-border:#deddd8;--sf-trust:#fffefa;--sf-card-hover:#f3f0e9;--sf-radius:7px;
+  --sf-shadow:none;--sf-cart:#f1efe8;--sf-accent:#303b3f
+}
+body.storefront-active.storefront-theme-comercial{
+  --sf-bg:#edf6ff;--sf-panel:#fff;--sf-ink:#102e63;--sf-muted:#486998;
+  --sf-hero-bg:radial-gradient(circle at 86% 6%,#21c6d7 0%,transparent 43%),linear-gradient(125deg,#102d7b 0%,#096ac2 60%,#09a1bd 100%);
+  --sf-hero-title:#fff;--sf-hero-copy:#f3faff;--sf-hero-eyebrow:#b8f5fe;
+  --sf-overlay:linear-gradient(90deg,#082c72e8 0%,#0b60aecd 55%,#0756b02d 100%);
+  --sf-primary:#ffcc63;--sf-primary-ink:#092c57;
+  --sf-secondary:#fff;--sf-secondary-ink:#0b4994;--sf-secondary-border:#fff;
+  --sf-border:#c7def7;--sf-trust:#fff;--sf-card-hover:#ebf6ff;--sf-radius:24px;
+  --sf-shadow:0 23px 52px #17449d39;--sf-cart:#e0edff;--sf-accent:#0a64bd
+}
+body.storefront-active[class*="storefront-theme-"]{background:var(--sf-bg)}
+body.storefront-active[class*="storefront-theme-"] header{
+  background:var(--sf-panel);border-bottom-color:var(--sf-border);
+  color:var(--sf-ink)
+}
+body.storefront-active[class*="storefront-theme-"] header .brand,
+body.storefront-active[class*="storefront-theme-"] header .edition,
+body.storefront-active[class*="storefront-theme-"] header .edition b{color:var(--sf-ink)}
+body.storefront-active[class*="storefront-theme-"] .storefront-hero{
+  background:var(--sf-hero-bg);color:var(--sf-hero-title);
+  border-radius:var(--sf-radius);box-shadow:var(--sf-shadow)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-copy h1{color:var(--sf-hero-title)}
+body.storefront-active[class*="storefront-theme-"] .storefront-eyebrow{color:var(--sf-hero-eyebrow)}
+body.storefront-active[class*="storefront-theme-"] .storefront-copy>p:not(.storefront-eyebrow){color:var(--sf-hero-copy)}
+body.storefront-active[class*="storefront-theme-"] .storefront-has-banner::after{background:var(--sf-overlay)}
+body.storefront-active[class*="storefront-theme-"] .storefront-primary{
+  background:var(--sf-primary);color:var(--sf-primary-ink)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-secondary{
+  background:var(--sf-secondary);color:var(--sf-secondary-ink);
+  border-color:var(--sf-secondary-border)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-trust p{
+  background:var(--sf-trust);border-color:var(--sf-border);color:var(--sf-ink);
+  border-radius:calc(var(--sf-radius)*.58)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-trust p>span:first-child{
+  color:var(--sf-accent)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-section-top h2,
+body.storefront-active[class*="storefront-theme-"] .brands-heading h2{color:var(--sf-ink)}
+body.storefront-active[class*="storefront-theme-"] .storefront-brand-card{
+  background:var(--sf-panel);border-color:var(--sf-border);
+  border-radius:calc(var(--sf-radius)*.75);box-shadow:var(--sf-shadow)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-brand-card:hover{
+  background:var(--sf-card-hover);border-color:var(--sf-accent)
+}
+body.storefront-active[class*="storefront-theme-"] .storefront-brand-info strong{color:var(--sf-ink)}
+body.storefront-active[class*="storefront-theme-"] .storefront-brand-info span{color:var(--sf-muted)}
+body.storefront-active[class*="storefront-theme-"] .storefront-brand-arrow{color:var(--sf-accent)}
+body.storefront-active[class*="storefront-theme-"] .brands-area{border-top-color:var(--sf-border)}
+body.storefront-active[class*="storefront-theme-"] .brand-shortcut{
+  background:var(--sf-panel);border-color:var(--sf-border);
+  border-radius:calc(var(--sf-radius)*.65)
+}
+body.storefront-active[class*="storefront-theme-"] .brand-shortcut.active,
+body.storefront-active[class*="storefront-theme-"] .brand-shortcut:hover{
+  background:var(--sf-accent);border-color:var(--sf-accent);color:#fff
+}
+body.storefront-active[class*="storefront-theme-"] .filters{
+  background:var(--sf-panel);border-color:var(--sf-border)
+}
+body.storefront-active[class*="storefront-theme-"] .cart-toolbar{
+  background:var(--sf-cart);border-color:var(--sf-border)
+}
+body.storefront-active[class*="storefront-theme-"] .cart-open-button{
+  background:var(--sf-primary);color:var(--sf-primary-ink);
+  border-color:var(--sf-primary)
+}
+body.storefront-active.storefront-theme-clinica .storefront-hero{
+  border:1px solid #c7e9ed;min-height:333px
+}
+body.storefront-active.storefront-theme-clinica .storefront-products-art img{
+  background:#ffffffea;border:1px solid #b9e1e5;box-shadow:0 10px 25px #2f86952b
+}
+body.storefront-active.storefront-theme-clinica .storefront-trust p>span:first-child{
+  background:#dcf6f4
+}
+body.storefront-active.storefront-theme-minimalista .storefront-hero{
+  border:1px solid #d9d5cd;min-height:325px
+}
+body.storefront-active.storefront-theme-minimalista .storefront-decoration{
+  display:none
+}
+body.storefront-active.storefront-theme-minimalista .storefront-hero::before{
+  opacity:.16
+}
+body.storefront-active.storefront-theme-minimalista .storefront-actions a{
+  border-radius:3px
+}
+body.storefront-active.storefront-theme-minimalista .storefront-brand-card img{
+  background:#f5f3ed
+}
+body.storefront-active.storefront-theme-minimalista .storefront-trust p>span:first-child{
+  background:#f2eee5
+}
+body.storefront-active.storefront-theme-minimalista .storefront-products-art img{
+  background:#fffefa;border-color:#dedbd4;box-shadow:none;border-radius:4px
+}
+body.storefront-active.storefront-theme-comercial .storefront-hero{
+  border:1px solid #67c9ee
+}
+body.storefront-active.storefront-theme-comercial .storefront-copy h1{
+  font-weight:900;letter-spacing:-.042em
+}
+body.storefront-active.storefront-theme-comercial .storefront-actions a{
+  border-radius:999px
+}
+body.storefront-active.storefront-theme-comercial .storefront-trust p>span:first-child{
+  color:#0b60bd;background:#def3ff
+}
+body.storefront-active.storefront-theme-comercial .storefront-brand-card{
+  box-shadow:0 8px 25px #105db219
+}
+@media(max-width:700px){
+  body.storefront-active.storefront-theme-clinica .storefront-hero,
+  body.storefront-active.storefront-theme-minimalista .storefront-hero{
+    min-height:398px
+  }
+  body.storefront-active[class*="storefront-theme-"] .storefront-has-banner::after{
+    background:var(--sf-overlay)
+  }
+}
