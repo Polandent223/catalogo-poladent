@@ -84,6 +84,7 @@ export function validateTrustHomeForPublish(raw){
   for(const branch of data.branches){
     if(!branch.visible)continue;
     if(!branch.name||!branch.city||!branch.address)throw Error('Completa el nombre, ciudad y dirección de cada sede visible.');
+    if(!branch.photos.length)throw Error('Sube al menos una foto real de '+branch.name+' antes de publicar.');
     if(!/^[1-9][0-9]{7,14}$/.test(branch.phone))throw Error('Verifica el WhatsApp de '+branch.name+'.');
     if(seen.has(branch.id))throw Error('Cada sede necesita un identificador diferente.');
     seen.add(branch.id);
