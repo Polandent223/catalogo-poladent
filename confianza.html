@@ -10,7 +10,7 @@
 .trust-editor fieldset{border:1px solid #d6e3ec;border-radius:14px;min-width:0;padding:15px;display:grid;gap:12px;background:#fff;margin:0 0 17px}
 .trust-editor legend{font-weight:800;color:#153f61;font-size:15px;padding:0 8px}
 .trust-editor label{font-weight:650;font-size:12px;color:#244a66;display:grid;gap:5px}
-.trust-editor input,.trust-editor textarea{width:100%;min-width:0;border:1px solid #b8cedd;border-radius:9px;padding:11px;font:inherit;color:#173a53;background:#fff}
+.trust-editor input,.trust-editor textarea,.trust-editor select{width:100%;min-width:0;border:1px solid #b8cedd;border-radius:9px;padding:11px;font:inherit;color:#173a53;background:#fff}
 .trust-editor input[type=file]{font-size:12px}
 .trust-editor input[type=checkbox]{width:18px;height:18px}
 .trust-editor .checkbox-row{display:flex;align-items:center;gap:9px}
@@ -51,6 +51,8 @@
 <div class="trust-admin-grid"><div>
 <form id="trust-form">
 <fieldset><legend>Presentación principal</legend>
+<label>Plantilla de la portada
+<select name="style"><option value="premium">Premium</option><option value="clinica">Clínica</option><option value="minimalista">Minimalista</option><option value="comercial">Comercial</option></select></label>
 <label>Texto superior<input name="eyebrow" maxlength="60" required></label>
 <label>Título principal<textarea name="title" rows="2" maxlength="120" required></textarea></label>
 <label>Descripción<textarea name="subtitle" rows="3" maxlength="300" required></textarea></label>
