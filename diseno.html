@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Diseño del catálogo | POLADENT</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css">
+<style>
+.storefront-admin{max-width:1160px}
+.storefront-admin .design-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.82fr);align-items:start;gap:22px}
+.storefront-admin .design-form{min-width:0}
+.storefront-admin .design-form .admin-form{gap:12px}
+.storefront-admin .design-form fieldset{border:1px solid #dbe4ec;border-radius:12px;padding:14px;display:grid;gap:12px;min-width:0}
+.storefront-admin .design-form legend{font-size:15px;font-weight:800;padding:0 8px}
+.storefront-admin .design-form fieldset p{font-size:12px;line-height:1.5;margin:0;color:#496578}
+.storefront-admin .design-form .design-toggle{display:flex;align-items:center;gap:10px}
+.storefront-admin .design-toggle input{width:19px;height:19px;flex:none}
+.storefront-admin .design-brands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.storefront-admin .design-brands label{display:flex;gap:8px;align-items:center;padding:9px;background:#eef5f9;border-radius:8px;font-size:12px}
+.storefront-admin .design-brands input{width:17px;height:17px;flex:none}
+.storefront-admin .design-status{white-space:pre-line;font-size:13px;line-height:1.6}
+.storefront-admin .design-preview{position:sticky;top:14px;background:#edf3f7;border:1px solid #cedce7;border-radius:18px;padding:18px;text-align:center}
+.storefront-admin .design-preview h2{font-size:18px;margin:0 0 8px}
+.storefront-admin .design-preview p{font-size:12px;color:#516c7d;line-height:1.5;margin:0 0 14px}
+.storefront-admin .design-preview iframe{display:block;width:min(100%,390px);height:680px;margin:0 auto;background:#fff;border:6px solid #132e46;border-radius:22px}
+.storefront-admin .design-preview .preview-link{display:inline-block;margin:15px 0 0;font-size:13px}
+.storefront-admin .design-preview img{max-width:260px;max-height:160px;object-fit:contain;border-radius:8px}
+.storefront-admin .design-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.storefront-admin .design-actions button{flex:1}
+@media(max-width:890px){.storefront-admin .design-columns{grid-template-columns:1fr}
+  .storefront-admin .design-preview{position:static}
+  .storefront-admin .design-preview iframe{height:620px}}
+@media(max-width:430px){.storefront-admin .design-brands{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrador</a></header>
+<main class="admin-wrap storefront-admin">
+<p class="eyebrow">PRESENTACIÓN COMERCIAL</p>
+<h1>Diseño del catálogo</h1>
+<p>Controla el banner, títulos, botones, marcas destacadas y mensajes de confianza. <strong>La portada principal de bienvenida es independiente.</strong> Puedes revisar todos los cambios en el teléfono simulado antes de activar este diseño para tus clientes.</p>
+<p id="design-message" class="design-status" role="status" aria-live="polite"></p>
+<form id="design-login" class="admin-form">
+<h2>Acceso privado</h2>
+<label>Correo<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button type="submit" class="primary">Entrar</button>
+</form>
+<section id="design-workspace" hidden>
+<div class="admin-actions"><a class="brand-admin-link" href="portada.html">Portada de bienvenida</a><a class="brand-admin-link" href="marcas.html">Marcas y logotipos</a><button id="design-logout" type="button">Cerrar sesión</button></div>
+<div class="design-columns">
+<div class="design-form">
+<form id="design-form" class="admin-form">
+<fieldset><legend>Publicación</legend>
+<label class="design-toggle"><input id="design-enabled" type="checkbox"> Activar este diseño para TODOS los clientes</label>
+<p>Si está desactivado, el catálogo público conserva el diseño actual. La vista previa funciona igualmente. Al guardar se publica únicamente si marcas esta opción.</p>
+</fieldset>
+<fieldset><legend>Banner principal</legend>
+<p>Puedes subir una imagen distinta para computadora y teléfono, igual que en la portada principal. Si no subes ninguna, se mostrará un banner azul premium con fotografías de productos reales del catálogo.</p>
+<label>Imagen horizontal para PC (JPG, PNG o WebP)
+<input id="design-desktop-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O URL HTTPS de PC
+<input id="design-desktop-url" type="url" placeholder="https://res.cloudinary.com/..."></label>
+<label>Imagen vertical para teléfono (JPG, PNG o WebP)
+<input id="design-mobile-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O URL HTTPS de teléfono
+<input id="design-mobile-url" type="url" placeholder="https://res.cloudinary.com/..."></label>
+<p>Deja la URL y el archivo vacíos para usar el fondo predeterminado. Si reemplazas una imagen, el archivo anterior no se borra automáticamente.</p>
+</fieldset>
+<fieldset><legend>Mensajes del banner</legend>
+<label>Texto superior<input name="eyebrow" maxlength="60" required></label>
+<label>Título principal<textarea name="title" maxlength="120" rows="2" required></textarea></label>
+<label>Descripción comercial<textarea name="subtitle" maxlength="250" rows="3" required></textarea></label>
+<label>Botón principal<input name="primary_label" maxlength="36" required></label>
+<label>Botón secundario<input name="secondary_label" maxlength="36" required></label>
+</fieldset>
+<fieldset><legend>Mensajes de confianza</legend>
+<p>Estos tres textos breves aparecen debajo del banner.</p>
+<label>Mensaje 1<input name="trust_1" maxlength="75" required></label>
+<label>Mensaje 2<input name="trust_2" maxlength="75" required></label>
+<label>Mensaje 3<input name="trust_3" maxlength="75" required></label>
+</fieldset>
+<fieldset><legend>Marcas y navegación</legend>
+<label>Título de marcas destacadas<input name="featured_title" maxlength="65" required></label>
+<p>Escoge hasta cuatro marcas reales para darles más protagonismo. Si no eliges ninguna, el catálogo mostrará una selección automática.</p>
+<div id="design-brands" class="design-brands"></div>
+<label>Título de todas las marcas<input name="brands_title" maxlength="65" required></label>
+</fieldset>
+<div class="design-actions"><button type="submit" class="primary" id="design-save">Guardar configuración</button><button id="design-reset-preview" type="button">Deshacer cambios sin guardar</button></div>
+<p class="design-status" id="design-save-status" role="status"></p>
+</form>
+</div>
+<aside class="design-preview" aria-label="Vista previa del teléfono">
+<h2>Así lo verá el cliente</h2>
+<p>Esta pantalla muestra tus cambios mientras escribes, sin publicarlos. El catálogo, el carrito y las cotizaciones continúan intactos.</p>
+<iframe id="design-frame" title="Vista previa del catálogo POLADENT en un teléfono" src="./?catalogo=1&amp;vista=1" loading="lazy"></iframe>
+<a class="preview-link" href="./?catalogo=1&amp;vista=1" target="_blank" rel="noopener noreferrer">Abrir propuesta a pantalla completa ↗</a>
+</aside>
+</div>
+</section>
+</main>
+<script src="config.js"></script><script type="module" src="design-admin.js"></script>
+</body>
+</html>
