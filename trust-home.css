@@ -61,3 +61,20 @@
   .trust-branch-info{padding:17px}
   .trust-home-active .storefront-hero{min-height:445px}
 }
+
+/* La portada nueva también respeta las cuatro plantillas visuales del administrador. */
+body.trust-home-active[class*="storefront-theme-"] .trust-home-sections h2,
+body.trust-home-active[class*="storefront-theme-"] .trust-branch-info h3{color:var(--sf-ink)}
+body.trust-home-active[class*="storefront-theme-"] .trust-benefit,
+body.trust-home-active[class*="storefront-theme-"] .trust-branch-card,
+body.trust-home-active[class*="storefront-theme-"] .trust-step{
+  background:var(--sf-panel);border-color:var(--sf-border);border-radius:calc(var(--sf-radius)*.65)
+}
+body.trust-home-active[class*="storefront-theme-"] .trust-benefit-icon,
+body.trust-home-active[class*="storefront-theme-"] .trust-step-number{
+  background:var(--sf-primary);color:var(--sf-primary-ink)
+}
+body.trust-home-active[class*="storefront-theme-"] .trust-closing{background:var(--sf-hero-bg);border-radius:var(--sf-radius)}
+body.trust-home-active[class*="storefront-theme-"] .trust-closing h2{color:var(--sf-hero-title)}
+body.trust-home-active[class*="storefront-theme-"] .trust-closing p{color:var(--sf-hero-copy)}
+body.trust-home-active[class*="storefront-theme-"] .trust-hero-note{color:var(--sf-hero-copy)!important}
