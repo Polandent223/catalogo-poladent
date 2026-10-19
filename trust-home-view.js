@@ -53,6 +53,11 @@ export function renderTrustHome(raw,active,allowBlob=false){
   const visible=Boolean(active&&settings.enabled);
   stage.hidden=!visible;note.hidden=!visible;
   link.hidden=!visible||!settings.show_branches;
+  const topWhatsapp=q('storefront-whatsapp-link');
+  const topContact=settings.branches.find(b=>b.visible&&/^[1-9][0-9]{7,14}$/.test(b.phone));
+  topWhatsapp.hidden=!visible||!topContact;
+  if(visible&&topContact)topWhatsapp.href=whatsapp(topContact.phone,topContact.name);
+  else topWhatsapp.removeAttribute('href');
   document.body.classList.toggle('trust-home-active',visible);
   const logo=q('trust-header-logo');
   logo.hidden=!visible||!settings.logo_url;
