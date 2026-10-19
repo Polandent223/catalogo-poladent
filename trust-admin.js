@@ -78,6 +78,7 @@ function updateRequired(block){
 function fill(settings){
   discardPreviews();
   savedDraft=normalizeTrustHome(settings);
+  form.elements.namedItem('style').value=savedDraft.style;
   for(const key of ['eyebrow','title','subtitle','section_title','section_subtitle',
     'closing_title','closing_text'])form.elements.namedItem(key).value=savedDraft[key];
   for(const key of ['show_branches','show_benefits','show_steps','show_contact'])
@@ -116,7 +117,7 @@ function photoValue(urlInput,fileInput,forPreview=false){
 }
 function readForm(forPreview=true){
   const result={
-    enabled:false,style:'premium',
+    enabled:false,style:readText('style'),
     eyebrow:readText('eyebrow'),title:readText('title'),subtitle:readText('subtitle'),
     section_title:readText('section_title'),section_subtitle:readText('section_subtitle'),
     closing_title:readText('closing_title'),closing_text:readText('closing_text'),
