@@ -18,12 +18,13 @@ export function decodeFirestoreValue(value) {
 }
 export function parseCatalogDocuments(documents) {
   const products=[], profiles=[];
-  let contacts=[], hasCatalogState=false;
+  let contacts=[], hasCatalogState=false, storefront=null;
   for (const document of documents || []) {
     const id = String(document.name || '').split('/').pop();
     const data = Object.fromEntries(Object.entries(document.fields || {}).map(([name, value]) => [name, decodeFirestoreValue(value)]));
     if (id === '_catalog_state') { hasCatalogState=true; continue; }
     if (id === '_catalog_contacts' && data.kind === 'contact_settings') {
+      storefront=data.storefront && typeof data.storefront==='object'?data.storefront:null;
       contacts = (Array.isArray(data.contacts) ? data.contacts : []).filter(c =>
         typeof c?.label === 'string' && typeof c?.phone === 'string' && /^[1-9][0-9]{7,14}$/.test(c.phone))
         .slice(0,5).map(c=>({label:c.label.slice(0,55),phone:c.phone}));
@@ -41,7 +42,7 @@ export function parseCatalogDocuments(documents) {
     || String(a.name).localeCompare(String(b.name),'es'));
   profiles.sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)
     || String(a.name).localeCompare(String(b.name),'es'));
-  return {products,profiles,contacts,hasCatalogState};
+  return {products,profiles,contacts,hasCatalogState,storefront};
 }
 export async function loadPublicCatalog(config, request=fetch) {
   if (!config?.projectId || !config?.apiKey) throw Error('Falta la configuración de Firebase.');
