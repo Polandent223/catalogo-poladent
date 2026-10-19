@@ -126,12 +126,13 @@ function renderBrandHero(){
 
 function renderStorefront(){
   const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
-  const active=(previewStorefront||values.enabled)&&!brand.value;
+  const design=previewStorefront||values.enabled;
+  const active=design&&!brand.value;
   const stage=$('#storefront-home');
   stage.hidden=!active;
-  $('.intro').hidden=active;
-  document.body.classList.toggle('storefront-active',active);
-  $('#storefront-brands-title').textContent=active?values.brands_title:'Explora por marca';
+  $('.intro').hidden=design;
+  document.body.classList.toggle('storefront-active',design);
+  $('#storefront-brands-title').textContent=design?values.brands_title:'Explora por marca';
   if(!active)return;
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
     primary:values.primary_label,secondary:values.secondary_label,
@@ -520,6 +521,8 @@ async function load(){
     renderBrandHero();
     renderProducts();
     renderStorefront();
+    if(previewStorefront && window.parent!==window)
+      window.parent.postMessage({type:'poladent:storefront-ready'},location.origin);
     const productId=new URLSearchParams(location.hash.slice(1)).get('producto');
     if(productId){
       const product=products.find(p=>String(p.id)===productId);
