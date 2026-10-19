@@ -84,6 +84,15 @@ export async function saveWelcomeSettings(settings) {
   return client.saveWelcomeSettings(settings);
 }
 
+export async function getStorefrontSettings(){
+  if(!usingFirebase)throw Error('El diseño editable necesita Firebase.');
+  return client.getStorefrontSettings();
+}
+export async function saveStorefrontSettings(settings){
+  if(!usingFirebase)throw Error('El diseño editable necesita Firebase.');
+  return client.saveStorefrontSettings(settings);
+}
+
 export async function listAnalyticsEvents(start,end) {
   if(!usingFirebase)throw Error('Las estadísticas necesitan Firebase.');
   return client.listAnalyticsEvents(start,end);
