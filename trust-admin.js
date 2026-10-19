@@ -26,6 +26,8 @@ function discardPreviews(){
 }
 function attachPhotoPreviews(){
   for(const input of form.querySelectorAll('input[type=file]')){
+    if(input.dataset.previewBound==='yes')continue;
+    input.dataset.previewBound='yes';
     input.addEventListener('change',()=>{
       if(previewURLs.has(input)){URL.revokeObjectURL(previewURLs.get(input));previewURLs.delete(input);}
       if(input.files[0])previewURLs.set(input,URL.createObjectURL(input.files[0]));
@@ -42,7 +44,7 @@ function setInputValue(card,key,val){
 function buildBranch(branch){
   const block=template.content.firstElementChild.cloneNode(true);
   const defaultBranch=branch||{
-    id:'sede-'+(++uidCounter),name:'',city:'',address:'',rif:'J-401910769',
+    id:'sede-'+(globalThis.crypto?.randomUUID?.().slice(0,12)||String(Date.now())+'-'+(++uidCounter)),name:'',city:'',address:'',rif:'J-401910769',
     hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',
     visible:true,direct_purchase:true,pickup:true,photos:[]
   };
