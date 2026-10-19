@@ -55,9 +55,9 @@ export async function listBrands(admin = false) {
   if (usingFirebase) return client.listBrands(admin);
   return [];
 }
-export async function saveBrand(id, body) {
+export async function saveBrand(id, body, originalName = '') {
   if (!usingFirebase) throw Error('La administración de marcas necesita Firebase.');
-  return client.saveBrand(id, body);
+  return client.saveBrand(id, body, originalName);
 }
 
 export async function listAdminOverview() {

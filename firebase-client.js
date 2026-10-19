@@ -4,6 +4,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
+import {brandKey,planBrandRename} from './brand-management.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
 export const configured = Boolean(cfg.apiKey && cfg.projectId && cfg.appId);
@@ -185,10 +186,45 @@ export async function saveWhatsAppContacts(contacts) {
   await batch.commit();
   return cleaned;
 }
-export async function saveBrand(id, entry) {
+export async function saveBrand(id, entry, sourceName = '') {
   await adminCheck();
-  const name = String(entry.name || '').trim().slice(0, 80);
-  if (!name) throw Error('Indica el nombre de la marca.');
+  const name = String(entry.name || '').trim();
+  if (!name || name.length > 80) throw Error('Indica una marca válida de hasta 80 caracteres.');
+  const key = id || doc(collection(db, 'catalogProducts')).id;
+  let original = String(sourceName || '').trim();
+  if (id) {
+    // Verificamos el documento original: nunca renombrar otro tipo de registro
+    // ni escribir usando un nombre antiguo cambiado por otra sesión.
+    const saved = await getDoc(doc(db, 'catalogProducts', id));
+    if (!saved.exists() || saved.data().kind !== 'brand_profile')
+      throw Error('La presentación ya no existe. Actualiza la lista de marcas.');
+    if (sourceName && saved.data().name !== sourceName)
+      throw Error('El nombre de esta marca cambió en otra sesión. Actualiza antes de editar.');
+    original = saved.data().name;
+  }
+
+  // Lectura fresca para impedir colisiones y planificar TODAS las escrituras.
+  // No borramos registros ni reemplazamos fotografías de los productos.
+  const [products, profiles] = await Promise.all([listProducts(true), listBrands(true)]);
+  const requestedKey = brandKey(name);
+  if (profiles.some(p => p.id !== id && brandKey(p.name) === requestedKey))
+    throw Error('Ya existe una presentación con ese nombre. Edita la existente.');
+  let changes = [];
+  if (original) {
+    if (!id && !products.some(p => !p.kind && brandKey(p.brand) === brandKey(original)))
+      throw Error('Esta marca ya no tiene productos. Actualiza la lista de marcas.');
+    if (original !== name) {
+      const plan = planBrandRename(original, name, products, profiles, id || null);
+      if (plan.renameRequired) changes = plan.products;
+    }
+  } else {
+    // Una presentación nueva para una marca en inventario debe escribir el
+    // nombre EXACTO, para que su portada se muestre en el catálogo público.
+    const matching = products.find(p => !p.kind && brandKey(p.brand) === requestedKey);
+    if (matching && matching.brand !== name)
+      throw Error('Usa exactamente el nombre que aparece en los productos: «' + matching.brand + '».');
+  }
+
   const profile = {
     kind: 'brand_profile', name,
     tagline: String(entry.tagline || '').trim().slice(0, 140),
@@ -202,12 +238,18 @@ export async function saveBrand(id, entry) {
     profile[field + '_url'] = url || '';
     profile[field + '_path'] = entry[field + '_path'] || null;
   }
-  const key = id || doc(collection(db, 'catalogProducts')).id;
+  // TODO O NADA: el cambio del nombre afecta la presentación y los productos
+  // públicos/privados en un mismo lote atómico. Si falla, no habrá dos marcas.
   const batch = writeBatch(db);
   batch.set(doc(db, 'catalogProducts', key), profile);
   batch.set(doc(db, 'catalogPublic', key), profile);
+  for (const product of changes) {
+    batch.update(doc(db, 'catalogProducts', product.id), { brand:name });
+    if (product.status === 'available' || product.status === 'sold_out')
+      batch.update(doc(db, 'catalogPublic', product.id), { brand:name });
+  }
   await batch.commit();
-  return key;
+  return {id:key,renamedProducts:changes.length};
 }
 // Una sola consulta al inventario para evitar cargarlo dos veces en el panel.
 export async function listAdminOverview() {
