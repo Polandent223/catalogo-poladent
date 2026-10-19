@@ -47,6 +47,10 @@ export function planBrandRename(oldName, newName, products, profiles, currentId=
       products.some(p=>isProduct(p)&&brandKey(p.brand)===newKey))
     throw Error('Ya hay productos registrados bajo ese nombre. No se mezclarán dos marcas automáticamente.');
   const matches=products.filter(p=>isProduct(p)&&brandKey(p.brand)===oldKey);
+  if(matches.some(p=>!['available','sold_out','hidden'].includes(p.status)))
+    throw Error('Hay productos de esta marca con un estado inesperado. Revisa el inventario antes de corregir el nombre.');
+  if(otherProfiles.some(p=>brandKey(p.name)===oldKey))
+    throw Error('Existen varias presentaciones con el nombre original. Revisa las presentaciones duplicadas antes de corregir los productos.');
   // Un lote atómico permite actualizar ambos espejos y la presentación sin
   // guardar marcas parcialmente corregidas. Firestore permite 500 operaciones.
   const operations=2+matches.reduce((n,p)=>n+(p.status==='hidden'?1:2),0);
