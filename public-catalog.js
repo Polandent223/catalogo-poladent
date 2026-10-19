@@ -137,7 +137,7 @@ function renderStorefront(){
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
-  if(design)document.body.classList.add('storefront-theme-'+(trustOn?'premium':values.theme));
+  if(design)document.body.classList.add('storefront-theme-'+(trustOn?trust.style:values.theme));
   $('#storefront-brands-title').textContent=design?values.brands_title:'Explora por marca';
   if(!active){renderTrustHome(trust,false,previewStorefront);return;}
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
