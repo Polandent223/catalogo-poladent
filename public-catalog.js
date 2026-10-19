@@ -2,6 +2,8 @@ import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES} from './storefront-settings.js';
+import {normalizeTrustHome} from './trust-home-settings.js';
+import {renderTrustHome} from './trust-home-view.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -13,7 +15,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
-let storefrontSettings=null,storefrontDraft=null;
+let storefrontSettings=null,storefrontDraft=null,trustHomeSettings=null,trustHomeDraft=null;
 let selected=null,filtered=[],limit=12,searchTimer=0;
 let cartLines=[],catalogLoaded=false;
 const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -126,24 +128,33 @@ function renderBrandHero(){
 
 function renderStorefront(){
   const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
-  const design=previewStorefront||values.enabled;
+  const trust=normalizeTrustHome(trustHomeDraft||trustHomeSettings,previewStorefront);
+  const trustOn=Boolean(trust.enabled);
+  const design=previewStorefront||values.enabled||trustOn;
   const active=design&&!brand.value;
   const stage=$('#storefront-home');
   stage.hidden=!active;
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
-  if(design)document.body.classList.add('storefront-theme-'+values.theme);
+  if(design)document.body.classList.add('storefront-theme-'+(trustOn?'premium':values.theme));
   $('#storefront-brands-title').textContent=design?values.brands_title:'Explora por marca';
-  if(!active)return;
+  if(!active){renderTrustHome(trust,false,previewStorefront);return;}
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
     primary:values.primary_label,secondary:values.secondary_label,
     'featured-title':values.featured_title};
+  if(trustOn){
+    field.eyebrow=trust.eyebrow;
+    field.title=trust.title;
+    field.subtitle=trust.subtitle;
+  }
   for(const [key,value]of Object.entries(field))$('#storefront-'+key).textContent=value;
   values.trust_items.forEach((t,i)=>$('#storefront-trust-'+(i+1)).textContent=t);
   const picture=$('#storefront-picture'),banner=$('#storefront-banner'),source=$('#storefront-mobile-source'),
     art=$('#storefront-products-art'),heroStage=$('#storefront-hero');
-  const desktop=values.banner_desktop_url,mobile=values.banner_mobile_url;
+  const branchImage=trust.branches.find(b=>b.visible&&b.photos.length)?.photos[0]?.url||'';
+  const desktop=trustOn?(trust.hero_image_url||branchImage):values.banner_desktop_url;
+  const mobile=trustOn?(trust.hero_image_url||branchImage):values.banner_mobile_url;
   const hasBanner=Boolean(desktop||mobile);
   picture.hidden=!hasBanner;
   art.hidden=hasBanner;
@@ -188,6 +199,7 @@ function renderStorefront(){
     });
     grid.append(item);
   }
+  renderTrustHome(trust,active,previewStorefront);
 }
 if(previewStorefront){
   // Sólo mensajes desde la página administradora del mismo dominio.
@@ -195,6 +207,12 @@ if(previewStorefront){
     if(event.origin!==location.origin||event.source!==window.parent ||
        event.data?.type!=='poladent:storefront-draft')return;
     storefrontDraft=normalizeStorefront(event.data.settings,true);
+    renderStorefront();
+  });
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==window.parent ||
+       event.data?.type!=='poladent:trust-home-draft')return;
+    trustHomeDraft=normalizeTrustHome({...event.data.settings,enabled:true},true);
     renderStorefront();
   });
 }
@@ -506,6 +524,7 @@ async function load(){
       profiles=data.profiles;
       contacts=data.contacts;
       storefrontSettings=data.storefront;
+      trustHomeSettings=data.trustHome;
     }else products=legacy();
     cartLines=restoreCart();
     catalogLoaded=true;
