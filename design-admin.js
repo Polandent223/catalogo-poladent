@@ -12,9 +12,12 @@ const urls={desktop:'design-desktop-url',mobile:'design-mobile-url'};
 let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={desktop:'',mobile:''};
 
 
+const locationPhotoPreviews=new Map();
 const locationFields=['name','city','address','hours','phone','rif','photo_url'];
 function drawLocationEditor(settings){
   const holder=$('#design-location-fields');
+  for(const url of locationPhotoPreviews.values())URL.revokeObjectURL(url);
+  locationPhotoPreviews.clear();
   holder.replaceChildren();
   $('#design-locations-enabled').checked=Boolean(settings.locations_enabled);
   for(const [i,location] of (settings.locations||[]).entries()){
@@ -33,12 +36,22 @@ function drawLocationEditor(settings){
       if(key==='photo_url')input.placeholder='https://...';
       label.append(input);section.append(label);
     }
+    const photoLabel=document.createElement('label');photoLabel.textContent='O subir una fotografía nueva de esta sucursal';
+    const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp';
+    file.name='location_'+i+'_file';
+    file.addEventListener('change',()=>{
+      if(locationPhotoPreviews.has(i))URL.revokeObjectURL(locationPhotoPreviews.get(i));
+      if(file.files[0])locationPhotoPreviews.set(i,URL.createObjectURL(file.files[0]));
+      else locationPhotoPreviews.delete(i);
+      sendPreview();
+    });
+    photoLabel.append(file);section.append(photoLabel);
     holder.append(section);
   }
 }
-function readLocations(){
+function readLocations(useFilePreview=true){
   return [...$('#design-location-fields').querySelectorAll('.location-editor')].map((section,i)=>
-    Object.fromEntries(locationFields.map(key=>[key,form.elements.namedItem('location_'+i+'_'+key).value.trim()])));
+    Object.fromEntries(locationFields.map(key=>[key,key==='photo_url'&&useFilePreview&&locationPhotoPreviews.has(i)?locationPhotoPreviews.get(i):form.elements.namedItem('location_'+i+'_'+key).value.trim()])));
 }
 
 function report(value,error=false){
@@ -83,7 +96,7 @@ function formSettings(useFilePreview=true){
   return {
     enabled:$('#design-enabled').checked,
     locations_enabled:$('#design-locations-enabled').checked,
-    locations:readLocations(),
+    locations:readLocations(useFilePreview),
     theme:form.elements.namedItem('theme').value,
     eyebrow:read('eyebrow'),
     title:read('title'),
@@ -167,6 +180,7 @@ form.addEventListener('submit',async event=>{
   if(!form.reportValidity())return;
   const requested=formSettings(false);
   const files={desktop:$('#'+fileFields.desktop).files[0],mobile:$('#'+fileFields.mobile).files[0]};
+  const locationUploads=readLocations().map((_,i)=>form.elements.namedItem('location_'+i+'_file')?.files[0]);
   const toRemove=[];
   setBusy(true);
   try{
@@ -183,6 +197,13 @@ form.addEventListener('submit',async event=>{
         requested['banner_'+field+'_path']=url && url===published['banner_'+field+'_url']
           ?published['banner_'+field+'_path']:null;
       }
+    }
+    for(let i=0;i<locationUploads.length;i++){
+      if(!locationUploads[i])continue;
+      report('Subiendo fotografía real de sucursal '+(i+1)+'…');
+      const uploaded=await uploadImage(locationUploads[i]);
+      toRemove.push(uploaded.path);
+      requested.locations[i].photo_url=uploaded.url;
     }
     report('Guardando el diseño en Firebase…');
     const result=await saveStorefrontSettings(requested);
