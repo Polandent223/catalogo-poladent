@@ -69,7 +69,7 @@ async function readWelcome(){
   const data=(await response.json()).fields||{};
   const storefront=data.storefront?.mapValue?.fields||{};
   if(storefront.enabled?.booleanValue===true &&
-     storefront.theme?.stringValue==='premium-confianza' &&
+     ['premium-confianza','premium-compacta'].includes(storefront.theme?.stringValue) &&
      storefront.replace_welcome?.booleanValue===true)
     return {skip:true};
   if(data.welcome_enabled?.booleanValue!==true || data.kind?.stringValue!=='contact_settings')return null;
