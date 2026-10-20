@@ -222,4 +222,8 @@ assert.equal(normalizeStorefront({brand_logo_url:'https://example.com/logo.png'}
 assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
 assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
 
+assert.ok(publicCode.includes("requestedPreviewTheme==='premium-confianza'"),'La nueva plantilla debe poder examinarse sin publicar');
+assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
+assert.ok(style.includes('.official-location-card.without-photo'));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
