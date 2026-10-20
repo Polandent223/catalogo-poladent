@@ -3,6 +3,7 @@
 export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','comercial','premium-confianza']);
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
+  replace_welcome:false,
   theme:'premium',
   brand_logo_url:'',
   brand_logo_path:null,
@@ -74,6 +75,7 @@ export function normalizeStorefront(input={},allowBlob=false) {
   const featured_brands=[...new Set(brands.slice(0,4).map(x=>bounded(x,80)).filter(Boolean))];
   return {
     enabled:s.enabled===true,
+    replace_welcome:s.replace_welcome===true&&s.theme==='premium-confianza',
     theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
     brand_logo_url:secureBannerURL(s.brand_logo_url,allowBlob),
     brand_logo_path:typeof s.brand_logo_path==='string'?s.brand_logo_path:null,
