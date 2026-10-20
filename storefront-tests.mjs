@@ -226,4 +226,18 @@ assert.ok(publicCode.includes("requestedPreviewTheme==='premium-confianza'"),'La
 assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
 assert.ok(style.includes('.official-location-card.without-photo'));
 
+
+// La portada original sigue funcionando hasta una activación expresamente elegida.
+assert.equal(original.replace_welcome,false);
+assert.equal(normalizeStorefront({theme:'premium-confianza',replace_welcome:true}).replace_welcome,true);
+assert.equal(normalizeStorefront({theme:'premium',replace_welcome:true}).replace_welcome,false);
+assert.equal(normalizeStorefront({theme:'premium-confianza'}).replace_welcome,false);
+assert.ok(adminPage.includes('id="design-replace-welcome"'));
+assert.ok(adminCode.includes("replace_welcome:$('#design-replace-welcome').checked"));
+const welcome=read('welcome.js');
+assert.ok(welcome.includes("storefront.replace_welcome?.booleanValue===true"));
+assert.ok(welcome.includes("storefront.enabled?.booleanValue===true"));
+assert.ok(welcome.includes("storefront.theme?.stringValue==='premium-confianza'"));
+assert.ok(welcome.includes('settings?.skip?enterCatalog():settings?showWelcome(settings):enterCatalog()'));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
