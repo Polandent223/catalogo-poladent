@@ -281,4 +281,7 @@ assert.ok(style.includes('[data-compact-hide-mobile="1"]'));
 assert.ok(style.includes('[data-compact-hide-desktop="1"]'));
 assert.ok(style.includes('scroll-snap-type:x proximity'));
 
+assert.ok(publicCode.includes("locationsLink.dataset.compactHideMobile='1'"));
+assert.ok(publicCode.includes("locationsLink.dataset.compactHideDesktop='1'"));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
