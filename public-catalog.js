@@ -125,11 +125,50 @@ function renderBrandHero(){
 }
 
 
+function renderPremiumSections(values,active){
+  const premium=active&&values.theme==='premium-confianza';
+  const about=$('#premium-about'),steps=$('#premium-steps'),closing=$('#premium-closing');
+  about.hidden=!(premium&&values.about_enabled);
+  steps.hidden=!(premium&&values.steps_enabled);
+  closing.hidden=!premium;
+  if(!premium)return;
+  if(values.about_enabled){
+    $('#premium-about-title').textContent=values.about_title;
+    $('#premium-about-text').textContent=values.about_text;
+    const benefits=$('#premium-benefits');benefits.replaceChildren();
+    const symbols=['⌂','🛒','▣','◉'];
+    values.benefit_items.forEach((item,index)=>{
+      const card=element('article',null,'premium-benefit');
+      const icon=element('span',symbols[index],'premium-benefit-icon');
+      icon.setAttribute('aria-hidden','true');
+      card.append(icon,element('h3',item.title),element('p',item.text));benefits.append(card);
+    });
+  }
+  if(values.steps_enabled){
+    $('#premium-steps-title').textContent=values.steps_title;
+    const grid=$('#premium-steps-grid');grid.replaceChildren();
+    values.steps.forEach((item,index)=>{
+      const card=element('article',null,'premium-step');
+      card.append(element('span',String(index+1),'premium-step-number'),
+        element('h3',item.title),element('p',item.text));
+      grid.append(card);
+    });
+  }
+  $('#premium-closing-title').textContent=values.closing_title;
+  $('#premium-closing-text').textContent=values.closing_text;
+  const link=$('#premium-closing-whatsapp');
+  const phone=values.locations.find(x=>x.phone)?.phone||contacts[0]?.phone||'';
+  link.hidden=!phone;
+  if(phone)link.href='https://wa.me/'+phone;
+  else link.removeAttribute('href');
+}
 function renderOfficialLocations(values,active){
   const section=$('#official-locations'),grid=$('#official-locations-grid');
   const visible=active&&values.locations_enabled&&values.locations?.length>0;
   section.hidden=!visible;
   if(!visible)return;
+  $('#official-locations-title').textContent=values.locations_title;
+  $('#official-locations-intro').textContent=values.locations_intro;
   grid.replaceChildren();
   for(const location of values.locations){
     const card=element('article',null,'official-location-card');
@@ -169,6 +208,7 @@ function renderStorefront(){
   const stage=$('#storefront-home');
   stage.hidden=!active;
   renderOfficialLocations(values,active);
+  renderPremiumSections(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
@@ -185,8 +225,14 @@ function renderStorefront(){
     art=$('#storefront-products-art'),heroStage=$('#storefront-hero');
   const desktop=values.banner_desktop_url,mobile=values.banner_mobile_url;
   const hasBanner=Boolean(desktop||mobile);
+  const premiumHero=$('#premium-hero-photo');
+  const photo=values.theme==='premium-confianza' && active && !hasBanner
+    ?values.locations.find(location=>location.photo_url)?.photo_url||'':'';
+  premiumHero.hidden=!photo;
+  if(photo)premiumHero.src=photo;
+  else premiumHero.removeAttribute('src');
   picture.hidden=!hasBanner;
-  art.hidden=hasBanner;
+  art.hidden=hasBanner||Boolean(photo);
   heroStage.classList.toggle('storefront-has-banner',hasBanner);
   if(hasBanner){
     banner.src=desktop||mobile;
