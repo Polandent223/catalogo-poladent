@@ -100,6 +100,26 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 .storefront-admin #design-premium-editor h3{margin:10px 0 0;font-size:14px;color:#0b426e}
 .storefront-admin .design-editor-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f4f9fc;padding:12px;border-radius:9px}
 @media(max-width:600px){.storefront-admin .design-editor-pair{grid-template-columns:1fr}}
+
+.storefront-admin .design-template-option[data-theme="premium-compacta"] .design-template-sample{
+ background:linear-gradient(115deg,#f6fbff 0%,#cceafa 53%,#074d83 54%,#0b2f5c 100%);
+ --sample-text:#063967;--sample-button:#048d85;--sample-card:#f5faff
+}
+.storefront-admin #design-compact-editor h3{font-size:14px;margin:0 0 10px;color:#0e4b79}
+.storefront-admin .compact-order-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.storefront-admin .compact-order-columns>section{min-width:0;border:1px solid #d7e6f1;border-radius:12px;background:#f6faff;padding:12px}
+.storefront-admin .compact-order-items{display:grid;gap:7px}
+.storefront-admin .compact-order-row{display:flex;gap:5px;align-items:center;background:#fff;border:1px solid #d9e7f1;border-radius:9px;padding:7px}
+.storefront-admin .compact-order-row strong{font-size:11px;min-width:0;flex:1;line-height:1.35}
+.storefront-admin .compact-order-row button{padding:5px 8px;border-radius:6px;font-size:13px}
+.storefront-admin .compact-order-row label{display:flex;align-items:center;gap:4px;font-size:10px}
+.storefront-admin .compact-order-row input[type=checkbox]{width:14px;height:14px}
+.storefront-admin .design-device-toggle{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.storefront-admin .design-device-toggle button[aria-pressed=true]{background:#095b9e;color:#fff}
+.storefront-admin #design-workspace[data-preview-device=desktop] .design-columns{grid-template-columns:1fr}
+.storefront-admin #design-workspace[data-preview-device=desktop] .design-preview{position:static}
+.storefront-admin #design-workspace[data-preview-device=desktop] .design-preview iframe{width:100%;max-width:100%;height:670px;border-radius:13px}
+@media(max-width:680px){.storefront-admin .compact-order-columns{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -115,7 +135,7 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
 <button type="submit" class="primary">Entrar</button>
 </form>
-<section id="design-workspace" hidden>
+<section id="design-workspace" data-preview-device="mobile" hidden>
 <div class="admin-actions"><a class="brand-admin-link" href="portada.html">Portada de bienvenida</a><a class="brand-admin-link" href="marcas.html">Marcas y logotipos</a><button id="design-logout" type="button">Cerrar sesión</button></div>
 <div class="design-columns">
 <div class="design-form">
@@ -155,6 +175,12 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <span class="design-template-sample" aria-hidden="true"><span></span></span>
 <span class="design-template-copy"><strong>Premium Confianza · NUEVA</strong><small>La portada aprobada: tienda real, por qué elegirnos, sedes, cómo comprar y cierre comercial.</small></span>
 </label>
+<label class="design-template-option" data-theme="premium-compacta">
+<input type="radio" name="theme" value="premium-compacta" required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Premium Compacta Responsive · NUEVA</strong>
+<small>Optimizada para teléfono y PC, con el orden independiente de los bloques y productos más arriba.</small></span>
+</label>
 </div>
 <p id="design-theme-description" role="status" aria-live="polite">Vista previa: Premium. Tus imágenes y textos se conservan.</p>
 </fieldset>
@@ -183,6 +209,26 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <label>Descripción comercial<textarea name="subtitle" maxlength="250" rows="3" required></textarea></label>
 <label>Botón principal<input name="primary_label" maxlength="36" required></label>
 <label>Botón secundario<input name="secondary_label" maxlength="36" required></label>
+</fieldset>
+<fieldset id="design-compact-editor"><legend>Premium Compacta · Personalizar teléfono y PC</legend>
+<p>Ordena con las flechas los bloques para cada pantalla. Lo que ajustes en teléfono NO cambia el orden de PC. El bloque «Marcas y productos» permanece siempre visible para evitar que el cliente pierda el catálogo.</p>
+<label>Título breve solo para teléfono
+<input name="compact_mobile_title" maxlength="95" required></label>
+<label>Descripción breve solo para teléfono
+<textarea name="compact_mobile_summary" rows="2" maxlength="180" required></textarea></label>
+<div class="design-editor-pair">
+<label>Altura mínima del banner móvil (230–440 px)
+<input name="compact_mobile_hero_height" type="number" min="230" max="440" step="5" required></label>
+<label>Altura mínima del banner PC (310–620 px)
+<input name="compact_desktop_hero_height" type="number" min="310" max="620" step="5" required></label>
+</div>
+<p>Las fotografías del banner también se editan por separado arriba: una para teléfono y otra para PC.</p>
+<div class="compact-order-columns">
+<section aria-labelledby="compact-mobile-heading"><h3 id="compact-mobile-heading">Diseño para teléfono</h3>
+<div id="compact-mobile-order" class="compact-order-items"></div></section>
+<section aria-labelledby="compact-desktop-heading"><h3 id="compact-desktop-heading">Diseño para PC</h3>
+<div id="compact-desktop-order" class="compact-order-items"></div></section>
+</div>
 </fieldset>
 <fieldset><legend>Mensajes de confianza</legend>
 <p>Estos tres textos breves aparecen debajo del banner.</p>
@@ -232,6 +278,7 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 </div>
 <aside class="design-preview" aria-label="Vista previa del teléfono">
 <h2>Así lo verá el cliente</h2>
+<div class="design-device-toggle" role="group" aria-label="Vista previa por dispositivo"><button type="button" id="design-preview-mobile" aria-pressed="true">Teléfono</button><button type="button" id="design-preview-desktop" aria-pressed="false">Computadora</button></div>
 <p>Esta pantalla muestra tus cambios mientras escribes, sin publicarlos. El catálogo, el carrito y las cotizaciones continúan intactos.</p>
 <iframe id="design-frame" title="Vista previa del catálogo POLADENT en un teléfono" src="./?catalogo=1&amp;vista=1" loading="lazy"></iframe>
 <a class="preview-link" href="./?catalogo=1&amp;vista=1" target="_blank" rel="noopener noreferrer">Abrir propuesta a pantalla completa ↗</a>
