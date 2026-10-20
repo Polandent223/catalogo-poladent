@@ -124,12 +124,51 @@ function renderBrandHero(){
   }
 }
 
+
+function renderOfficialLocations(values,active){
+  const section=$('#official-locations'),grid=$('#official-locations-grid');
+  const visible=active&&values.locations_enabled&&values.locations?.length>0;
+  section.hidden=!visible;
+  if(!visible)return;
+  grid.replaceChildren();
+  for(const location of values.locations){
+    const card=element('article',null,'official-location-card');
+    if(location.photo_url){
+      const image=element('img',null,'official-location-image');
+      image.src=location.photo_url;image.alt='Fotografía de '+location.name;
+      image.loading='lazy';image.decoding='async';
+      card.append(image);
+    }
+    const content=element('div',null,'official-location-copy');
+    content.append(element('h3',location.name));
+    for(const line of [location.city,location.address,location.hours?'Horario: '+location.hours:'',location.rif?'RIF: '+location.rif:'']){
+      if(line)content.append(element('p',line));
+    }
+    content.append(element('p','Compra directa y retiro en tienda'));
+    const actions=element('div',null,'official-location-actions');
+    if(location.address){
+      const directions=element('a','Cómo llegar');
+      directions.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(location.address+', '+location.city+', Venezuela');
+      directions.target='_blank';directions.rel='noopener noreferrer';
+      actions.append(directions);
+    }
+    if(location.phone){
+      const contact=element('a','WhatsApp');
+      contact.href='https://wa.me/'+location.phone;
+      contact.target='_blank';contact.rel='noopener noreferrer';
+      actions.append(contact);
+    }
+    content.append(actions);card.append(content);grid.append(card);
+  }
+}
+
 function renderStorefront(){
   const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
   const design=previewStorefront||values.enabled;
   const active=design&&!brand.value;
   const stage=$('#storefront-home');
   stage.hidden=!active;
+  renderOfficialLocations(values,active);
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
