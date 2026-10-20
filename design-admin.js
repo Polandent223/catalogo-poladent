@@ -9,7 +9,7 @@ const $=q=>document.querySelector(q);
 const form=$('#design-form'),msg=$('#design-message'),frame=$('#design-frame');
 const fileFields={desktop:'design-desktop-file',mobile:'design-mobile-file'};
 const urls={desktop:'design-desktop-url',mobile:'design-mobile-url'};
-let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={desktop:'',mobile:''};
+let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={desktop:'',mobile:''},logoPreviewURL='';
 
 
 const locationPhotoPreviews=new Map();
@@ -92,6 +92,8 @@ function setBusy(on){
   $('#design-add-location').disabled=on||$('#design-location-fields').children.length>=8;
 }
 function clearObjectURLs(){
+  if(logoPreviewURL)URL.revokeObjectURL(logoPreviewURL);
+  logoPreviewURL='';
   for(const field of Object.keys(previewURLs)){
     if(previewURLs[field])URL.revokeObjectURL(previewURLs[field]);
     previewURLs[field]='';
@@ -100,6 +102,8 @@ function clearObjectURLs(){
 function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
+  $('#design-logo-url').value=published.brand_logo_url;
+  $('#design-logo-file').value='';
   drawLocationEditor(published);
   form.querySelector('#design-enabled').checked=published.enabled;
   const preset=form.querySelector('input[name="theme"][value="'+published.theme+'"]');
@@ -136,6 +140,7 @@ function formSettings(useFilePreview=true){
     enabled:$('#design-enabled').checked,
     locations_enabled:$('#design-locations-enabled').checked,
     locations:readLocations(useFilePreview),
+    brand_logo_url:useFilePreview&&logoPreviewURL||$('#design-logo-url').value.trim(),
     about_enabled:$('#design-about-enabled').checked,
     about_title:read('about_title'),
     about_text:read('about_text'),
@@ -176,6 +181,13 @@ function sendPreview(){
     '. Se conservan los textos, imágenes y marcas elegidos.';
   frame.contentWindow.postMessage({type:'poladent:storefront-draft',settings},location.origin);
 }
+function updateLocalLogo(){
+  if(logoPreviewURL)URL.revokeObjectURL(logoPreviewURL);
+  const file=$('#design-logo-file').files[0];
+  logoPreviewURL=file?URL.createObjectURL(file):'';
+  sendPreview();
+}
+$('#design-logo-file').addEventListener('change',updateLocalLogo);
 function updateLocalImage(field){
   if(previewURLs[field])URL.revokeObjectURL(previewURLs[field]);
   const file=$('#'+fileFields[field]).files[0];
@@ -253,6 +265,19 @@ form.addEventListener('submit',async event=>{
         requested['banner_'+field+'_path']=url && url===published['banner_'+field+'_url']
           ?published['banner_'+field+'_path']:null;
       }
+    }
+    const logoFile=$('#design-logo-file').files[0];
+    if(logoFile){
+      report('Subiendo logotipo oficial…');
+      const uploaded=await uploadImage(logoFile);
+      toRemove.push(uploaded.path);
+      requested.brand_logo_url=uploaded.url;
+      requested.brand_logo_path=uploaded.path;
+    }else{
+      if(requested.brand_logo_url&&!/^https:\/\//i.test(requested.brand_logo_url))
+        throw Error('El logotipo debe usar una URL HTTPS.');
+      requested.brand_logo_path=requested.brand_logo_url===published.brand_logo_url
+        ?published.brand_logo_path:null;
     }
     for(let i=0;i<locationUploads.length;i++){
       if(!locationUploads[i])continue;
