@@ -210,4 +210,16 @@ assert.ok(publicCode.includes('function renderPremiumSections('));
 assert.ok(publicCode.includes("premium=active&&values.theme==='premium-confianza'"));
 assert.ok(style.includes('body.storefront-active.storefront-theme-premium-confianza'));
 
+
+assert.ok(page.includes('id="premium-brand-logo"'));
+assert.ok(page.includes('id="storefront-whatsapp"'));
+assert.ok(adminPage.includes('id="design-logo-file"'));
+assert.ok(adminPage.includes('id="design-logo-url"'));
+assert.ok(adminCode.includes('function updateLocalLogo()'));
+assert.ok(adminCode.includes('requested.brand_logo_url=uploaded.url'));
+assert.equal(normalizeStorefront({brand_logo_url:'javascript:alert(1)'}).brand_logo_url,'');
+assert.equal(normalizeStorefront({brand_logo_url:'https://example.com/logo.png'}).brand_logo_url,'https://example.com/logo.png');
+assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
+assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
