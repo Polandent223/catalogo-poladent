@@ -11,6 +11,36 @@ const fileFields={desktop:'design-desktop-file',mobile:'design-mobile-file'};
 const urls={desktop:'design-desktop-url',mobile:'design-mobile-url'};
 let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={desktop:'',mobile:''};
 
+
+const locationFields=['name','city','address','hours','phone','rif','photo_url'];
+function drawLocationEditor(settings){
+  const holder=$('#design-location-fields');
+  holder.replaceChildren();
+  $('#design-locations-enabled').checked=Boolean(settings.locations_enabled);
+  for(const [i,location] of (settings.locations||[]).entries()){
+    const section=document.createElement('section');section.className='location-editor';
+    const title=document.createElement('h3');title.textContent='Sucursal '+(i+1);
+    section.append(title);
+    for(const key of locationFields){
+      const label=document.createElement('label');
+      const captions={name:'Nombre de la sede',city:'Ciudad y estado',address:'Dirección',hours:'Horario',phone:'WhatsApp (código 58)',rif:'RIF',photo_url:'Foto real de la sede (URL HTTPS)'};
+      label.textContent=captions[key];
+      const input=document.createElement('input');
+      input.type=key==='photo_url'?'url':'text';
+      input.name='location_'+i+'_'+key;
+      input.value=location[key]||'';
+      input.maxLength=key==='address'?240:key==='photo_url'?2000:90;
+      if(key==='photo_url')input.placeholder='https://...';
+      label.append(input);section.append(label);
+    }
+    holder.append(section);
+  }
+}
+function readLocations(){
+  return [...$('#design-location-fields').querySelectorAll('.location-editor')].map((section,i)=>
+    Object.fromEntries(locationFields.map(key=>[key,form.elements.namedItem('location_'+i+'_'+key).value.trim()])));
+}
+
 function report(value,error=false){
   msg.textContent=value;
   msg.className=error?'design-status error':'design-status';
@@ -28,6 +58,7 @@ function clearObjectURLs(){
 function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
+  drawLocationEditor(published);
   form.querySelector('#design-enabled').checked=published.enabled;
   const preset=form.querySelector('input[name="theme"][value="'+published.theme+'"]');
   if(preset)preset.checked=true;
@@ -51,6 +82,8 @@ function formSettings(useFilePreview=true){
   const read=name=>form.elements.namedItem(name).value.trim();
   return {
     enabled:$('#design-enabled').checked,
+    locations_enabled:$('#design-locations-enabled').checked,
+    locations:readLocations(),
     theme:form.elements.namedItem('theme').value,
     eyebrow:read('eyebrow'),
     title:read('title'),
