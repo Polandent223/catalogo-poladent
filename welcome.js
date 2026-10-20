@@ -67,6 +67,11 @@ async function readWelcome(){
   const response=await fetch(endpoint.href,{cache:'no-store',signal:AbortSignal.timeout(4500)});
   if(!response.ok)return null;
   const data=(await response.json()).fields||{};
+  const storefront=data.storefront?.mapValue?.fields||{};
+  if(storefront.enabled?.booleanValue===true &&
+     storefront.theme?.stringValue==='premium-confianza' &&
+     storefront.replace_welcome?.booleanValue===true)
+    return {skip:true};
   if(data.welcome_enabled?.booleanValue!==true || data.kind?.stringValue!=='contact_settings')return null;
   const desktopURL=secureImage(data.welcome_image_url?.stringValue);
   if(!desktopURL)return null;
@@ -77,7 +82,7 @@ async function readWelcome(){
 }
 $('#welcome-enter').addEventListener('click',()=>enterCatalog(true));
 if(shouldSkipWelcome(location.href))enterCatalog();
-else readWelcome().then(settings=>settings?showWelcome(settings):enterCatalog()).catch(error=>{
+else readWelcome().then(settings=>settings?.skip?enterCatalog():settings?showWelcome(settings):enterCatalog()).catch(error=>{
   console.warn('Portada temporalmente no disponible; se abre el catálogo:',error);
   enterCatalog();
 });
