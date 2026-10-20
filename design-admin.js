@@ -104,6 +104,16 @@ function fillForm(settings){
   form.querySelector('#design-enabled').checked=published.enabled;
   const preset=form.querySelector('input[name="theme"][value="'+published.theme+'"]');
   if(preset)preset.checked=true;
+  $('#design-about-enabled').checked=published.about_enabled;
+  $('#design-steps-enabled').checked=published.steps_enabled;
+  for(const key of ['about_title','about_text','locations_title','locations_intro','steps_title','closing_title','closing_text'])
+    form.elements.namedItem(key).value=published[key];
+  for(let i=0;i<4;i++){
+    form.elements.namedItem('benefit_'+(i+1)+'_title').value=published.benefit_items[i].title;
+    form.elements.namedItem('benefit_'+(i+1)+'_text').value=published.benefit_items[i].text;
+    form.elements.namedItem('step_'+(i+1)+'_title').value=published.steps[i].title;
+    form.elements.namedItem('step_'+(i+1)+'_text').value=published.steps[i].text;
+  }
   for(const key of ['eyebrow','title','subtitle','primary_label','secondary_label','featured_title','brands_title'])
     form.elements.namedItem(key).value=published[key];
   published.trust_items.forEach((text,i)=>{
@@ -126,6 +136,23 @@ function formSettings(useFilePreview=true){
     enabled:$('#design-enabled').checked,
     locations_enabled:$('#design-locations-enabled').checked,
     locations:readLocations(useFilePreview),
+    about_enabled:$('#design-about-enabled').checked,
+    about_title:read('about_title'),
+    about_text:read('about_text'),
+    benefit_items:Array.from({length:4},(_,i)=>({
+      title:read('benefit_'+(i+1)+'_title'),
+      text:read('benefit_'+(i+1)+'_text')
+    })),
+    steps_enabled:$('#design-steps-enabled').checked,
+    steps_title:read('steps_title'),
+    steps:Array.from({length:4},(_,i)=>({
+      title:read('step_'+(i+1)+'_title'),
+      text:read('step_'+(i+1)+'_text')
+    })),
+    locations_title:read('locations_title'),
+    locations_intro:read('locations_intro'),
+    closing_title:read('closing_title'),
+    closing_text:read('closing_text'),
     theme:form.elements.namedItem('theme').value,
     eyebrow:read('eyebrow'),
     title:read('title'),
@@ -144,7 +171,7 @@ function sendPreview(){
   if(!frame?.contentWindow || busy)return;
   // No se envían credenciales ni se guardan borradores en el servidor.
   const settings=normalizeStorefront(formSettings(),true);
-  const labels={premium:'Premium',clinica:'Clínica',minimalista:'Minimalista',comercial:'Comercial'};
+  const labels={premium:'Premium',clinica:'Clínica',minimalista:'Minimalista',comercial:'Comercial','premium-confianza':'Premium Confianza'};
   $('#design-theme-description').textContent='Vista previa: '+labels[settings.theme]+
     '. Se conservan los textos, imágenes y marcas elegidos.';
   frame.contentWindow.postMessage({type:'poladent:storefront-draft',settings},location.origin);
