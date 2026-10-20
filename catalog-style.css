@@ -733,3 +733,21 @@ body.storefront-active.storefront-theme-comercial .storefront-brand-card{
     background:var(--sf-overlay)
   }
 }
+
+
+/* Sedes POLADENT: componente optativo; no altera el catálogo original. */
+.official-locations{max-width:1104px;margin:26px auto 32px;padding:18px 12px}
+.official-locations[hidden]{display:none}
+.locations-heading{text-align:center;margin-bottom:22px}
+.locations-heading h2{font-size:clamp(24px,3vw,32px);color:#0a3155;margin:8px 0}
+.locations-heading p:last-child{color:#526d7d;line-height:1.55}
+.official-locations-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.official-location-card{overflow:hidden;background:#fff;border:1px solid #d7e4ee;border-radius:19px;box-shadow:0 15px 35px #0a315513}
+.official-location-image{width:100%;height:235px;object-fit:cover;display:block}
+.official-location-copy{padding:22px;display:grid;gap:8px}
+.official-location-copy h3{font-size:21px;margin:0;color:#103e65}
+.official-location-copy p{font-size:14px;line-height:1.5;margin:0;color:#456073}
+.official-location-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.official-location-actions a{display:inline-flex;align-items:center;justify-content:center;padding:12px 15px;background:#087bb3;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px}
+.official-location-actions a:last-child{background:#078963}
+@media(max-width:700px){.official-locations{padding:12px 16px}.official-locations-grid{grid-template-columns:1fr}.official-location-image{height:205px}.official-location-copy{padding:18px}}
