@@ -169,6 +169,7 @@ function renderStorefront(){
   const stage=$('#storefront-home');
   stage.hidden=!active;
   renderOfficialLocations(values,active);
+  $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
