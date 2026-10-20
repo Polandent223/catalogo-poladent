@@ -1,10 +1,36 @@
 // Diseño del escaparate: valores públicos, sin secretos ni datos personales.
 // Ausente/desactivado: POLADENT conserva la portada INTERNA anterior.
-export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','comercial','premium-confianza']);
+export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','comercial','premium-confianza','premium-compacta']);
+export const COMPACT_SECTIONS=Object.freeze(['hero','trust','catalogo','about','locations','steps','closing']);
+const COMPACT_MOBILE_ORDER=Object.freeze(['hero','trust','catalogo','locations','about','steps','closing']);
+const COMPACT_DESKTOP_ORDER=Object.freeze(['hero','trust','about','locations','catalogo','steps','closing']);
+function compactOrder(input,defaults){
+  const result=[];
+  for(const item of Array.isArray(input)?input:[]){
+    if(COMPACT_SECTIONS.includes(item)&&!result.includes(item))result.push(item);
+  }
+  for(const item of defaults)if(!result.includes(item))result.push(item);
+  return result;
+}
+function compactHidden(input){
+  return (Array.isArray(input)?input:[]).filter((v,i,a)=>v!=='catalogo'&&COMPACT_SECTIONS.includes(v)&&a.indexOf(v)===i);
+}
+function compactHeight(value,defaultValue,min,max){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>=min&&n<=max?Math.round(n):defaultValue;
+}
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
   replace_welcome:false,
   theme:'premium',
+  compact_order_mobile:[...COMPACT_MOBILE_ORDER],
+  compact_order_desktop:[...COMPACT_DESKTOP_ORDER],
+  compact_hidden_mobile:[],
+  compact_hidden_desktop:[],
+  compact_mobile_title:'Odontología y laboratorio dental',
+  compact_mobile_summary:'Visítanos en Valencia o Maracay, o solicita tu cotización por WhatsApp.',
+  compact_mobile_hero_height:315,
+  compact_desktop_hero_height:430,
   brand_logo_url:'',
   brand_logo_path:null,
   locations_enabled:false,
@@ -75,8 +101,16 @@ export function normalizeStorefront(input={},allowBlob=false) {
   const featured_brands=[...new Set(brands.slice(0,4).map(x=>bounded(x,80)).filter(Boolean))];
   return {
     enabled:s.enabled===true,
-    replace_welcome:s.replace_welcome===true&&s.theme==='premium-confianza',
+    replace_welcome:s.replace_welcome===true&&['premium-confianza','premium-compacta'].includes(s.theme),
     theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
+    compact_order_mobile:compactOrder(s.compact_order_mobile,COMPACT_MOBILE_ORDER),
+    compact_order_desktop:compactOrder(s.compact_order_desktop,COMPACT_DESKTOP_ORDER),
+    compact_hidden_mobile:compactHidden(s.compact_hidden_mobile),
+    compact_hidden_desktop:compactHidden(s.compact_hidden_desktop),
+    compact_mobile_title:bounded(s.compact_mobile_title,95,STORE_DEFAULTS.compact_mobile_title),
+    compact_mobile_summary:bounded(s.compact_mobile_summary,180,STORE_DEFAULTS.compact_mobile_summary),
+    compact_mobile_hero_height:compactHeight(s.compact_mobile_hero_height,315,230,440),
+    compact_desktop_hero_height:compactHeight(s.compact_desktop_hero_height,430,310,620),
     brand_logo_url:secureBannerURL(s.brand_logo_url,allowBlob),
     brand_logo_path:typeof s.brand_logo_path==='string'?s.brand_logo_path:null,
     locations_enabled:s.locations_enabled===true,

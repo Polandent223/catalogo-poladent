@@ -127,7 +127,7 @@ function renderBrandHero(){
 
 
 function renderPremiumSections(values,active){
-  const premium=active&&values.theme==='premium-confianza';
+  const premium=active&&['premium-confianza','premium-compacta'].includes(values.theme);
   const about=$('#premium-about'),steps=$('#premium-steps'),closing=$('#premium-closing');
   about.hidden=!(premium&&values.about_enabled);
   steps.hidden=!(premium&&values.steps_enabled);
@@ -203,10 +203,65 @@ function renderOfficialLocations(values,active){
   }
 }
 
+
+// Compacta: reordenación puramente visual con flex order. Nunca se mueven
+// los nodos del catálogo ni se reconstruyen productos, eventos o el carrito.
+const COMPACT_LAYOUT_NODES={
+  hero:['#storefront-hero'],
+  trust:['.storefront-trust'],
+  catalogo:['.brands-area','#brand-hero','.filters','.cart-toolbar','#cart-feedback',
+    '#catalog-status','#products','#more','#brand-back-cover'],
+  about:['#premium-about'],
+  locations:['#official-locations'],
+  steps:['#premium-steps'],
+  closing:['#premium-closing']
+};
+function applyCompactLayout(values,active){
+  const compact=active&&values.theme==='premium-compacta';
+  const all=[...new Set(Object.values(COMPACT_LAYOUT_NODES).flat())];
+  for(const selector of all){
+    const node=$(selector);
+    if(!node)continue;
+    node.style.removeProperty('--compact-desktop-order');
+    node.style.removeProperty('--compact-mobile-order');
+    delete node.dataset.compactHideDesktop;
+    delete node.dataset.compactHideMobile;
+  }
+  const main=$('main');
+  main.style.removeProperty('--compact-mobile-hero-height');
+  main.style.removeProperty('--compact-desktop-hero-height');
+  const locationsLink=$('#storefront-locations-link');
+  delete locationsLink.dataset.compactHideMobile;
+  delete locationsLink.dataset.compactHideDesktop;
+  if(compact){
+    if(values.compact_hidden_mobile.includes('locations'))locationsLink.dataset.compactHideMobile='1';
+    if(values.compact_hidden_desktop.includes('locations'))locationsLink.dataset.compactHideDesktop='1';
+  }
+  $('#compact-mobile-title').hidden=!compact;
+  $('#compact-mobile-summary').hidden=!compact;
+  if(!compact)return;
+  $('#compact-mobile-title').textContent=values.compact_mobile_title;
+  $('#compact-mobile-summary').textContent=values.compact_mobile_summary;
+  main.style.setProperty('--compact-mobile-hero-height',values.compact_mobile_hero_height+'px');
+  main.style.setProperty('--compact-desktop-hero-height',values.compact_desktop_hero_height+'px');
+  for(const [key,selectors] of Object.entries(COMPACT_LAYOUT_NODES)){
+    for(const selector of selectors){
+      const node=$(selector);
+      if(!node)continue;
+      node.style.setProperty('--compact-mobile-order',String(values.compact_order_mobile.indexOf(key)+1));
+      node.style.setProperty('--compact-desktop-order',String(values.compact_order_desktop.indexOf(key)+1));
+      if(key!=='catalogo'){
+        if(values.compact_hidden_mobile.includes(key))node.dataset.compactHideMobile='1';
+        if(values.compact_hidden_desktop.includes(key))node.dataset.compactHideDesktop='1';
+      }
+    }
+  }
+}
+
 function renderStorefront(){
   const current=storefrontDraft||storefrontSettings;
-  const input=previewStorefront&&!storefrontDraft&&requestedPreviewTheme==='premium-confianza'
-    ?{...(current||{}),theme:'premium-confianza',locations_enabled:true}:current;
+  const input=previewStorefront&&!storefrontDraft&&['premium-confianza','premium-compacta'].includes(requestedPreviewTheme)
+    ?{...(current||{}),theme:requestedPreviewTheme,locations_enabled:true}:current;
   const values=normalizeStorefront(input,previewStorefront);
   const design=previewStorefront||values.enabled;
   const active=design&&!brand.value;
@@ -214,8 +269,9 @@ function renderStorefront(){
   stage.hidden=!active;
   renderOfficialLocations(values,active);
   renderPremiumSections(values,active);
+  applyCompactLayout(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
-  const premium=active&&values.theme==='premium-confianza';
+  const premium=active&&['premium-confianza','premium-compacta'].includes(values.theme);
   const logo=$('#premium-brand-logo');
   logo.hidden=!(premium&&values.brand_logo_url);
   if(!logo.hidden)logo.src=values.brand_logo_url;
@@ -241,7 +297,7 @@ function renderStorefront(){
   const desktop=values.banner_desktop_url,mobile=values.banner_mobile_url;
   const hasBanner=Boolean(desktop||mobile);
   const premiumHero=$('#premium-hero-photo');
-  const photo=values.theme==='premium-confianza' && active && !hasBanner
+  const photo=['premium-confianza','premium-compacta'].includes(values.theme) && active && !hasBanner
     ?values.locations.find(location=>location.photo_url)?.photo_url||'':'';
   premiumHero.hidden=!photo;
   if(photo)premiumHero.src=photo;

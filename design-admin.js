@@ -82,6 +82,65 @@ function getLocationUploadFiles(){
 $('#design-add-location').addEventListener('click',()=>{
   appendLocationEditor();sendPreview();
 });
+
+const compactLabels={
+  hero:'Portada principal',trust:'Mensajes rápidos',catalogo:'Marcas y productos',
+  about:'¿Por qué elegirnos?',locations:'Sedes oficiales',steps:'Cómo comprar',closing:'Cierre comercial'
+};
+let compactOrderMobile=[],compactOrderDesktop=[];
+let compactHiddenMobile=new Set(),compactHiddenDesktop=new Set();
+function renderCompactOrder(device){
+  const isMobile=device==='mobile',order=isMobile?compactOrderMobile:compactOrderDesktop;
+  const hidden=isMobile?compactHiddenMobile:compactHiddenDesktop;
+  const box=$('#compact-'+device+'-order');box.replaceChildren();
+  order.forEach((section,index)=>{
+    const line=document.createElement('div');line.className='compact-order-row';
+    const title=document.createElement('strong');title.textContent=(index+1)+'. '+compactLabels[section];
+    line.append(title);
+    for(const [sign,change,label] of [['↑',-1,'Subir'],['↓',1,'Bajar']]){
+      const button=document.createElement('button');button.type='button';
+      button.textContent=sign;button.disabled=index+change<0||index+change>=order.length;
+      button.setAttribute('aria-label',label+' '+compactLabels[section]+' en '+(isMobile?'teléfono':'PC'));
+      button.addEventListener('click',()=>{
+        const other=index+change;
+        [order[index],order[other]]=[order[other],order[index]];
+        renderCompactOrder(device);sendPreview();
+      });
+      line.append(button);
+    }
+    if(section!=='catalogo'){
+      const label=document.createElement('label');label.textContent='Ocultar';
+      const checkbox=document.createElement('input');checkbox.type='checkbox';
+      checkbox.checked=hidden.has(section);
+      checkbox.setAttribute('aria-label','Ocultar '+compactLabels[section]+' en '+(isMobile?'teléfono':'PC'));
+      checkbox.addEventListener('change',()=>{
+        if(checkbox.checked)hidden.add(section);else hidden.delete(section);
+        sendPreview();
+      });
+      label.prepend(checkbox);line.append(label);
+    }
+    box.append(line);
+  });
+}
+function fillCompactEditor(settings){
+  compactOrderMobile=[...settings.compact_order_mobile];
+  compactOrderDesktop=[...settings.compact_order_desktop];
+  compactHiddenMobile=new Set(settings.compact_hidden_mobile);
+  compactHiddenDesktop=new Set(settings.compact_hidden_desktop);
+  for(const key of ['compact_mobile_title','compact_mobile_summary',
+    'compact_mobile_hero_height','compact_desktop_hero_height'])
+    form.elements.namedItem(key).value=settings[key];
+  renderCompactOrder('mobile');renderCompactOrder('desktop');
+}
+function previewDevice(device){
+  $('#design-workspace').dataset.previewDevice=device;
+  $('#design-preview-mobile').setAttribute('aria-pressed',String(device==='mobile'));
+  $('#design-preview-desktop').setAttribute('aria-pressed',String(device==='desktop'));
+  sendPreview();
+}
+$('#design-preview-mobile').addEventListener('click',()=>previewDevice('mobile'));
+$('#design-preview-desktop').addEventListener('click',()=>previewDevice('desktop'));
+
 function report(value,error=false){
   msg.textContent=value;
   msg.className=error?'design-status error':'design-status';
@@ -102,6 +161,7 @@ function clearObjectURLs(){
 function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
+  fillCompactEditor(published);
   $('#design-logo-url').value=published.brand_logo_url;
   $('#design-logo-file').value='';
   drawLocationEditor(published);
@@ -142,6 +202,14 @@ function formSettings(useFilePreview=true){
     replace_welcome:$('#design-replace-welcome').checked,
     locations_enabled:$('#design-locations-enabled').checked,
     locations:readLocations(useFilePreview),
+    compact_order_mobile:[...compactOrderMobile],
+    compact_order_desktop:[...compactOrderDesktop],
+    compact_hidden_mobile:[...compactHiddenMobile],
+    compact_hidden_desktop:[...compactHiddenDesktop],
+    compact_mobile_title:read('compact_mobile_title'),
+    compact_mobile_summary:read('compact_mobile_summary'),
+    compact_mobile_hero_height:Number(read('compact_mobile_hero_height')),
+    compact_desktop_hero_height:Number(read('compact_desktop_hero_height')),
     brand_logo_url:useFilePreview&&logoPreviewURL||$('#design-logo-url').value.trim(),
     about_enabled:$('#design-about-enabled').checked,
     about_title:read('about_title'),
@@ -178,7 +246,7 @@ function sendPreview(){
   if(!frame?.contentWindow || busy)return;
   // No se envían credenciales ni se guardan borradores en el servidor.
   const settings=normalizeStorefront(formSettings(),true);
-  const labels={premium:'Premium',clinica:'Clínica',minimalista:'Minimalista',comercial:'Comercial','premium-confianza':'Premium Confianza'};
+  const labels={premium:'Premium',clinica:'Clínica',minimalista:'Minimalista',comercial:'Comercial','premium-confianza':'Premium Confianza','premium-compacta':'Premium Compacta Responsive'};
   $('#design-theme-description').textContent='Vista previa: '+labels[settings.theme]+
     '. Se conservan los textos, imágenes y marcas elegidos.';
   frame.contentWindow.postMessage({type:'poladent:storefront-draft',settings},location.origin);

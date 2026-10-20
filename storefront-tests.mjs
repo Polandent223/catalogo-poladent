@@ -8,7 +8,7 @@ const {parseCatalogDocuments}=await load('catalog-public-data.js');
 const original=normalizeStorefront();
 assert.equal(original.enabled,false,'Por defecto nadie ve el rediseño hasta la aprobación');
 assert.equal(original.theme,'premium','Conservar como predeterminada la propuesta aprobada');
-assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial','premium-confianza']);
+assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial','premium-confianza','premium-compacta']);
 for(const theme of STORE_THEMES){
   const selected=normalizeStorefront({
     ...STORE_DEFAULTS,theme,
@@ -207,7 +207,7 @@ for(const name of ['about_title','about_text','steps_title','closing_title','clo
 assert.ok(adminCode.includes("about_title:read('about_title')"));
 assert.ok(adminCode.includes("benefit_items:Array.from({length:4}"));
 assert.ok(publicCode.includes('function renderPremiumSections('));
-assert.ok(publicCode.includes("premium=active&&values.theme==='premium-confianza'"));
+assert.ok(publicCode.includes("premium=active&&['premium-confianza','premium-compacta'].includes(values.theme)"));
 assert.ok(style.includes('body.storefront-active.storefront-theme-premium-confianza'));
 
 
@@ -222,7 +222,7 @@ assert.equal(normalizeStorefront({brand_logo_url:'https://example.com/logo.png'}
 assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
 assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
 
-assert.ok(publicCode.includes("requestedPreviewTheme==='premium-confianza'"),'La nueva plantilla debe poder examinarse sin publicar');
+assert.ok(publicCode.includes("['premium-confianza','premium-compacta'].includes(requestedPreviewTheme)"),'La nueva plantilla debe poder examinarse sin publicar');
 assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
 assert.ok(style.includes('.official-location-card.without-photo'));
 
@@ -237,7 +237,51 @@ assert.ok(adminCode.includes("replace_welcome:$('#design-replace-welcome').check
 const welcome=read('welcome.js');
 assert.ok(welcome.includes("storefront.replace_welcome?.booleanValue===true"));
 assert.ok(welcome.includes("storefront.enabled?.booleanValue===true"));
-assert.ok(welcome.includes("storefront.theme?.stringValue==='premium-confianza'"));
+assert.ok(welcome.includes("['premium-confianza','premium-compacta'].includes(storefront.theme?.stringValue)"));
 assert.ok(welcome.includes('settings?.skip?enterCatalog():settings?showWelcome(settings):enterCatalog()'));
+
+
+const compact=normalizeStorefront({theme:'premium-compacta'});
+assert.equal(compact.theme,'premium-compacta');
+assert.equal(compact.enabled,false);
+assert.equal(compact.replace_welcome,false);
+assert.equal(compact.compact_order_mobile[2],'catalogo','Marcas y productos llegan pronto en móvil');
+assert.equal(compact.compact_order_desktop[2],'about','La versión PC prioriza presentación');
+assert.equal(compact.compact_mobile_hero_height,315);
+assert.equal(compact.compact_desktop_hero_height,430);
+assert.equal(normalizeStorefront({theme:'premium-compacta',replace_welcome:true}).replace_welcome,true);
+assert.deepEqual(normalizeStorefront({
+  compact_order_mobile:['steps','steps','evil','hero','catalogo'],
+  compact_hidden_mobile:['catalogo','steps','steps','evil']
+}).compact_hidden_mobile,['steps'],'Productos no se pueden ocultar, ni se aceptan nombres desconocidos');
+const allSections=['hero','trust','catalogo','about','locations','steps','closing'];
+assert.deepEqual(normalizeStorefront({compact_order_mobile:['steps','hero','catalogo']}).compact_order_mobile.slice(0,3),
+  ['steps','hero','catalogo'],'Se respeta orden personalizado');
+assert.deepEqual([...normalizeStorefront({compact_order_mobile:['steps','hero','catalogo']}).compact_order_mobile].sort(),
+  [...allSections].sort(),'Nunca se pierden secciones del catálogo');
+assert.equal(normalizeStorefront({compact_mobile_hero_height:900}).compact_mobile_hero_height,315);
+assert.equal(normalizeStorefront({compact_desktop_hero_height:-1}).compact_desktop_hero_height,430);
+assert.ok(page.includes('id="compact-mobile-title"'));
+assert.ok(page.includes('id="compact-mobile-summary"'));
+assert.ok(adminPage.includes('name="theme" value="premium-compacta"'));
+assert.ok(adminPage.includes('id="compact-mobile-order"'));
+assert.ok(adminPage.includes('id="compact-desktop-order"'));
+assert.ok(adminPage.includes('id="design-preview-mobile"'));
+assert.ok(adminPage.includes('id="design-preview-desktop"'));
+assert.ok(adminCode.includes('function renderCompactOrder(device)'));
+assert.ok(adminCode.includes('compact_order_mobile:[...compactOrderMobile]'));
+assert.ok(adminCode.includes('compact_order_desktop:[...compactOrderDesktop]'));
+assert.ok(publicCode.includes('function applyCompactLayout(values,active)'));
+assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','.filters','.cart-toolbar'"));
+assert.ok(!publicCode.includes('main.appendChild(\'#products\')'));
+assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta main'));
+assert.ok(style.includes('order:var(--compact-mobile-order,4)'));
+assert.ok(style.includes('order:var(--compact-desktop-order,4)'));
+assert.ok(style.includes('[data-compact-hide-mobile="1"]'));
+assert.ok(style.includes('[data-compact-hide-desktop="1"]'));
+assert.ok(style.includes('scroll-snap-type:x proximity'));
+
+assert.ok(publicCode.includes("locationsLink.dataset.compactHideMobile='1'"));
+assert.ok(publicCode.includes("locationsLink.dataset.compactHideDesktop='1'"));
 
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
