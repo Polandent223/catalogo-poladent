@@ -4,6 +4,11 @@ export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','come
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
   theme:'premium',
+  locations_enabled:false,
+  locations:[
+    {name:'Poladent sede Principal Valencia',city:'Valencia, estado Carabobo',address:'Calle 137 Los Sauces, San José, edificio 137, piso 3, local 19',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:''},
+    {name:'Poladent sede Maracay',city:'Maracay, estado Aragua',address:'Torre Sindoni, PB, local N13',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:''}
+  ],
   eyebrow:'CATÁLOGO PARA PROFESIONALES',
   title:'Todo en odontología y laboratorio dental',
   subtitle:'Descubre nuestras marcas, selecciona tus productos y solicita una cotización por WhatsApp.',
@@ -41,6 +46,20 @@ export function normalizeStorefront(input={},allowBlob=false) {
   return {
     enabled:s.enabled===true,
     theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
+    locations_enabled:s.locations_enabled===true,
+    locations:(Array.isArray(s.locations)?s.locations:STORE_DEFAULTS.locations).slice(0,8).map((entry,i)=>{
+      const fallback=STORE_DEFAULTS.locations[i]||{};
+      const phone=String(entry?.phone||fallback.phone||'').replace(/\D/g,'');
+      return {
+        name:bounded(entry?.name,90,fallback.name||'Sucursal POLADENT'),
+        city:bounded(entry?.city,90,fallback.city||''),
+        address:bounded(entry?.address,240,fallback.address||''),
+        hours:bounded(entry?.hours,90,fallback.hours||''),
+        phone:/^[1-9][0-9]{7,14}$/.test(phone)?phone:'',
+        rif:bounded(entry?.rif,40,fallback.rif||''),
+        photo_url:secureBannerURL(entry?.photo_url)
+      };
+    }),
     eyebrow:bounded(s.eyebrow,60,STORE_DEFAULTS.eyebrow),
     title:bounded(s.title,120,STORE_DEFAULTS.title),
     subtitle:bounded(s.subtitle,250,STORE_DEFAULTS.subtitle),
