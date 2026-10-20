@@ -469,7 +469,7 @@ export async function getStorefrontSettings(){
 export async function saveStorefrontSettings(settings){
   await adminCheck();
   const normalized=normalizeStorefront(settings);
-  for(const field of ['banner_desktop','banner_mobile']){
+  for(const field of ['banner_desktop','banner_mobile','brand_logo']){
     const key=field+'_url';
     if(settings?.[key] && !normalized[key])
       throw Error('El banner debe tener un enlace seguro HTTPS.');
