@@ -152,4 +152,19 @@ assert.ok(!saver.includes('deleteDoc('));
 assert.ok(!saver.includes('saveProduct('));
 assert.ok(saver.includes('await adminCheck()'));
 assert.ok(service.includes('client.saveStorefrontSettings(settings)'));
+
+assert.equal(original.locations_enabled,false,'Las sedes nunca se publican por defecto');
+assert.equal(original.locations.length,2,'Se preservan las dos sucursales');
+assert.equal(original.locations[0].name,'Poladent sede Principal Valencia');
+assert.equal(original.locations[1].name,'Poladent sede Maracay');
+const safeLocations=normalizeStorefront({locations_enabled:true,locations:[{name:'Nueva sede',city:'Valencia',address:'Calle ejemplo',phone:'584226710634',photo_url:'javascript:alert(1)'}]});
+assert.equal(safeLocations.locations_enabled,true);
+assert.equal(safeLocations.locations[0].photo_url,'','Rechazar fotos con esquemas inseguros');
+assert.ok(page.includes('id="official-locations"'));
+assert.ok(publicCode.includes('renderOfficialLocations(values,active)'));
+assert.ok(publicCode.includes('active&&values.locations_enabled'));
+assert.ok(adminPage.includes('id="design-location-fields"'));
+assert.ok(adminCode.includes('locations:readLocations()'));
+assert.ok(style.includes('.official-location-card'));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
