@@ -4,6 +4,8 @@ export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','come
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
   theme:'premium',
+  brand_logo_url:'',
+  brand_logo_path:null,
   locations_enabled:false,
   about_enabled:true,
   about_title:'¿Por qué elegir POLADENT?',
@@ -73,6 +75,8 @@ export function normalizeStorefront(input={},allowBlob=false) {
   return {
     enabled:s.enabled===true,
     theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
+    brand_logo_url:secureBannerURL(s.brand_logo_url,allowBlob),
+    brand_logo_path:typeof s.brand_logo_path==='string'?s.brand_logo_path:null,
     locations_enabled:s.locations_enabled===true,
     about_enabled:s.about_enabled!==false,
     about_title:bounded(s.about_title,90,STORE_DEFAULTS.about_title),
