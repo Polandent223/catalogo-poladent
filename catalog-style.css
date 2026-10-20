@@ -904,3 +904,5 @@ body.storefront-active.storefront-theme-premium-confianza #storefront-whatsapp{
  body.storefront-active.storefront-theme-premium-confianza #premium-brand-logo{width:35px;height:34px;margin-right:6px}
  body.storefront-active.storefront-theme-premium-confianza .storefront-actions #storefront-whatsapp{flex-basis:100%}
 }
+
+body.storefront-active.storefront-theme-premium-confianza .official-location-card.without-photo{grid-template-columns:1fr;min-height:auto}
