@@ -210,6 +210,16 @@ function renderStorefront(){
   renderOfficialLocations(values,active);
   renderPremiumSections(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
+  const premium=active&&values.theme==='premium-confianza';
+  const logo=$('#premium-brand-logo');
+  logo.hidden=!(premium&&values.brand_logo_url);
+  if(!logo.hidden)logo.src=values.brand_logo_url;
+  else logo.removeAttribute('src');
+  const directWhatsApp=$('#storefront-whatsapp');
+  const directPhone=values.locations.find(item=>item.phone)?.phone||contacts[0]?.phone||'';
+  directWhatsApp.hidden=!(premium&&directPhone);
+  if(!directWhatsApp.hidden)directWhatsApp.href='https://wa.me/'+directPhone;
+  else directWhatsApp.removeAttribute('href');
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
