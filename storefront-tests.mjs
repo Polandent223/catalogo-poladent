@@ -164,7 +164,7 @@ assert.ok(page.includes('id="official-locations"'));
 assert.ok(publicCode.includes('renderOfficialLocations(values,active)'));
 assert.ok(publicCode.includes('active&&values.locations_enabled'));
 assert.ok(adminPage.includes('id="design-location-fields"'));
-assert.ok(adminCode.includes('locations:readLocations()'));
+assert.ok(adminCode.includes('locations:readLocations(useFilePreview)'));
 assert.ok(style.includes('.official-location-card'));
 
 
