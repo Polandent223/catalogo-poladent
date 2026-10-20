@@ -230,6 +230,13 @@ function applyCompactLayout(values,active){
   const main=$('main');
   main.style.removeProperty('--compact-mobile-hero-height');
   main.style.removeProperty('--compact-desktop-hero-height');
+  const locationsLink=$('#storefront-locations-link');
+  delete locationsLink.dataset.compactHideMobile;
+  delete locationsLink.dataset.compactHideDesktop;
+  if(compact){
+    if(values.compact_hidden_mobile.includes('locations'))locationsLink.dataset.compactHideMobile='1';
+    if(values.compact_hidden_desktop.includes('locations'))locationsLink.dataset.compactHideDesktop='1';
+  }
   $('#compact-mobile-title').hidden=!compact;
   $('#compact-mobile-summary').hidden=!compact;
   if(!compact)return;
