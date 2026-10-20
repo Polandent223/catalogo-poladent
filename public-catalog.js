@@ -13,6 +13,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
+const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
 let storefrontSettings=null,storefrontDraft=null;
 let selected=null,filtered=[],limit=12,searchTimer=0;
 let cartLines=[],catalogLoaded=false;
@@ -172,6 +173,7 @@ function renderOfficialLocations(values,active){
   grid.replaceChildren();
   for(const location of values.locations){
     const card=element('article',null,'official-location-card');
+    card.classList.toggle('without-photo',!location.photo_url);
     if(location.photo_url){
       const image=element('img',null,'official-location-image');
       image.src=location.photo_url;image.alt='Fotografía de '+location.name;
@@ -202,7 +204,10 @@ function renderOfficialLocations(values,active){
 }
 
 function renderStorefront(){
-  const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
+  const current=storefrontDraft||storefrontSettings;
+  const input=previewStorefront&&!storefrontDraft&&requestedPreviewTheme==='premium-confianza'
+    ?{...(current||{}),theme:'premium-confianza',locations_enabled:true}:current;
+  const values=normalizeStorefront(input,previewStorefront);
   const design=previewStorefront||values.enabled;
   const active=design&&!brand.value;
   const stage=$('#storefront-home');
