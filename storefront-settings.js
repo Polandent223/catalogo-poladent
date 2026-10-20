@@ -57,7 +57,7 @@ export function normalizeStorefront(input={},allowBlob=false) {
         hours:bounded(entry?.hours,90,fallback.hours||''),
         phone:/^[1-9][0-9]{7,14}$/.test(phone)?phone:'',
         rif:bounded(entry?.rif,40,fallback.rif||''),
-        photo_url:secureBannerURL(entry?.photo_url)
+        photo_url:secureBannerURL(entry?.photo_url,allowBlob)
       };
     }),
     eyebrow:bounded(s.eyebrow,60,STORE_DEFAULTS.eyebrow),
