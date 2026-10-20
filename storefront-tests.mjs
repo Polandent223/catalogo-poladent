@@ -8,7 +8,7 @@ const {parseCatalogDocuments}=await load('catalog-public-data.js');
 const original=normalizeStorefront();
 assert.equal(original.enabled,false,'Por defecto nadie ve el rediseño hasta la aprobación');
 assert.equal(original.theme,'premium','Conservar como predeterminada la propuesta aprobada');
-assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial']);
+assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial','premium-confianza']);
 for(const theme of STORE_THEMES){
   const selected=normalizeStorefront({
     ...STORE_DEFAULTS,theme,
@@ -177,5 +177,37 @@ assert.ok(page.includes('id="storefront-locations-link"'));
 const previewLocation=normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]},true);
 assert.equal(previewLocation.locations[0].photo_url,'blob:https://example.com/abc');
 assert.equal(normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]}).locations[0].photo_url,'');
+
+
+// Quinta plantilla: la portada anterior continúa siendo la predeterminada.
+assert.equal(original.theme,'premium');
+assert.equal(normalizeStorefront({theme:'premium-confianza'}).theme,'premium-confianza');
+assert.equal(normalizeStorefront({theme:'otro'}).theme,'premium');
+assert.equal(original.about_enabled,true);
+assert.equal(original.steps_enabled,true);
+assert.equal(original.benefit_items.length,4);
+assert.equal(original.steps.length,4);
+const copy=normalizeStorefront({
+ theme:'premium-confianza', about_title:'Por qué nos eligen',about_text:'Atención en dos tiendas reales',
+ benefit_items:[{title:'Compra presencial',text:'Valencia y Maracay'}],
+ steps:[{title:'Consultar',text:'Busca tu producto'}],
+ closing_title:'Estamos para atenderte',locations_title:'Nuestras tiendas'
+});
+assert.equal(copy.about_title,'Por qué nos eligen');
+assert.equal(copy.benefit_items[0].title,'Compra presencial');
+assert.equal(copy.benefit_items.length,4);
+assert.equal(copy.steps[0].title,'Consultar');
+assert.equal(copy.closing_title,'Estamos para atenderte');
+assert.equal(copy.locations_title,'Nuestras tiendas');
+assert.ok(adminPage.includes('name="theme" value="premium-confianza"'));
+for(const id of ['premium-about','premium-about-title','premium-about-text','premium-benefits','premium-steps','premium-steps-title','premium-steps-grid','premium-closing','premium-hero-photo','premium-closing-whatsapp'])
+  assert.ok(page.includes('id="'+id+'"'), 'Falta bloque premium: '+id);
+for(const name of ['about_title','about_text','steps_title','closing_title','closing_text','locations_title','locations_intro'])
+  assert.ok(adminPage.includes('name="'+name+'"'),'Falta control de texto: '+name);
+assert.ok(adminCode.includes("about_title:read('about_title')"));
+assert.ok(adminCode.includes("benefit_items:Array.from({length:4}"));
+assert.ok(publicCode.includes('function renderPremiumSections('));
+assert.ok(publicCode.includes("premium=active&&values.theme==='premium-confianza'"));
+assert.ok(style.includes('body.storefront-active.storefront-theme-premium-confianza'));
 
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
