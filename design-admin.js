@@ -108,6 +108,7 @@ function fillForm(settings){
   form.querySelector('#design-enabled').checked=published.enabled;
   const preset=form.querySelector('input[name="theme"][value="'+published.theme+'"]');
   if(preset)preset.checked=true;
+  $('#design-replace-welcome').checked=published.replace_welcome;
   $('#design-about-enabled').checked=published.about_enabled;
   $('#design-steps-enabled').checked=published.steps_enabled;
   for(const key of ['about_title','about_text','locations_title','locations_intro','steps_title','closing_title','closing_text'])
@@ -138,6 +139,7 @@ function formSettings(useFilePreview=true){
   const read=name=>form.elements.namedItem(name).value.trim();
   return {
     enabled:$('#design-enabled').checked,
+    replace_welcome:$('#design-replace-welcome').checked,
     locations_enabled:$('#design-locations-enabled').checked,
     locations:readLocations(useFilePreview),
     brand_logo_url:useFilePreview&&logoPreviewURL||$('#design-logo-url').value.trim(),
