@@ -733,3 +733,176 @@ body.storefront-active.storefront-theme-comercial .storefront-brand-card{
     background:var(--sf-overlay)
   }
 }
+
+
+/* Sedes POLADENT: componente optativo; no altera el catálogo original. */
+.official-locations{max-width:1104px;margin:26px auto 32px;padding:18px 12px}
+.official-locations[hidden]{display:none}
+.locations-heading{text-align:center;margin-bottom:22px}
+.locations-heading h2{font-size:clamp(24px,3vw,32px);color:#0a3155;margin:8px 0}
+.locations-heading p:last-child{color:#526d7d;line-height:1.55}
+.official-locations-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.official-location-card{overflow:hidden;background:#fff;border:1px solid #d7e4ee;border-radius:19px;box-shadow:0 15px 35px #0a315513}
+.official-location-image{width:100%;height:235px;object-fit:cover;display:block}
+.official-location-copy{padding:22px;display:grid;gap:8px}
+.official-location-copy h3{font-size:21px;margin:0;color:#103e65}
+.official-location-copy p{font-size:14px;line-height:1.5;margin:0;color:#456073}
+.official-location-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.official-location-actions a{display:inline-flex;align-items:center;justify-content:center;padding:12px 15px;background:#087bb3;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px}
+.official-location-actions a:last-child{background:#078963}
+@media(max-width:700px){.official-locations{padding:12px 16px}.official-locations-grid{grid-template-columns:1fr}.official-location-image{height:205px}.official-location-copy{padding:18px}}
+
+
+/* Premium Confianza: plantilla adicional, aislada; no altera las cuatro originales */
+body.storefront-active.storefront-theme-premium-confianza{
+ --sf-bg:#f5f9fc;--sf-panel:#fff;--sf-ink:#0b2b52;--sf-muted:#4b6985;
+ --sf-hero-bg:linear-gradient(109deg,#fff 0%,#edf7ff 62%,#d4ebfb 100%);
+ --sf-hero-title:#082a53;--sf-hero-copy:#3b5a75;--sf-hero-eyebrow:#0063ad;
+ --sf-overlay:linear-gradient(90deg,#fffffff7 0%,#f5fbfff0 42%,#e5f5fc08 77%);
+ --sf-primary:#065ba4;--sf-primary-ink:#fff;
+ --sf-secondary:#fff;--sf-secondary-ink:#085a9f;--sf-secondary-border:#6aa4d5;
+ --sf-border:#e0eaf3;--sf-trust:#f0f7fd;--sf-card-hover:#f0f8fd;--sf-radius:24px;
+ --sf-shadow:0 23px 58px #0b3e7215;--sf-cart:#e6f4fc;--sf-accent:#006caf;
+ background:#f5f9fc
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-home{max-width:1190px;margin:0 auto 20px;padding:0 18px}
+body.storefront-active.storefront-theme-premium-confianza .storefront-hero{
+ min-height:455px;padding:clamp(26px,4vw,56px);display:flex;align-items:center;
+ border-radius:0 0 26px 26px;box-shadow:0 17px 42px #123e6b12;
+ background:linear-gradient(110deg,#fff 0%,#e4f4ff 100%)
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-hero::before{
+ background:radial-gradient(ellipse at 12% 92%,#d2edfa 0%,transparent 50%);opacity:1
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-has-banner::after{
+ background:linear-gradient(90deg,#fffffff9 0%,#f4fbfff1 44%,#e4f5fc18 83%)
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-copy{max-width:57%;z-index:3}
+body.storefront-active.storefront-theme-premium-confianza .storefront-eyebrow{
+ display:inline-flex;padding:9px 17px;border-radius:99px;background:#e2f3ff;
+ color:#0863a6;letter-spacing:.11em;font-size:10px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-copy h1{
+ color:#072a55;font-size:clamp(34px,4vw,57px);font-weight:850;line-height:1.08
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-copy>p:not(.storefront-eyebrow){
+ color:#345b7c;font-size:15px;max-width:525px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-primary{
+ background:linear-gradient(120deg,#06427f,#087cc2);color:#fff;box-shadow:0 9px 18px #0a4b8740
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-secondary{
+ background:#fff;border:1px solid #8cbce0;color:#075c9e
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-decoration{border-color:#c0d9ef}
+body.storefront-active.storefront-theme-premium-confianza .storefront-products-art img{
+ background:#fff;border-color:#fff;box-shadow:0 18px 40px #124d7b24
+}
+.premium-hero-photo{position:absolute;right:0;top:0;bottom:0;width:51%;height:100%;
+ object-fit:cover;object-position:center;z-index:1;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 35%);
+ mask-image:linear-gradient(90deg,transparent 0%,#000 35%)}
+.premium-hero-photo[hidden],.premium-about[hidden],.premium-steps[hidden],.premium-closing[hidden]{display:none!important}
+body.storefront-active.storefront-theme-premium-confianza .storefront-trust{
+ margin:16px 0 32px;gap:12px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-trust p{
+ background:#fff;border-color:#e3edf5;border-radius:15px;
+ box-shadow:0 7px 26px #123e6711;font-size:13px;padding:19px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-featured{display:none}
+.premium-about,.premium-steps{max-width:1190px;margin:40px auto 28px;padding:32px 18px;text-align:center}
+.premium-kicker{color:#0877b2;font-weight:800;letter-spacing:.17em;font-size:10px;margin:0 0 8px}
+.premium-about h2,.premium-steps h2,.locations-heading h2{
+ font-size:clamp(27px,3vw,37px);color:#0b2e59;margin:0 0 13px;letter-spacing:-.035em
+}
+.premium-about>p:not(.premium-kicker){max-width:850px;margin:0 auto 24px;color:#496987;font-size:15px;line-height:1.75}
+.premium-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.premium-benefit{background:#fff;min-width:0;padding:27px 17px;
+ border:1px solid #e5eef5;border-radius:18px;box-shadow:0 12px 28px #17395b12}
+.premium-benefit-icon{margin:auto auto 13px;background:#e8f6ff;color:#076ca9;
+ width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:25px}
+.premium-benefit h3{font-size:16px;margin:0 0 6px;color:#072f5b}
+.premium-benefit p{color:#52718a;margin:0;font-size:13px;line-height:1.5}
+body.storefront-active.storefront-theme-premium-confianza .official-locations{max-width:1190px;margin:15px auto 34px;padding:12px 18px}
+body.storefront-active.storefront-theme-premium-confianza .locations-heading{margin-bottom:24px}
+body.storefront-active.storefront-theme-premium-confianza .official-location-card{
+ display:grid;grid-template-columns:minmax(0,43%) minmax(0,1fr);
+ min-height:268px;box-shadow:0 12px 34px #1a4e7520;border-radius:18px
+}
+body.storefront-active.storefront-theme-premium-confianza .official-location-image{height:100%;min-height:265px;object-fit:cover}
+body.storefront-active.storefront-theme-premium-confianza .official-location-copy{padding:22px;gap:7px}
+body.storefront-active.storefront-theme-premium-confianza .official-location-copy h3{font-size:18px}
+body.storefront-active.storefront-theme-premium-confianza .official-location-copy p{font-size:12px}
+body.storefront-active.storefront-theme-premium-confianza .official-location-actions a{
+ border-radius:30px;padding:10px 14px;font-size:12px
+}
+.premium-steps-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-top:25px}
+.premium-step{border:1px solid #dcebf4;background:#fff;border-radius:17px;text-align:left;padding:22px 18px;position:relative;min-width:0}
+.premium-step-number{display:grid;place-items:center;border-radius:50%;background:#0b66ac;color:#fff;
+ width:37px;height:37px;font-weight:850;font-size:15px;margin-bottom:16px}
+.premium-step h3{color:#0b315c;margin:0 0 9px;font-size:15px}
+.premium-step p{font-size:13px;color:#537189;line-height:1.55;margin:0}
+.premium-closing{max-width:1190px;margin:22px auto 36px;border-radius:24px;overflow:hidden;
+ background:radial-gradient(circle at 85% 15%,#0c7cbd 0%,transparent 42%),linear-gradient(125deg,#042854,#083f75);
+ color:#fff;padding:32px clamp(24px,4vw,44px);display:flex;align-items:center;justify-content:space-between;gap:26px}
+.premium-closing .premium-kicker{color:#9ce4ff}
+.premium-closing h2{color:#fff;font-size:clamp(22px,2.9vw,31px);max-width:540px;margin:5px 0 9px;line-height:1.18}
+.premium-closing p:not(.premium-kicker){font-size:13px;line-height:1.65;color:#d8f0fd;max-width:620px;margin:0}
+.premium-closing a{flex:none;padding:14px 20px;border-radius:30px;text-decoration:none;
+ color:#fff;background:#029d71;font-size:13px;font-weight:800;box-shadow:0 7px 20px #001e354f}
+.premium-closing a[hidden]{display:none}
+body.storefront-active.storefront-theme-premium-confianza .brands-area{max-width:1190px}
+@media(max-width:950px){
+ .premium-benefits,.premium-steps-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.storefront-active.storefront-theme-premium-confianza .official-location-card{grid-template-columns:1fr}
+ body.storefront-active.storefront-theme-premium-confianza .official-location-image{height:215px;min-height:0}
+}
+@media(max-width:700px){
+ body.storefront-active.storefront-theme-premium-confianza .storefront-home{padding:0 12px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-hero{
+  min-height:590px;align-items:end;padding:25px 18px 30px;border-radius:18px
+ }
+ body.storefront-active.storefront-theme-premium-confianza .premium-hero-photo{
+  width:100%;height:53%;top:0;right:0;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%)
+ }
+ body.storefront-active.storefront-theme-premium-confianza .storefront-has-banner::after{
+  background:linear-gradient(0deg,#fff 0%,#fffffff2 48%,#ffffff24 83%)
+ }
+ body.storefront-active.storefront-theme-premium-confianza .storefront-copy{max-width:100%;z-index:4}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-copy h1{font-size:clamp(28px,8vw,37px)}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-copy>p:not(.storefront-eyebrow){font-size:13px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-actions{gap:8px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-actions a{flex:1 1 44%;font-size:12px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-trust{grid-template-columns:1fr;gap:8px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-trust p{flex-direction:row;text-align:left;justify-content:flex-start}
+ .premium-about,.premium-steps{margin:20px auto;padding:25px 17px}
+ .premium-about>p:not(.premium-kicker){font-size:13px}
+ .premium-benefits,.premium-steps-grid{gap:10px}
+ .premium-benefit{padding:20px 10px}
+ .premium-benefit h3{font-size:13px}
+ .premium-benefit p,.premium-step p{font-size:11px}
+ .premium-step{padding:16px 12px}
+ body.storefront-active.storefront-theme-premium-confianza .official-location-card{grid-template-columns:1fr}
+ .premium-closing{margin:20px 13px;display:grid;padding:28px 20px}
+ .premium-closing a{width:100%;text-align:center}
+}
+
+
+/* Identidad visual propia y acciones directas, exclusivas de Premium Confianza */
+#premium-brand-logo[hidden],#storefront-whatsapp[hidden]{display:none!important}
+body.storefront-active.storefront-theme-premium-confianza #premium-brand-logo{
+ width:46px;height:44px;object-fit:contain;vertical-align:middle;margin-right:10px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-actions #storefront-secondary{display:none}
+body.storefront-active.storefront-theme-premium-confianza #storefront-whatsapp{
+ background:linear-gradient(115deg,#038b72,#08b786);color:#fff;border:1px solid #08b786
+}
+@media(max-width:700px){
+ body.storefront-active.storefront-theme-premium-confianza #premium-brand-logo{width:35px;height:34px;margin-right:6px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-actions #storefront-whatsapp{flex-basis:100%}
+}
+
+body.storefront-active.storefront-theme-premium-confianza .official-location-card.without-photo{grid-template-columns:1fr;min-height:auto}

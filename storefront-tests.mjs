@@ -8,7 +8,7 @@ const {parseCatalogDocuments}=await load('catalog-public-data.js');
 const original=normalizeStorefront();
 assert.equal(original.enabled,false,'Por defecto nadie ve el rediseño hasta la aprobación');
 assert.equal(original.theme,'premium','Conservar como predeterminada la propuesta aprobada');
-assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial']);
+assert.deepEqual(STORE_THEMES,['premium','clinica','minimalista','comercial','premium-confianza']);
 for(const theme of STORE_THEMES){
   const selected=normalizeStorefront({
     ...STORE_DEFAULTS,theme,
@@ -152,4 +152,92 @@ assert.ok(!saver.includes('deleteDoc('));
 assert.ok(!saver.includes('saveProduct('));
 assert.ok(saver.includes('await adminCheck()'));
 assert.ok(service.includes('client.saveStorefrontSettings(settings)'));
+
+assert.equal(original.locations_enabled,false,'Las sedes nunca se publican por defecto');
+assert.equal(original.locations.length,2,'Se preservan las dos sucursales');
+assert.equal(original.locations[0].name,'Poladent sede Principal Valencia');
+assert.equal(original.locations[1].name,'Poladent sede Maracay');
+const safeLocations=normalizeStorefront({locations_enabled:true,locations:[{name:'Nueva sede',city:'Valencia',address:'Calle ejemplo',phone:'584226710634',photo_url:'javascript:alert(1)'}]});
+assert.equal(safeLocations.locations_enabled,true);
+assert.equal(safeLocations.locations[0].photo_url,'','Rechazar fotos con esquemas inseguros');
+assert.ok(page.includes('id="official-locations"'));
+assert.ok(publicCode.includes('renderOfficialLocations(values,active)'));
+assert.ok(publicCode.includes('active&&values.locations_enabled'));
+assert.ok(adminPage.includes('id="design-location-fields"'));
+assert.ok(adminCode.includes('locations:readLocations(useFilePreview)'));
+assert.ok(style.includes('.official-location-card'));
+
+
+assert.ok(adminPage.includes('id="design-add-location"'),'Se pueden agregar más sucursales');
+assert.ok(adminCode.includes('function appendLocationEditor('),'Deben existir formularios dinámicos de sedes');
+assert.ok(adminCode.includes('function getLocationUploadFiles('),'Las fotos locales deben subirse al guardar');
+assert.ok(adminCode.includes('locationPhotoPreviews.has(section)'),'Las vistas previas no dependen del orden de las sedes');
+assert.ok(publicCode.includes("$('#storefront-locations-link').hidden="),'El botón de sedes permanece oculto hasta activarse');
+assert.ok(page.includes('id="storefront-locations-link"'));
+const previewLocation=normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]},true);
+assert.equal(previewLocation.locations[0].photo_url,'blob:https://example.com/abc');
+assert.equal(normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]}).locations[0].photo_url,'');
+
+
+// Quinta plantilla: la portada anterior continúa siendo la predeterminada.
+assert.equal(original.theme,'premium');
+assert.equal(normalizeStorefront({theme:'premium-confianza'}).theme,'premium-confianza');
+assert.equal(normalizeStorefront({theme:'otro'}).theme,'premium');
+assert.equal(original.about_enabled,true);
+assert.equal(original.steps_enabled,true);
+assert.equal(original.benefit_items.length,4);
+assert.equal(original.steps.length,4);
+const copy=normalizeStorefront({
+ theme:'premium-confianza', about_title:'Por qué nos eligen',about_text:'Atención en dos tiendas reales',
+ benefit_items:[{title:'Compra presencial',text:'Valencia y Maracay'}],
+ steps:[{title:'Consultar',text:'Busca tu producto'}],
+ closing_title:'Estamos para atenderte',locations_title:'Nuestras tiendas'
+});
+assert.equal(copy.about_title,'Por qué nos eligen');
+assert.equal(copy.benefit_items[0].title,'Compra presencial');
+assert.equal(copy.benefit_items.length,4);
+assert.equal(copy.steps[0].title,'Consultar');
+assert.equal(copy.closing_title,'Estamos para atenderte');
+assert.equal(copy.locations_title,'Nuestras tiendas');
+assert.ok(adminPage.includes('name="theme" value="premium-confianza"'));
+for(const id of ['premium-about','premium-about-title','premium-about-text','premium-benefits','premium-steps','premium-steps-title','premium-steps-grid','premium-closing','premium-hero-photo','premium-closing-whatsapp'])
+  assert.ok(page.includes('id="'+id+'"'), 'Falta bloque premium: '+id);
+for(const name of ['about_title','about_text','steps_title','closing_title','closing_text','locations_title','locations_intro'])
+  assert.ok(adminPage.includes('name="'+name+'"'),'Falta control de texto: '+name);
+assert.ok(adminCode.includes("about_title:read('about_title')"));
+assert.ok(adminCode.includes("benefit_items:Array.from({length:4}"));
+assert.ok(publicCode.includes('function renderPremiumSections('));
+assert.ok(publicCode.includes("premium=active&&values.theme==='premium-confianza'"));
+assert.ok(style.includes('body.storefront-active.storefront-theme-premium-confianza'));
+
+
+assert.ok(page.includes('id="premium-brand-logo"'));
+assert.ok(page.includes('id="storefront-whatsapp"'));
+assert.ok(adminPage.includes('id="design-logo-file"'));
+assert.ok(adminPage.includes('id="design-logo-url"'));
+assert.ok(adminCode.includes('function updateLocalLogo()'));
+assert.ok(adminCode.includes('requested.brand_logo_url=uploaded.url'));
+assert.equal(normalizeStorefront({brand_logo_url:'javascript:alert(1)'}).brand_logo_url,'');
+assert.equal(normalizeStorefront({brand_logo_url:'https://example.com/logo.png'}).brand_logo_url,'https://example.com/logo.png');
+assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
+assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
+
+assert.ok(publicCode.includes("requestedPreviewTheme==='premium-confianza'"),'La nueva plantilla debe poder examinarse sin publicar');
+assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
+assert.ok(style.includes('.official-location-card.without-photo'));
+
+
+// La portada original sigue funcionando hasta una activación expresamente elegida.
+assert.equal(original.replace_welcome,false);
+assert.equal(normalizeStorefront({theme:'premium-confianza',replace_welcome:true}).replace_welcome,true);
+assert.equal(normalizeStorefront({theme:'premium',replace_welcome:true}).replace_welcome,false);
+assert.equal(normalizeStorefront({theme:'premium-confianza'}).replace_welcome,false);
+assert.ok(adminPage.includes('id="design-replace-welcome"'));
+assert.ok(adminCode.includes("replace_welcome:$('#design-replace-welcome').checked"));
+const welcome=read('welcome.js');
+assert.ok(welcome.includes("storefront.replace_welcome?.booleanValue===true"));
+assert.ok(welcome.includes("storefront.enabled?.booleanValue===true"));
+assert.ok(welcome.includes("storefront.theme?.stringValue==='premium-confianza'"));
+assert.ok(welcome.includes('settings?.skip?enterCatalog():settings?showWelcome(settings):enterCatalog()'));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');

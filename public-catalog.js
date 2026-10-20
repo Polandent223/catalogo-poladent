@@ -13,6 +13,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
+const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
 let storefrontSettings=null,storefrontDraft=null;
 let selected=null,filtered=[],limit=12,searchTimer=0;
 let cartLines=[],catalogLoaded=false;
@@ -124,12 +125,106 @@ function renderBrandHero(){
   }
 }
 
+
+function renderPremiumSections(values,active){
+  const premium=active&&values.theme==='premium-confianza';
+  const about=$('#premium-about'),steps=$('#premium-steps'),closing=$('#premium-closing');
+  about.hidden=!(premium&&values.about_enabled);
+  steps.hidden=!(premium&&values.steps_enabled);
+  closing.hidden=!premium;
+  if(!premium)return;
+  if(values.about_enabled){
+    $('#premium-about-title').textContent=values.about_title;
+    $('#premium-about-text').textContent=values.about_text;
+    const benefits=$('#premium-benefits');benefits.replaceChildren();
+    const symbols=['⌂','🛒','▣','◉'];
+    values.benefit_items.forEach((item,index)=>{
+      const card=element('article',null,'premium-benefit');
+      const icon=element('span',symbols[index],'premium-benefit-icon');
+      icon.setAttribute('aria-hidden','true');
+      card.append(icon,element('h3',item.title),element('p',item.text));benefits.append(card);
+    });
+  }
+  if(values.steps_enabled){
+    $('#premium-steps-title').textContent=values.steps_title;
+    const grid=$('#premium-steps-grid');grid.replaceChildren();
+    values.steps.forEach((item,index)=>{
+      const card=element('article',null,'premium-step');
+      card.append(element('span',String(index+1),'premium-step-number'),
+        element('h3',item.title),element('p',item.text));
+      grid.append(card);
+    });
+  }
+  $('#premium-closing-title').textContent=values.closing_title;
+  $('#premium-closing-text').textContent=values.closing_text;
+  const link=$('#premium-closing-whatsapp');
+  const phone=values.locations.find(x=>x.phone)?.phone||contacts[0]?.phone||'';
+  link.hidden=!phone;
+  if(phone)link.href='https://wa.me/'+phone;
+  else link.removeAttribute('href');
+}
+function renderOfficialLocations(values,active){
+  const section=$('#official-locations'),grid=$('#official-locations-grid');
+  const visible=active&&values.locations_enabled&&values.locations?.length>0;
+  section.hidden=!visible;
+  if(!visible)return;
+  $('#official-locations-title').textContent=values.locations_title;
+  $('#official-locations-intro').textContent=values.locations_intro;
+  grid.replaceChildren();
+  for(const location of values.locations){
+    const card=element('article',null,'official-location-card');
+    card.classList.toggle('without-photo',!location.photo_url);
+    if(location.photo_url){
+      const image=element('img',null,'official-location-image');
+      image.src=location.photo_url;image.alt='Fotografía de '+location.name;
+      image.loading='lazy';image.decoding='async';
+      card.append(image);
+    }
+    const content=element('div',null,'official-location-copy');
+    content.append(element('h3',location.name));
+    for(const line of [location.city,location.address,location.hours?'Horario: '+location.hours:'',location.rif?'RIF: '+location.rif:'']){
+      if(line)content.append(element('p',line));
+    }
+    content.append(element('p','Compra directa y retiro en tienda'));
+    const actions=element('div',null,'official-location-actions');
+    if(location.address){
+      const directions=element('a','Cómo llegar');
+      directions.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(location.address+', '+location.city+', Venezuela');
+      directions.target='_blank';directions.rel='noopener noreferrer';
+      actions.append(directions);
+    }
+    if(location.phone){
+      const contact=element('a','WhatsApp');
+      contact.href='https://wa.me/'+location.phone;
+      contact.target='_blank';contact.rel='noopener noreferrer';
+      actions.append(contact);
+    }
+    content.append(actions);card.append(content);grid.append(card);
+  }
+}
+
 function renderStorefront(){
-  const values=normalizeStorefront(storefrontDraft||storefrontSettings,previewStorefront);
+  const current=storefrontDraft||storefrontSettings;
+  const input=previewStorefront&&!storefrontDraft&&requestedPreviewTheme==='premium-confianza'
+    ?{...(current||{}),theme:'premium-confianza',locations_enabled:true}:current;
+  const values=normalizeStorefront(input,previewStorefront);
   const design=previewStorefront||values.enabled;
   const active=design&&!brand.value;
   const stage=$('#storefront-home');
   stage.hidden=!active;
+  renderOfficialLocations(values,active);
+  renderPremiumSections(values,active);
+  $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
+  const premium=active&&values.theme==='premium-confianza';
+  const logo=$('#premium-brand-logo');
+  logo.hidden=!(premium&&values.brand_logo_url);
+  if(!logo.hidden)logo.src=values.brand_logo_url;
+  else logo.removeAttribute('src');
+  const directWhatsApp=$('#storefront-whatsapp');
+  const directPhone=values.locations.find(item=>item.phone)?.phone||contacts[0]?.phone||'';
+  directWhatsApp.hidden=!(premium&&directPhone);
+  if(!directWhatsApp.hidden)directWhatsApp.href='https://wa.me/'+directPhone;
+  else directWhatsApp.removeAttribute('href');
   $('.intro').hidden=design;
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
@@ -145,8 +240,14 @@ function renderStorefront(){
     art=$('#storefront-products-art'),heroStage=$('#storefront-hero');
   const desktop=values.banner_desktop_url,mobile=values.banner_mobile_url;
   const hasBanner=Boolean(desktop||mobile);
+  const premiumHero=$('#premium-hero-photo');
+  const photo=values.theme==='premium-confianza' && active && !hasBanner
+    ?values.locations.find(location=>location.photo_url)?.photo_url||'':'';
+  premiumHero.hidden=!photo;
+  if(photo)premiumHero.src=photo;
+  else premiumHero.removeAttribute('src');
   picture.hidden=!hasBanner;
-  art.hidden=hasBanner;
+  art.hidden=hasBanner||Boolean(photo);
   heroStage.classList.toggle('storefront-has-banner',hasBanner);
   if(hasBanner){
     banner.src=desktop||mobile;

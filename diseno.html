@@ -90,6 +90,16 @@
   .storefront-admin .design-preview{position:static}
   .storefront-admin .design-preview iframe{height:620px}}
 @media(max-width:430px){.storefront-admin .design-brands{grid-template-columns:1fr}}
+.storefront-admin .location-editor{border:1px solid #d6e4ee;background:#f7fafc;border-radius:12px;padding:14px;margin:12px 0;display:grid;gap:9px}
+.storefront-admin .location-editor h3{margin:0;font-size:15px}
+.storefront-admin .location-editor label{font-size:12px}
+.storefront-admin .design-template-option[data-theme="premium-confianza"] .design-template-sample{
+background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100%);
+--sample-text:#0a3563;--sample-button:#0872b9;--sample-card:#f0f8ff
+}
+.storefront-admin #design-premium-editor h3{margin:10px 0 0;font-size:14px;color:#0b426e}
+.storefront-admin .design-editor-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f4f9fc;padding:12px;border-radius:9px}
+@media(max-width:600px){.storefront-admin .design-editor-pair{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -97,7 +107,7 @@
 <main class="admin-wrap storefront-admin">
 <p class="eyebrow">PRESENTACIÓN COMERCIAL</p>
 <h1>Diseño del catálogo</h1>
-<p>Elige entre Premium, Clínica, Minimalista y Comercial y personaliza el banner, los textos, las marcas destacadas y los mensajes de confianza. <strong>La portada principal de bienvenida es independiente.</strong> Puedes revisar todos los cambios en el teléfono simulado antes de activar este diseño para tus clientes.</p>
+<p>Elige entre cinco plantillas, incluida Premium Confianza y personaliza el banner, los textos, las marcas destacadas y los mensajes de confianza. <strong>La portada principal de bienvenida es independiente.</strong> Puedes revisar todos los cambios en el teléfono simulado antes de activar este diseño para tus clientes.</p>
 <p id="design-message" class="design-status" role="status" aria-live="polite"></p>
 <form id="design-login" class="admin-form">
 <h2>Acceso privado</h2>
@@ -112,6 +122,8 @@
 <form id="design-form" class="admin-form">
 <fieldset><legend>Publicación</legend>
 <label class="design-toggle"><input id="design-enabled" type="checkbox"> Activar este diseño para TODOS los clientes</label>
+<label class="design-toggle"><input id="design-replace-welcome" type="checkbox"> Usar Premium Confianza como primera pantalla del catálogo</label>
+<p>Solo funciona si seleccionas Premium Confianza, activas el diseño y guardas. Esta opción reemplaza la pantalla de bienvenida anterior cuando los clientes entran, pero <strong>no borra su imagen ni su configuración</strong>. Desmárcala para volver a mostrar la bienvenida de siempre.</p>
 <p>Si está desactivado, el catálogo público conserva el diseño actual. La vista previa funciona igualmente. Al guardar se publica únicamente si marcas esta opción.</p>
 </fieldset>
 <fieldset id="design-theme-chooser" aria-describedby="design-theme-description">
@@ -138,8 +150,20 @@
 <span class="design-template-sample" aria-hidden="true"><span></span></span>
 <span class="design-template-copy"><strong>Comercial</strong><small>Colores vivos y botones llamativos para consultar.</small></span>
 </label>
+<label class="design-template-option" data-theme="premium-confianza">
+<input type="radio" name="theme" value="premium-confianza" required>
+<span class="design-template-sample" aria-hidden="true"><span></span></span>
+<span class="design-template-copy"><strong>Premium Confianza · NUEVA</strong><small>La portada aprobada: tienda real, por qué elegirnos, sedes, cómo comprar y cierre comercial.</small></span>
+</label>
 </div>
 <p id="design-theme-description" role="status" aria-live="polite">Vista previa: Premium. Tus imágenes y textos se conservan.</p>
+</fieldset>
+<fieldset><legend>Logotipo oficial · Premium Confianza</legend>
+<p>Utiliza siempre el logotipo original de POLADENT. Si no subes ninguno, el catálogo conserva el nombre de la empresa en texto. El logotipo solo aparece en la nueva plantilla.</p>
+<label>Subir logotipo original (PNG/JPG/WebP)
+<input id="design-logo-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>O URL HTTPS del logotipo
+<input id="design-logo-url" type="url" placeholder="https://res.cloudinary.com/..."></label>
 </fieldset>
 <fieldset><legend>Banner principal</legend>
 <p>Puedes subir una imagen distinta para computadora y teléfono, igual que en la portada principal. Si no subes ninguna, se mostrará un banner azul premium con fotografías de productos reales del catálogo.</p>
@@ -171,6 +195,36 @@
 <p>Escoge hasta cuatro marcas reales para darles más protagonismo. Si no eliges ninguna, el catálogo mostrará una selección automática.</p>
 <div id="design-brands" class="design-brands"></div>
 <label>Título de todas las marcas<input name="brands_title" maxlength="65" required></label>
+</fieldset>
+<fieldset id="design-premium-editor"><legend>Contenido · Premium Confianza</legend>
+<p>Estos textos se muestran solamente cuando seleccionas la nueva plantilla Premium Confianza. Puedes cambiarlos cuando quieras, sin modificar tus productos ni las otras plantillas.</p>
+<label class="design-toggle"><input type="checkbox" id="design-about-enabled"> Mostrar «¿Por qué elegir POLADENT?»</label>
+<label>Título de confianza<input name="about_title" maxlength="90" required></label>
+<label>Presentación de POLADENT (quiénes somos y por qué elegirnos)<textarea name="about_text" rows="6" maxlength="900" required></textarea></label>
+<h3>Cuatro razones para elegirnos</h3>
+<div class="design-editor-pair"><label>Ventaja 1 · Título<input name="benefit_1_title" maxlength="80"></label><label>Descripción<input name="benefit_1_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Ventaja 2 · Título<input name="benefit_2_title" maxlength="80"></label><label>Descripción<input name="benefit_2_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Ventaja 3 · Título<input name="benefit_3_title" maxlength="80"></label><label>Descripción<input name="benefit_3_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Ventaja 4 · Título<input name="benefit_4_title" maxlength="80"></label><label>Descripción<input name="benefit_4_text" maxlength="160"></label></div>
+<label>Título de nuestras sedes<input name="locations_title" maxlength="90" required></label>
+<label>Descripción de nuestras sedes<textarea name="locations_intro" rows="2" maxlength="240" required></textarea></label>
+<label class="design-toggle"><input type="checkbox" id="design-steps-enabled"> Mostrar «¿Cómo comprar?»</label>
+<label>Título de los pasos<input name="steps_title" maxlength="90" required></label>
+<h3>Cuatro pasos para comprar</h3>
+<div class="design-editor-pair"><label>Paso 1 · Título<input name="step_1_title" maxlength="80"></label><label>Descripción<input name="step_1_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Paso 2 · Título<input name="step_2_title" maxlength="80"></label><label>Descripción<input name="step_2_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Paso 3 · Título<input name="step_3_title" maxlength="80"></label><label>Descripción<input name="step_3_text" maxlength="160"></label></div>
+<div class="design-editor-pair"><label>Paso 4 · Título<input name="step_4_title" maxlength="80"></label><label>Descripción<input name="step_4_text" maxlength="160"></label></div>
+<h3>Cierre comercial</h3>
+<label>Título del cierre<input name="closing_title" maxlength="130" required></label>
+<label>Texto del cierre<textarea name="closing_text" rows="3" maxlength="300" required></textarea></label>
+</fieldset>
+<fieldset id="design-locations"><legend>Sedes oficiales · Valencia y Maracay</legend>
+<p>Este apartado es editable y permanece oculto al público hasta que actives «Mostrar sedes». Las fotografías deben ser reales; puedes pegar su URL HTTPS después de subirlas.</p>
+<label class="design-toggle"><input id="design-locations-enabled" type="checkbox"> Mostrar las sedes oficiales en el diseño comercial</label>
+<div id="design-location-fields"></div>
+<button type="button" id="design-add-location">+ Agregar otra sucursal</button>
+<p>Las sedes se pueden agregar, retirar y modificar solo en el borrador. No se publican sin guardar y activar el diseño.</p>
 </fieldset>
 <div class="design-actions"><button type="submit" class="primary" id="design-save">Guardar configuración</button><button id="design-reset-preview" type="button">Deshacer cambios sin guardar</button></div>
 <p class="design-status" id="design-save-status" role="status"></p>
