@@ -889,3 +889,18 @@ body.storefront-active.storefront-theme-premium-confianza .brands-area{max-width
  .premium-closing{margin:20px 13px;display:grid;padding:28px 20px}
  .premium-closing a{width:100%;text-align:center}
 }
+
+
+/* Identidad visual propia y acciones directas, exclusivas de Premium Confianza */
+#premium-brand-logo[hidden],#storefront-whatsapp[hidden]{display:none!important}
+body.storefront-active.storefront-theme-premium-confianza #premium-brand-logo{
+ width:46px;height:44px;object-fit:contain;vertical-align:middle;margin-right:10px
+}
+body.storefront-active.storefront-theme-premium-confianza .storefront-actions #storefront-secondary{display:none}
+body.storefront-active.storefront-theme-premium-confianza #storefront-whatsapp{
+ background:linear-gradient(115deg,#038b72,#08b786);color:#fff;border:1px solid #08b786
+}
+@media(max-width:700px){
+ body.storefront-active.storefront-theme-premium-confianza #premium-brand-logo{width:35px;height:34px;margin-right:6px}
+ body.storefront-active.storefront-theme-premium-confianza .storefront-actions #storefront-whatsapp{flex-basis:100%}
+}
