@@ -19,4 +19,14 @@ assert.throws(()=>readEntries('nombre,marca,foto\n"sin cerrar,ICE,a.jpg'),/comil
 assert.throws(()=>readEntries('nombre,marca,foto\nMEDESY,,f.jpg'),/vacíos/);
 assert.throws(()=>readEntries('nombre,marca,foto\nForceps,MEDESY,'),/foto o imagen_url/);
 assert.throws(()=>readEntries('nombre,marca,foto\n'+Array.from({length:201},(_,i)=>'Producto '+i+',ICE,'+i+'.jpg').join('\n')),/200/);
+const denco='codigo,nombre,marca,descripcion,estado,foto,imagen_url,orden,area_id\\n'+
+  'DENCO-001,PRIMARY FILE,DENCO,Limas de aleación azul,oculto,primary.webp,,1,endodoncia\\n';
+const den=readEntries(denco);
+assert.equal(den.length,1);
+assert.equal(den[0].area_id,'endodoncia');
+assert.equal(den[0].status,'hidden');
+assert.equal(den[0].source_key,'csv-denco-denco-001');
+assert.equal(readEntries(header+'2,Forceps,MEDESY,,disponible,forceps.webp,,2\\n')[0].area_id,'');
+assert.throws(()=>readEntries(denco.replace('endodoncia','mal area')),/area_id/);
+
 console.log('Importador CSV: 14 pruebas correctas.');
