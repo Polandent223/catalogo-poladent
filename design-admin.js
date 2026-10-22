@@ -13,8 +13,17 @@ let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={deskto
 
 
 const locationPhotoPreviews=new Map();
-const locationFields=['name','city','address','hours','phone','rif','photo_url'];
-const locationLabels={name:'Nombre de la sede',city:'Ciudad y estado',address:'Dirección',hours:'Horario',phone:'WhatsApp (código 58)',rif:'RIF',photo_url:'Fotografía real de la sede (URL HTTPS)'};
+const locationFields=['name','city','address','hours','phone','rif','photo_url','interior_url'];
+const locationLabels={
+  name:'Nombre de la sede',city:'Ciudad y estado',address:'Dirección',
+  hours:'Horario',phone:'WhatsApp (código 58)',rif:'RIF',
+  photo_url:'Fotografía principal: fachada o identificación de la sede (URL HTTPS)',
+  interior_url:'Segunda fotografía: interior de la tienda (URL HTTPS)'
+};
+function releaseLocationPreview(section){
+  for(const url of Object.values(locationPhotoPreviews.get(section)||{}))URL.revokeObjectURL(url);
+  locationPhotoPreviews.delete(section);
+}
 function refreshLocationNumbers(){
   for(const [index,card] of [...$('#design-location-fields').children].entries())
     card.querySelector('h3').textContent='Sucursal '+(index+1);
@@ -24,42 +33,46 @@ function appendLocationEditor(location={}){
   const holder=$('#design-location-fields');
   if(holder.children.length>=8){report('El máximo es ocho sucursales.',true);return;}
   const section=document.createElement('section');section.className='location-editor';
-  const title=document.createElement('h3');section.append(title);
+  section.append(document.createElement('h3'));
   for(const key of locationFields){
-    const label=document.createElement('label');label.textContent=locationLabels[key];
+    const label=document.createElement('label');
+    label.textContent=locationLabels[key];
     const input=document.createElement('input');
     input.dataset.locationField=key;
-    input.type=key==='photo_url'?'url':'text';
+    input.type=['photo_url','interior_url'].includes(key)?'url':'text';
     input.value=location[key]||'';
-    input.maxLength=key==='address'?240:key==='photo_url'?2000:90;
-    if(key==='photo_url')input.placeholder='https://...';
+    input.maxLength=key==='address'?240:input.type==='url'?2000:90;
+    if(input.type==='url')input.placeholder='https://...';
     label.append(input);section.append(label);
+    if(input.type!=='url')continue;
+    const fileLabel=document.createElement('label');
+    fileLabel.textContent=key==='photo_url'
+      ?'O subir foto principal (real, sin modificaciones)'
+      :'O subir foto del interior';
+    const file=document.createElement('input');
+    file.type='file';file.accept='image/jpeg,image/png,image/webp';
+    file.dataset.locationPhoto=key;
+    file.addEventListener('change',()=>{
+      const existing=locationPhotoPreviews.get(section)||{};
+      if(existing[key])URL.revokeObjectURL(existing[key]);
+      if(file.files[0])existing[key]=URL.createObjectURL(file.files[0]);
+      else delete existing[key];
+      if(Object.keys(existing).length)locationPhotoPreviews.set(section,existing);
+      else locationPhotoPreviews.delete(section);
+      sendPreview();
+    });
+    fileLabel.append(file);section.append(fileLabel);
   }
-  const photoLabel=document.createElement('label');
-  photoLabel.textContent='O subir una fotografía nueva de esta sucursal';
-  const file=document.createElement('input');
-  file.type='file';file.accept='image/jpeg,image/png,image/webp';
-  file.dataset.locationPhoto='true';
-  file.addEventListener('change',()=>{
-    if(locationPhotoPreviews.has(section))URL.revokeObjectURL(locationPhotoPreviews.get(section));
-    if(file.files[0])locationPhotoPreviews.set(section,URL.createObjectURL(file.files[0]));
-    else locationPhotoPreviews.delete(section);
-    sendPreview();
-  });
-  photoLabel.append(file);section.append(photoLabel);
   const remove=document.createElement('button');
   remove.type='button';remove.textContent='Quitar esta sede de la propuesta';
   remove.addEventListener('click',()=>{
-    if(locationPhotoPreviews.has(section))URL.revokeObjectURL(locationPhotoPreviews.get(section));
-    locationPhotoPreviews.delete(section);
-    section.remove();refreshLocationNumbers();sendPreview();
+    releaseLocationPreview(section);section.remove();refreshLocationNumbers();sendPreview();
     report('Sede retirada del borrador. La web pública no ha cambiado.');
   });
   section.append(remove);holder.append(section);refreshLocationNumbers();
 }
 function drawLocationEditor(settings){
-  for(const url of locationPhotoPreviews.values())URL.revokeObjectURL(url);
-  locationPhotoPreviews.clear();
+  for(const section of locationPhotoPreviews.keys())releaseLocationPreview(section);
   $('#design-location-fields').replaceChildren();
   $('#design-locations-enabled').checked=Boolean(settings.locations_enabled);
   for(const location of settings.locations||[])appendLocationEditor(location);
@@ -70,18 +83,48 @@ function readLocations(useFilePreview=true){
     const entry={};
     for(const input of section.querySelectorAll('[data-location-field]'))
       entry[input.dataset.locationField]=input.value.trim();
-    if(useFilePreview && locationPhotoPreviews.has(section))
-      entry.photo_url=locationPhotoPreviews.get(section);
+    if(useFilePreview)Object.assign(entry,locationPhotoPreviews.get(section)||{});
     return entry;
   });
 }
 function getLocationUploadFiles(){
   return [...$('#design-location-fields').querySelectorAll('.location-editor')].map(section=>
-    section.querySelector('[data-location-photo]')?.files[0]||null);
+    Object.fromEntries(['photo_url','interior_url'].map(key=>
+      [key,section.querySelector('[data-location-photo="'+key+'"]')?.files[0]||null])));
 }
 $('#design-add-location').addEventListener('click',()=>{
   appendLocationEditor();sendPreview();
 });
+$('#design-location-pack').addEventListener('change',event=>{
+  const files=[...event.target.files];
+  if(!files.length)return;
+  let assigned=0;
+  for(const file of files){
+    const name=file.name.toLowerCase().replace(/\.[^.]+$/,'');
+    const city=name.startsWith('valencia_')?'valencia':
+      name.startsWith('maracay_')?'maracay':'';
+    const field=['valencia_principal','maracay_fachada','maracay_principal'].includes(name)
+      ?'photo_url':
+      ['valencia_interior','maracay_interior'].includes(name)?'interior_url':'';
+    if(!city||!field)continue;
+    const section=[...$('#design-location-fields').children].find(node=>
+      [...node.querySelectorAll('[data-location-field="city"],[data-location-field="name"]')]
+        .some(input=>input.value.toLowerCase().includes(city)));
+    const target=section?.querySelector('[data-location-photo="'+field+'"]');
+    if(!target)continue;
+    try{
+      const selected=new DataTransfer();selected.items.add(file);
+      target.files=selected.files;
+      target.dispatchEvent(new Event('change',{bubbles:true}));
+      assigned++;
+    }catch{
+      report('Tu navegador no permite la selección automática. Puedes cargar cada imagen en su campo.',true);
+      return;
+    }
+  }
+  report(assigned+' fotografías asignadas a las sedes para vista previa; no se han publicado.');
+});
+
 
 const compactLabels={
   hero:'Portada principal',trust:'Mensajes rápidos',catalogo:'Marcas y productos',
@@ -350,11 +393,15 @@ form.addEventListener('submit',async event=>{
         ?published.brand_logo_path:null;
     }
     for(let i=0;i<locationUploads.length;i++){
-      if(!locationUploads[i])continue;
-      report('Subiendo fotografía real de sucursal '+(i+1)+'…');
-      const uploaded=await uploadImage(locationUploads[i]);
-      toRemove.push(uploaded.path);
-      requested.locations[i].photo_url=uploaded.url;
+      for(const key of ['photo_url','interior_url']){
+        const file=locationUploads[i][key];
+        if(!file)continue;
+        report('Subiendo foto '+(key==='photo_url'?'principal':'interior')+
+          ' de sucursal '+(i+1)+'…');
+        const uploaded=await uploadImage(file);
+        toRemove.push(uploaded.path);
+        requested.locations[i][key]=uploaded.url;
+      }
     }
     report('Guardando el diseño en Firebase…');
     const result=await saveStorefrontSettings(requested);

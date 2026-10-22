@@ -56,8 +56,8 @@ export const STORE_DEFAULTS=Object.freeze({
   closing_title:'Tu aliado en odontología y laboratorio dental',
   closing_text:'Visítanos en nuestras sedes oficiales o solicita atención personalizada por WhatsApp.',
   locations:[
-    {name:'Poladent sede Principal Valencia',city:'Valencia, estado Carabobo',address:'Calle 137 Los Sauces, San José, edificio 137, piso 3, local 19',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:''},
-    {name:'Poladent sede Maracay',city:'Maracay, estado Aragua',address:'Torre Sindoni, PB, local N13',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:''}
+    {name:'Poladent sede Principal Valencia',city:'Valencia, estado Carabobo',address:'Calle 137 Los Sauces, San José, edificio 137, piso 3, local 19',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:'',interior_url:''},
+    {name:'Poladent sede Maracay',city:'Maracay, estado Aragua',address:'Torre Sindoni, PB, local N13',hours:'8:00 a. m. – 5:00 p. m.',phone:'584226710634',rif:'J-401910769',photo_url:'',interior_url:''}
   ],
   eyebrow:'CATÁLOGO PARA PROFESIONALES',
   title:'Todo en odontología y laboratorio dental',
@@ -135,7 +135,8 @@ export function normalizeStorefront(input={},allowBlob=false) {
         hours:bounded(entry?.hours,90,fallback.hours||''),
         phone:/^[1-9][0-9]{7,14}$/.test(phone)?phone:'',
         rif:bounded(entry?.rif,40,fallback.rif||''),
-        photo_url:secureBannerURL(entry?.photo_url,allowBlob)
+        photo_url:secureBannerURL(entry?.photo_url,allowBlob),
+        interior_url:secureBannerURL(entry?.interior_url,allowBlob)
       };
     }),
     eyebrow:bounded(s.eyebrow,60,STORE_DEFAULTS.eyebrow),

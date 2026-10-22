@@ -171,7 +171,7 @@ assert.ok(style.includes('.official-location-card'));
 assert.ok(adminPage.includes('id="design-add-location"'),'Se pueden agregar más sucursales');
 assert.ok(adminCode.includes('function appendLocationEditor('),'Deben existir formularios dinámicos de sedes');
 assert.ok(adminCode.includes('function getLocationUploadFiles('),'Las fotos locales deben subirse al guardar');
-assert.ok(adminCode.includes('locationPhotoPreviews.has(section)'),'Las vistas previas no dependen del orden de las sedes');
+assert.ok(adminCode.includes('locationPhotoPreviews.get(section)'),'Las vistas previas no dependen del orden de las sedes');
 assert.ok(publicCode.includes("$('#storefront-locations-link').hidden="),'El botón de sedes permanece oculto hasta activarse');
 assert.ok(page.includes('id="storefront-locations-link"'));
 const previewLocation=normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]},true);
@@ -223,7 +223,7 @@ assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
 assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
 
 assert.ok(publicCode.includes("['premium-confianza','premium-compacta'].includes(requestedPreviewTheme)"),'La nueva plantilla debe poder examinarse sin publicar');
-assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
+assert.ok(publicCode.includes("card.classList.toggle('without-photo',photos.length===0)"),'Las sedes funcionan sin fotos');
 assert.ok(style.includes('.official-location-card.without-photo'));
 
 
@@ -319,4 +319,32 @@ assert.equal(business.taxID,'J-401910769');
 assert.equal(business.location.length,2);
 assert.deepEqual(business.location.map(x=>x.address.addressLocality),['Valencia','Maracay']);
 assert.ok(!JSON.stringify(business).includes('aggregateRating'),'Nunca inventar valoración');
+
+assert.equal(original.locations[0].interior_url,'');
+assert.equal(original.locations[1].interior_url,'');
+assert.equal(normalizeStorefront({locations:[{
+  name:'Sucursal de prueba',photo_url:'https://example.org/foto.webp',
+  interior_url:'https://example.org/interior.webp'
+}]}).locations[0].interior_url,'https://example.org/interior.webp');
+assert.equal(normalizeStorefront({locations:[{
+  name:'Sucursal de prueba',interior_url:'javascript:alert(1)'
+}]}).locations[0].interior_url,'');
+const previewInterior=normalizeStorefront({locations:[{
+  name:'Sucursal de prueba',interior_url:'blob:https://example.com/abc'
+}]},true);
+assert.equal(previewInterior.locations[0].interior_url,'blob:https://example.com/abc');
+assert.ok(adminCode.includes("'photo_url','interior_url'"));
+assert.ok(adminCode.includes("file.dataset.locationPhoto=key"));
+assert.ok(adminCode.includes("requested.locations[i][key]=uploaded.url"));
+assert.ok(publicCode.includes("url:location.interior_url"));
+assert.ok(publicCode.includes("'official-location-photos'"));
+assert.ok(publicCode.includes("gallery.classList.toggle('has-two',photos.length===2)"));
+assert.ok(style.includes('.official-location-photos.has-two'));
+
+
+assert.ok(adminPage.includes('id="design-location-pack"'));
+assert.ok(adminCode.includes("$('#design-location-pack').addEventListener('change'"));
+assert.ok(adminCode.includes("selected.items.add(file)"));
+assert.ok(adminCode.includes("assigned+' fotografías asignadas"));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
