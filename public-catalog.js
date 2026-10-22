@@ -210,7 +210,7 @@ function renderOfficialLocations(values,active){
 const COMPACT_LAYOUT_NODES={
   hero:['#storefront-hero'],
   trust:['.storefront-trust'],
-  catalogo:['.brands-area','#brand-hero','.filters','.cart-toolbar','#cart-feedback',
+  catalogo:['.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar','#cart-feedback',
     '#catalog-status','#products','#more','#brand-back-cover'],
   about:['#premium-about'],
   locations:['#official-locations'],
@@ -292,7 +292,9 @@ function renderStorefront(){
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
     primary:values.primary_label,secondary:values.secondary_label,
     'featured-title':values.featured_title};
+  if(values.theme==='premium-compacta' && field.primary==='Explorar marcas')field.primary='Ver productos';
   for(const [key,value]of Object.entries(field))$('#storefront-'+key).textContent=value;
+  $('#storefront-primary').href=values.theme==='premium-compacta'?'#product-search':'#brand-shortcuts';
   values.trust_items.forEach((t,i)=>$('#storefront-trust-'+(i+1)).textContent=t);
   const picture=$('#storefront-picture'),banner=$('#storefront-banner'),source=$('#storefront-mobile-source'),
     art=$('#storefront-products-art'),heroStage=$('#storefront-hero');
@@ -612,6 +614,11 @@ function renderInquiry(){
   label.hidden=contacts.length===1;
   $('#quote-title').textContent=selected.status==='sold_out'
     ?'Consulta disponibilidad y solicita cotización':'Solicita una cotización';
+  refreshQuickInquiry();
+  updateQuoteLink();
+}
+function refreshQuickInquiry(){
+  const chooser=$('#inquiry-contact');
   const quick=$('#inquiry-quick');
   const phone=chooser.value||contacts[0]?.phone||'';
   const shortMessage=selected
@@ -624,8 +631,9 @@ function renderInquiry(){
   if(quickUrl)quick.href=quickUrl;
   else quick.removeAttribute('href');
   $('#inquiry-quick').nextElementSibling.hidden=!quickUrl;
-  updateQuoteLink();
 }
+
+$('#inquiry-contact').addEventListener('change',refreshQuickInquiry);
 quoteForm.addEventListener('input',updateQuoteLink);
 quoteForm.addEventListener('change',updateQuoteLink);
 quoteForm.addEventListener('submit',event=>{
