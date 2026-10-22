@@ -468,6 +468,24 @@ form.addEventListener('submit',async event=>{
         requested.locations[i][key]=uploaded.url;
       }
     }
+    // No alterar URL/fotos anteriores hasta que la subida nueva finalice.
+    for(const [i,section] of [...$('#design-location-fields').children].entries()){
+      const gallery=[];
+      for(const row of section.querySelectorAll('.location-extra-row')){
+        const file=row.querySelector('[data-location-extra-file]')?.files[0];
+        const url=row.querySelector('[data-location-extra-url]').value.trim();
+        if(file){
+          report('Subiendo foto adicional de sucursal '+(i+1)+'…');
+          const uploaded=await uploadImage(file);
+          toRemove.push(uploaded.path);
+          gallery.push(uploaded.url);
+        }else if(url){
+          if(!/^https:\/\//i.test(url))throw Error('Las fotografías adicionales requieren HTTPS.');
+          gallery.push(url);
+        }
+      }
+      requested.locations[i].gallery_urls=gallery;
+    }
     report('Guardando el diseño en Firebase…');
     const result=await saveStorefrontSettings(requested);
     fillForm(result);
