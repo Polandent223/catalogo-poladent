@@ -9,17 +9,19 @@ El catálogo ADALTA inicial se importó desde datos preparados en el repositorio
 4. Se admiten hasta **200 productos por archivo**, en lotes automáticos de 25.
 5. En la columna `foto`, escribe el nombre exacto del JPG/PNG/WebP. Selecciona todos esos archivos juntos desde el formulario.
 6. También puedes utilizar `imagen_url` con una dirección HTTPS pública (si tiene URL, esa fila no subirá una imagen nueva).
-7. Si una fila tiene el mismo nombre y marca que un producto existente, se omite. La importación no altera ni duplica esos productos.
+7. En la columna opcional `area_id` puedes poner el identificador del área (por ejemplo `endodoncia`) para asignarla directamente. También se reconocen cabeceras `area`, `categoria` o `area_del_producto`. Los identificadores estándar son `endodoncia`, `ortodoncia`, `instrumental`, `laboratorio`, `equipos` y `restauracion`. Usa minúsculas sin espacios ni tildes. Las áreas personalizadas deben estar creadas en el editor de diseño antes de usarse.
+8. Si dejas `area_id` vacío o usas un CSV antiguo sin esa columna, el producto permanece sin asignación manual y puede clasificarse automáticamente si tienes esa función activada.
+9. Si una fila tiene el mismo nombre y marca que un producto existente, se omite. La importación no altera ni duplica esos productos.
 
 Ejemplo ilustrativo (no es necesario copiarlo a tus productos):
 
 ```csv
-codigo,nombre,marca,descripcion,estado,foto,imagen_url,orden
-MD-100,Forceps de ejemplo,MEDESY,Instrumento dental,disponible,forceps-100.jpg,,1
-ICE-200,Elevador de ejemplo,ICE,Instrumento de extracción,agotado,elevador-200.png,,2
+codigo,nombre,marca,descripcion,estado,foto,imagen_url,orden,area_id
+MD-100,Forceps de ejemplo,MEDESY,Instrumento dental,disponible,forceps-100.jpg,,1,instrumental
+ICE-200,Elevador de ejemplo,ICE,Instrumento de extracción,agotado,elevador-200.png,,2,instrumental
 ```
 
-Los estados aceptados son `disponible`, `agotado`, `oculto`. Los productos `oculto` solo aparecerán en el administrador.
+Los estados aceptados son `disponible`, `agotado`, `oculto`. Los productos `oculto` solo aparecerán en el administrador. Puedes importar DENCO primero como `oculto` y revisar sus fotografías antes de cambiarlo a `disponible`.
 
 ## Paso a paso
 - Entra a `admin.html` con Firebase.

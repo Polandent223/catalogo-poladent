@@ -34,6 +34,7 @@ const aliases = {
   marca: 'marca', brand: 'marca',
   descripcion: 'descripcion', detalle: 'descripcion',
   estado: 'estado', disponibilidad: 'estado', status: 'estado',
+  area: 'area_id', area_id: 'area_id', area_del_producto: 'area_id', categoria: 'area_id',
   foto: 'foto', archivo: 'foto', imagen: 'foto',
   imagen_archivo: 'foto', archivo_imagen: 'foto', fotografia: 'foto',
   imagen_url: 'imagen_url', url_imagen: 'imagen_url',
@@ -74,9 +75,11 @@ export function readEntries(text) {
     const name = entry.nombre || '', brand = entry.marca || '';
     const status = normalizeStatus(entry.estado || '');
     const filename = entry.foto || '', imageUrl = entry.imagen_url || '';
+    const areaId = String(entry.area_id || '').trim();
     if (!name || !brand || name.length > 180 || brand.length > 80) errors.push('Fila ' + row + ': nombre o marca vacíos o demasiado largos.');
     if ((entry.descripcion || '').length > 1000) errors.push('Fila ' + row + ': descripción de más de 1000 caracteres.');
     if (!status) errors.push('Fila ' + row + ': estado desconocido (' + entry.estado + ').');
+    if (areaId && !/^[a-z0-9-]{1,55}$/.test(areaId)) errors.push('Fila ' + row + ': area_id debe usar letras minúsculas, números o guiones.');
     if (!filename && !imageUrl) errors.push('Fila ' + row + ': añade foto o imagen_url.');
     if (imageUrl && !safeHttps(imageUrl)) errors.push('Fila ' + row + ': imagen_url debe comenzar por https://.');
     if ((entry.orden || '') && (!/^\d+$/.test(entry.orden) || Number(entry.orden)>100000)) errors.push('Fila '+row+': orden debe ser número entre 0 y 100000.');
@@ -85,6 +88,7 @@ export function readEntries(text) {
     seen.add(dedupKey);
     entries.push({
       name, brand, description: entry.descripcion || '', status: status || 'available',
+      area_id: areaId,
       sort_order: Number(entry.orden) || 0,
       image_file_name: filename, image_url: imageUrl,
       source_key: 'csv-' + key(brand) + '-' + key(entry.codigo || name)
