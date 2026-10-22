@@ -1341,3 +1341,29 @@ body.storefront-active.storefront-theme-premium-compacta .official-location-phot
   .location-photo-stage>button{width:35px;height:42px;font-size:26px}
   .location-photo-thumb{flex-basis:54px;width:54px;height:48px}
 }
+
+
+/* Banners rotativos: botones fuera de la zona de texto, sin mover el contenido. */
+.storefront-slider-controls{
+  position:absolute;z-index:5;right:15px;bottom:13px;
+  display:flex;align-items:center;gap:7px;max-width:calc(100% - 25px);
+  padding:6px 8px;border-radius:50px;background:#071f39ae;
+  color:#fff;box-shadow:0 4px 18px #001b2d46
+}
+.storefront-slider-controls[hidden]{display:none!important}
+.storefront-slider-controls>button{
+  display:grid;place-items:center;width:31px;height:31px;
+  border:1px solid #ffffff33;border-radius:50%;background:#ffffff25;
+  color:#fff;font-size:22px;cursor:pointer
+}
+.storefront-slide-dots{display:flex;align-items:center;justify-content:center;gap:6px}
+.storefront-slide-dot{width:10px;height:10px;border-radius:50%;padding:0;
+  border:1px solid #ffffffa6;background:#ffffff70;cursor:pointer}
+.storefront-slide-dot[aria-pressed=true]{background:#fff;box-shadow:0 0 0 2px #54b8e8}
+.storefront-slider-controls button:focus-visible{outline:3px solid #98e6ff;outline-offset:2px}
+@media(max-width:700px){
+ .storefront-slider-controls{right:10px;bottom:8px;padding:4px 6px;gap:5px}
+ .storefront-slider-controls>button{width:28px;height:28px}
+ .storefront-slide-dot{width:8px;height:8px}
+ body.storefront-active.storefront-theme-premium-compacta .storefront-copy{padding-bottom:29px}
+}

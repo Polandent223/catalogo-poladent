@@ -1,3 +1,4 @@
+import {QUICK_AREAS} from './catalog-quick-search.js';
 // Diseño del escaparate: valores públicos, sin secretos ni datos personales.
 // Ausente/desactivado: POLADENT conserva la portada INTERNA anterior.
 export const STORE_THEMES=Object.freeze(['premium','clinica','minimalista','comercial','premium-confianza','premium-compacta']);
@@ -19,10 +20,38 @@ function compactHeight(value,defaultValue,min,max){
   const n=Number(value);
   return Number.isFinite(n)&&n>=min&&n<=max?Math.round(n):defaultValue;
 }
+export function normalizeQuickAreas(items){
+  if(!Array.isArray(items))return QUICK_AREAS.map(area=>({...area,enabled:true,terms:[...area.terms]}));
+  const result=[],seen=new Set();
+  for(const item of items.slice(0,24)){
+    const id=String(item?.id||'');
+    if(!QUICK_AREAS.some(a=>a.id===id)&&!/^personalizada-[a-z0-9-]{1,36}$/.test(id))continue;
+    if(seen.has(id))continue;
+    const defaultArea=QUICK_AREAS.find(a=>a.id===id);
+    const label=bounded(item.label,45,defaultArea?.label||'Área personalizada');
+    const source=Array.isArray(item.terms)?item.terms:defaultArea?.terms||[];
+    const terms=[...new Set(source.slice(0,24).map(x=>bounded(x,45)).filter(Boolean))];
+    result.push({id,label,enabled:item.enabled!==false,terms});
+    seen.add(id);
+    if(result.length>=12)break;
+  }
+  return result;
+}
+function normalizeSlides(items,allowBlob){
+  return (Array.isArray(items)?items:[]).slice(0,7).map(item=>({
+    desktop_url:secureBannerURL(item?.desktop_url,allowBlob),
+    mobile_url:secureBannerURL(item?.mobile_url,allowBlob)
+  })).filter(item=>item.desktop_url||item.mobile_url);
+}
 export const STORE_DEFAULTS=Object.freeze({
   enabled:false,
   replace_welcome:false,
   theme:'premium',
+  quick_areas:normalizeQuickAreas(null),
+  quick_auto_match:true,
+  banner_extra_slides:[],
+  banner_autoplay:true,
+  banner_interval_seconds:5,
   compact_order_mobile:[...COMPACT_MOBILE_ORDER],
   compact_order_desktop:[...COMPACT_DESKTOP_ORDER],
   compact_hidden_mobile:[],
@@ -103,6 +132,11 @@ export function normalizeStorefront(input={},allowBlob=false) {
     enabled:s.enabled===true,
     replace_welcome:s.replace_welcome===true&&['premium-confianza','premium-compacta'].includes(s.theme),
     theme:STORE_THEMES.includes(s.theme)?s.theme:STORE_DEFAULTS.theme,
+    quick_areas:normalizeQuickAreas(s.quick_areas),
+    quick_auto_match:s.quick_auto_match!==false,
+    banner_extra_slides:normalizeSlides(s.banner_extra_slides,allowBlob),
+    banner_autoplay:s.banner_autoplay!==false,
+    banner_interval_seconds:5,
     compact_order_mobile:compactOrder(s.compact_order_mobile,COMPACT_MOBILE_ORDER),
     compact_order_desktop:compactOrder(s.compact_order_desktop,COMPACT_DESKTOP_ORDER),
     compact_hidden_mobile:compactHidden(s.compact_hidden_mobile),

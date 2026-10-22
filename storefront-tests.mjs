@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
-const load=async name=>import('data:text/javascript;base64,'+Buffer.from(read(name)).toString('base64'));
+const load=async name=>{
+  let source=read(name);
+  if(name==='storefront-settings.js')
+    source=source.replace("import {QUICK_AREAS} from './catalog-quick-search.js';",
+      read('catalog-quick-search.js').replaceAll('export ',''));
+  return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+};
 const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL}=await load('storefront-settings.js');
 const {parseCatalogDocuments}=await load('catalog-public-data.js');
 
@@ -304,7 +310,7 @@ assert.ok(page.includes('id="inquiry-quick"'));
 assert.ok(page.includes('RIF J-401910769'));
 assert.ok(!page.includes('<a href="admin.html">Administración</a>'),'Ocultar enlace administrativo en el sitio público');
 assert.ok(publicCode.includes('function renderQuickAreas()'));
-assert.ok(publicCode.includes('quickAreasForProduct(p).includes(activeQuickArea)'));
+assert.ok(publicCode.includes('quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)'));
 assert.ok(publicCode.includes('function refreshQuickInquiry()'));
 assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas'"));
 assert.ok(publicCode.includes("field.primary='Ver productos'"));
@@ -386,5 +392,52 @@ assert.ok(adminCode.includes("requested.locations[i].gallery_urls=gallery"));
 assert.ok(adminCode.includes("row.querySelector('[data-location-extra-file]')?.files[0]"));
 assert.ok(style.includes('.location-photo-dialog::backdrop'));
 assert.ok(style.includes('.official-photo-trigger'));
+
+
+const bannerSettings=normalizeStorefront({
+  banner_extra_slides:[
+    {desktop_url:'https://example.com/pc-2.webp',mobile_url:'https://example.com/mobile-2.webp'},
+    {desktop_url:'javascript:alert(1)',mobile_url:'http://example.com/insecure.webp'},
+    {desktop_url:'https://example.com/pc-3.webp'}
+  ]
+});
+assert.equal(bannerSettings.banner_autoplay,true);
+assert.equal(bannerSettings.banner_interval_seconds,5);
+assert.deepEqual(bannerSettings.banner_extra_slides,[
+ {desktop_url:'https://example.com/pc-2.webp',mobile_url:'https://example.com/mobile-2.webp'},
+ {desktop_url:'https://example.com/pc-3.webp',mobile_url:''}
+]);
+assert.equal(normalizeStorefront({banner_extra_slides:Array(10).fill({desktop_url:'https://example.com/a.webp'})}).banner_extra_slides.length,7);
+assert.equal(normalizeStorefront({banner_extra_slides:[{desktop_url:'blob:https://example.com/p'}]},true).banner_extra_slides[0].desktop_url,
+  'blob:https://example.com/p');
+const areasConfigured=normalizeStorefront({quick_areas:[
+ {id:'laboratorio',label:'Laboratorio dental',enabled:true,terms:['yeso']},
+ {id:'endodoncia',label:'Endodoncia',enabled:false,terms:['lima']},
+ {id:'personalizada-fresa',label:'Fresas',enabled:true,terms:[]},
+ {id:'javascript:alert(1)',label:'Mala'}
+]});
+assert.deepEqual(areasConfigured.quick_areas.map(a=>a.label),['Laboratorio dental','Endodoncia','Fresas']);
+assert.equal(areasConfigured.quick_areas[1].enabled,false);
+const quickModule=await load('catalog-quick-search.js');
+assert.deepEqual(quickModule.quickAreasForProduct({name:'Limas de endodoncia',area_id:'laboratorio'},areasConfigured.quick_areas),['laboratorio']);
+assert.deepEqual(quickModule.quickAreasForProduct({name:'Limas de endodoncia',area_id:'endodoncia'},areasConfigured.quick_areas),[]);
+assert.deepEqual(quickModule.quickAreasForProduct({name:'Fresa',area_id:'personalizada-fresa'},areasConfigured.quick_areas,false),['personalizada-fresa']);
+assert.deepEqual(quickModule.quickAreasForProduct({name:'Limas endodónticas'},areasConfigured.quick_areas,false),[]);
+assert.ok(page.includes('id="storefront-slider-controls"'));
+assert.ok(page.includes('id="storefront-slide-prev"'));
+assert.ok(page.includes('id="storefront-slide-next"'));
+assert.ok(adminPage.includes('id="design-banner-slides"'));
+assert.ok(adminPage.includes('id="design-areas-list"'));
+assert.ok(adminPage.includes('id="design-auto-areas"'));
+assert.ok(adminPage.includes('id="design-banner-autoplay"'));
+assert.ok(read('admin.html').includes('id="product-area"'));
+assert.ok(read('admin.js').includes("area_id:$('#product-area').value"));
+assert.ok(backend.includes("area_id: /^[a-z0-9-]{1,55}$/.test"));
+assert.ok(publicCode.includes("},5000);"));
+assert.ok(publicCode.includes("currentQuickAreas=values.quick_areas"));
+assert.ok(publicCode.includes("quickAreasForProduct(p,currentQuickAreas,currentQuickAuto)"));
+assert.ok(adminCode.includes("requested.banner_extra_slides=uploadedExtras"));
+assert.ok(adminCode.includes("quick_areas:readAreas()"));
+assert.ok(style.includes('.storefront-slider-controls'));
 
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
