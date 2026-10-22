@@ -351,6 +351,7 @@ function drawAreaEditor(){
       const button=document.createElement('button');button.type='button';button.textContent=arrow;
       button.disabled=index+delta<0||index+delta>=areaItems.length;
       button.addEventListener('click',()=>{
+        syncAreaLabels();
         const target=index+delta;
         [areaItems[index],areaItems[target]]=[areaItems[target],areaItems[index]];
         drawAreaEditor();sendPreview();
@@ -358,20 +359,22 @@ function drawAreaEditor(){
     }
     if(area.id.startsWith('personalizada-')){
       const remove=document.createElement('button');remove.type='button';remove.textContent='Quitar';
-      remove.addEventListener('click',()=>{areaItems.splice(index,1);drawAreaEditor();sendPreview();});
+      remove.addEventListener('click',()=>{syncAreaLabels();areaItems.splice(index,1);drawAreaEditor();sendPreview();});
       actions.append(remove);
     }
     row.append(actions);box.append(row);
   }
   $('#design-add-area').disabled=busy||areaItems.length>=12;
 }
-function readAreas(){
-  return areaItems.map(area=>({
-    ...area,label:$('#design-areas-list').querySelector('[data-area-label="'+area.id+'"]')?.value.trim()||area.label
-  }));
+function syncAreaLabels(){
+  for(const area of areaItems){
+    area.label=$('#design-areas-list').querySelector('[data-area-label="'+area.id+'"]')?.value.trim()||area.label;
+  }
 }
+function readAreas(){syncAreaLabels();return areaItems.map(area=>({...area,terms:[...area.terms]}));}
 $('#design-add-area').addEventListener('click',()=>{
   if(areaItems.length>=12)return;
+  syncAreaLabels();
   const id='personalizada-'+Math.random().toString(36).slice(2,12);
   areaItems.push({id,label:'Nueva área',terms:[],enabled:true});
   drawAreaEditor();sendPreview();
@@ -400,7 +403,6 @@ function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
   $('#design-banner-autoplay').checked=published.banner_autoplay;
-  drawExtraBanners();
   extraBanners=[...published.banner_extra_slides];
   drawExtraBanners();
   $('#design-auto-areas').checked=published.quick_auto_match;
