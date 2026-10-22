@@ -284,4 +284,31 @@ assert.ok(style.includes('scroll-snap-type:x proximity'));
 assert.ok(publicCode.includes("locationsLink.dataset.compactHideMobile='1'"));
 assert.ok(publicCode.includes("locationsLink.dataset.compactHideDesktop='1'"));
 
+
+const quick=await load('catalog-quick-search.js');
+assert.ok(quick.QUICK_AREAS.length>=5,'Hay accesos rápidos para distintas áreas');
+const sampleItems=[
+ {name:'Limas endodónticas 25 mm',brand:'ADALTA',status:'available'},
+ {name:'Brackets ortodoncia metálicos',brand:'DENCO',status:'available'},
+ {name:'Fresas carburo dental',brand:'ICE',status:'available'},
+ {name:'Cureta Gracey',brand:'ADALTA',status:'sold_out'}
+];
+const areas=quick.quickAreaCounts(sampleItems);
+assert.equal(areas.endodoncia,1);
+assert.equal(areas.ortodoncia,1);
+assert.equal(areas.instrumental,1);
+assert.equal(quick.quickAreasForProduct({name:'Lámpara de fotocurado'}).includes('equipos'),true);
+assert.equal(quick.quickAreasForProduct({name:'Una categoría inventada'}).length,0);
+assert.ok(page.includes('id="quick-areas"')&&page.includes('id="quick-area-buttons"'));
+assert.ok(page.includes('id="inquiry-quick"'));
+assert.ok(page.includes('RIF J-401910769'));
+assert.ok(!page.includes('<a href="admin.html">Administración</a>'),'Ocultar enlace administrativo en el sitio público');
+assert.ok(publicCode.includes('function renderQuickAreas()'));
+assert.ok(publicCode.includes('quickAreasForProduct(p).includes(activeQuickArea)'));
+assert.ok(publicCode.includes('function refreshQuickInquiry()'));
+assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas'"));
+assert.ok(publicCode.includes("field.primary='Ver productos'"));
+assert.ok(style.includes('.quick-area-buttons'));
+assert.ok(style.includes('.inquiry-quick'));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
