@@ -174,12 +174,21 @@ function renderOfficialLocations(values,active){
   grid.replaceChildren();
   for(const location of values.locations){
     const card=element('article',null,'official-location-card');
-    card.classList.toggle('without-photo',!location.photo_url);
-    if(location.photo_url){
-      const image=element('img',null,'official-location-image');
-      image.src=location.photo_url;image.alt='Fotografía de '+location.name;
-      image.loading='lazy';image.decoding='async';
-      card.append(image);
+    const photos=[
+      {url:location.photo_url,alt:'Fotografía principal de '+location.name},
+      {url:location.interior_url,alt:'Interior de '+location.name}
+    ].filter(item=>item.url);
+    card.classList.toggle('without-photo',photos.length===0);
+    if(photos.length){
+      const gallery=element('div',null,'official-location-photos');
+      gallery.classList.toggle('has-two',photos.length===2);
+      for(const entry of photos){
+        const image=element('img',null,'official-location-image');
+        image.src=entry.url;image.alt=entry.alt;
+        image.loading='lazy';image.decoding='async';
+        gallery.append(image);
+      }
+      card.append(gallery);
     }
     const content=element('div',null,'official-location-copy');
     content.append(element('h3',location.name));
