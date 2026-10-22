@@ -84,6 +84,10 @@
 </section>
 <section class="brands-area" aria-label="Marcas del catálogo"><div class="brands-heading"><div><p class="eyebrow">NUESTRAS MARCAS</p><h2 id="storefront-brands-title">Explora por marca</h2></div><button id="copy-brand" hidden type="button" title="Copiar enlace a esta marca">Copiar enlace de la marca</button></div><div id="brand-shortcuts" class="brand-shortcuts"></div></section>
 <section id="brand-hero" class="brand-hero" aria-label="Presentación de la marca" hidden></section>
+<section id="quick-areas" class="quick-areas" aria-label="Búsqueda rápida por área" hidden>
+  <div class="quick-areas-header"><strong>Encuentra lo que necesitas</strong><span>Accesos rápidos según los nombres de los productos</span></div>
+  <div id="quick-area-buttons" class="quick-area-buttons" role="group" aria-label="Filtrar por área"></div>
+</section>
 <section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
 <div class="cart-toolbar">
 <p><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
@@ -100,6 +104,8 @@
 <p id="detail-status"></p><p id="detail-description"></p>
 <div id="product-inquiry" class="product-inquiry" hidden>
 <h3 id="quote-title">Solicita una cotización</h3>
+<a id="inquiry-quick" class="inquiry-quick" target="_blank" rel="noopener noreferrer" hidden>Consultar este producto por WhatsApp ↗</a>
+<p class="inquiry-quick-caption">Consulta rápida sin completar datos. También puedes enviar una solicitud detallada debajo.</p>
 <p class="quote-intro">Indícanos lo que necesitas para atenderte más rápido. No es necesario registrarse.</p>
 <form id="quote-form">
 <label for="quote-quantity">¿Cuántas unidades necesitas?
@@ -152,4 +158,9 @@
 <p id="cart-message" role="status" aria-live="polite">WhatsApp abrirá el mensaje preparado. No se enviará automáticamente.</p>
 </form>
 </dialog>
-<footer>Distribuido por <strong>POLADENT Casa Dental</strong><span>Valencia · Maracay</span><a href="aviso-estadisticas.html">Privacidad y estadísticas</a><a href="admin.html">Administración</a></footer></div><noscript><p>POLADENT Casa Dental: para navegar el catálogo interactivo necesitas JavaScript. También puedes consultar el <a href="adalta.html">catálogo ADALTA</a>.</p></noscript><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="welcome.js"></script></body></html>
+<footer>Distribuido por <strong>POLADENT Casa Dental</strong>
+<span>RIF J-401910769 · 2 sedes oficiales: Valencia y Maracay</span>
+<span>Compra presencial y retiro en tienda · 8:00 a. m. – 5:00 p. m.</span>
+<a href="#official-locations" id="footer-locations" hidden>Conoce nuestras sedes</a>
+<a href="https://wa.me/584226710634" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+<a href="aviso-estadisticas.html">Privacidad y estadísticas</a></footer></div><noscript><p>POLADENT Casa Dental: para navegar el catálogo interactivo necesitas JavaScript. También puedes consultar el <a href="adalta.html">catálogo ADALTA</a>.</p></noscript><script src="config.js"></script><script src="catalogo.js"></script><script type="module" src="welcome.js"></script></body></html>
