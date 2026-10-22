@@ -310,7 +310,7 @@ assert.ok(page.includes('id="inquiry-quick"'));
 assert.ok(page.includes('RIF J-401910769'));
 assert.ok(!page.includes('<a href="admin.html">Administración</a>'),'Ocultar enlace administrativo en el sitio público');
 assert.ok(publicCode.includes('function renderQuickAreas()'));
-assert.ok(publicCode.includes('quickAreasForProduct(p).includes(activeQuickArea)'));
+assert.ok(publicCode.includes('quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)'));
 assert.ok(publicCode.includes('function refreshQuickInquiry()'));
 assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas'"));
 assert.ok(publicCode.includes("field.primary='Ver productos'"));
