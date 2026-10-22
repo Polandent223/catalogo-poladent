@@ -273,6 +273,9 @@ function renderStorefront(){
   applyCompactLayout(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   $('#footer-locations').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
+  const footerWhatsapp=$('#footer-whatsapp');
+  const footerPhone=values.locations.find(x=>x.phone)?.phone||contacts[0]?.phone||'584226710634';
+  footerWhatsapp.href='https://wa.me/'+footerPhone;
   const premium=active&&['premium-confianza','premium-compacta'].includes(values.theme);
   const logo=$('#premium-brand-logo');
   logo.hidden=!(premium&&values.brand_logo_url);
