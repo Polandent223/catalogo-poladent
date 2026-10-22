@@ -124,6 +124,12 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 .storefront-admin .location-pack-upload strong{color:#125481;font-size:14px}
 .storefront-admin .location-pack-upload p{font-size:12px;line-height:1.5}
 .storefront-admin .location-pack-upload input{max-width:100%}
+.storefront-admin .location-extra-photos{display:grid;gap:10px}
+.storefront-admin .location-editor h4{font-size:13px;color:#075d95;margin:12px 0 0}
+.storefront-admin .location-extra-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;padding:10px;background:#eef6fc;border-radius:10px}
+.storefront-admin .location-extra-row label{min-width:0}
+.storefront-admin .location-extra-row button{font-size:11px;padding:9px}
+@media(max-width:650px){.storefront-admin .location-extra-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -270,7 +276,7 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <label>Texto del cierre<textarea name="closing_text" rows="3" maxlength="300" required></textarea></label>
 </fieldset>
 <fieldset id="design-locations"><legend>Sedes oficiales · Valencia y Maracay</legend>
-<p>Este apartado es editable y permanece oculto al público hasta que actives «Mostrar sedes». Puedes subir dos fotografías reales por sede: la principal (entrada, identificación o fachada) y otra del interior. También puedes colocar sus enlaces HTTPS.</p>
+<p>Este apartado es editable y permanece oculto al público hasta que actives «Mostrar sedes». Puedes subir dos fotografías principales por sede y hasta seis fotos adicionales que el cliente podrá abrir en una galería pública. También puedes colocar sus enlaces HTTPS.</p>
 <label class="design-toggle"><input id="design-locations-enabled" type="checkbox"> Mostrar las sedes oficiales en el diseño comercial</label>
 <div class="location-pack-upload">
 <strong>Carga rápida de las fotos reales de POLADENT</strong>
