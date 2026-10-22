@@ -312,9 +312,9 @@ assert.ok(style.includes('.quick-area-buttons'));
 assert.ok(style.includes('.inquiry-quick'));
 
 
-const businessMatch=page.match(/<script type="application\\/ld\\+json" id="poladent-business-schema">([^<]+)<\\/script>/);
+const businessMatch=page.split('<script type="application/ld+json" id="poladent-business-schema">')[1]?.split('</script>')[0];
 assert.ok(businessMatch,'Datos públicos de empresa');
-const business=JSON.parse(businessMatch[1]);
+const business=JSON.parse(businessMatch);
 assert.equal(business.taxID,'J-401910769');
 assert.equal(business.location.length,2);
 assert.deepEqual(business.location.map(x=>x.address.addressLocality),['Valencia','Maracay']);
