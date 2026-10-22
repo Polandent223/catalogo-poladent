@@ -223,7 +223,7 @@ assert.ok(saver.includes("'banner_desktop','banner_mobile','brand_logo'"));
 assert.equal(original.locations_enabled,false,'No activar las sedes sin la decisión del administrador');
 
 assert.ok(publicCode.includes("['premium-confianza','premium-compacta'].includes(requestedPreviewTheme)"),'La nueva plantilla debe poder examinarse sin publicar');
-assert.ok(publicCode.includes("card.classList.toggle('without-photo',!location.photo_url)"),'Las sedes funcionan sin fotos');
+assert.ok(publicCode.includes("card.classList.toggle('without-photo',photos.length===0)"),'Las sedes funcionan sin fotos');
 assert.ok(style.includes('.official-location-card.without-photo'));
 
 
