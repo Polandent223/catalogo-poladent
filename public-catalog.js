@@ -164,9 +164,73 @@ function renderPremiumSections(values,active){
   if(phone)link.href='https://wa.me/'+phone;
   else link.removeAttribute('href');
 }
+// Galería pública: solo URLs HTTPS ya aprobadas por normalizeStorefront.
+const locationViewer=$('#location-photo-dialog');
+let locationViewerPhotos=[],locationViewerIndex=0,locationViewerName='';
+function showLocationViewerPhoto(index){
+  if(!locationViewerPhotos.length)return;
+  locationViewerIndex=(index+locationViewerPhotos.length)%locationViewerPhotos.length;
+  const item=locationViewerPhotos[locationViewerIndex];
+  const full=$('#location-photo-full');
+  full.src=item.url;full.alt=item.alt;
+  $('#location-photo-count').textContent='Fotografía '+(locationViewerIndex+1)+' de '+locationViewerPhotos.length;
+  const thumbs=$('#location-photo-thumbs');
+  for(const [i,button] of [...thumbs.children].entries()){
+    button.setAttribute('aria-pressed',String(i===locationViewerIndex));
+    if(i===locationViewerIndex)button.setAttribute('aria-current','true');
+    else button.removeAttribute('aria-current');
+  }
+}
+function openLocationViewer(location,photos,index=0){
+  if(!photos.length)return;
+  if(locationViewer.open)locationViewer.close();
+  locationViewerName=location.name;
+  locationViewerPhotos=photos;
+  $('#location-photo-title').textContent=locationViewerName;
+  const thumbs=$('#location-photo-thumbs');thumbs.replaceChildren();
+  for(const [i,item] of photos.entries()){
+    const button=element('button',null,'location-photo-thumb');
+    button.type='button';button.setAttribute('aria-label','Ver fotografía '+(i+1)+' de '+locationViewerName);
+    const image=element('img');image.src=item.url;image.alt='';
+    image.loading='lazy';image.decoding='async';
+    button.append(image);button.addEventListener('click',()=>showLocationViewerPhoto(i));
+    thumbs.append(button);
+  }
+  $('#location-photo-prev').hidden=photos.length===1;
+  $('#location-photo-next').hidden=photos.length===1;
+  thumbs.hidden=photos.length===1;
+  showLocationViewerPhoto(index);
+  locationViewer.showModal();
+  $('#location-photo-close').focus();
+}
+$('#location-photo-close').addEventListener('click',()=>locationViewer.close());
+$('#location-photo-prev').addEventListener('click',()=>showLocationViewerPhoto(locationViewerIndex-1));
+$('#location-photo-next').addEventListener('click',()=>showLocationViewerPhoto(locationViewerIndex+1));
+locationViewer.addEventListener('keydown',event=>{
+  if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+    event.preventDefault();
+    showLocationViewerPhoto(locationViewerIndex+(event.key==='ArrowRight'?1:-1));
+  }
+});
+let viewerTouchStart=null;
+$('#location-photo-full').addEventListener('touchstart',event=>{
+  viewerTouchStart=event.touches.length===1?event.touches[0].clientX:null;
+},{passive:true});
+$('#location-photo-full').addEventListener('touchend',event=>{
+  if(viewerTouchStart===null||event.changedTouches.length!==1)return;
+  const movement=event.changedTouches[0].clientX-viewerTouchStart;
+  viewerTouchStart=null;
+  if(Math.abs(movement)>45)showLocationViewerPhoto(locationViewerIndex+(movement<0?1:-1));
+},{passive:true});
+locationViewer.addEventListener('close',()=>{
+  locationViewerPhotos=[];locationViewerIndex=0;
+  $('#location-photo-full').removeAttribute('src');
+});
+
 function renderOfficialLocations(values,active){
   const section=$('#official-locations'),grid=$('#official-locations-grid');
   const visible=active&&values.locations_enabled&&values.locations?.length>0;
+  if(locationViewer.open)locationViewer.close();
   section.hidden=!visible;
   if(!visible)return;
   $('#official-locations-title').textContent=values.locations_title;
@@ -176,17 +240,29 @@ function renderOfficialLocations(values,active){
     const card=element('article',null,'official-location-card');
     const photos=[
       {url:location.photo_url,alt:'Fotografía principal de '+location.name},
-      {url:location.interior_url,alt:'Interior de '+location.name}
+      {url:location.interior_url,alt:'Interior de '+location.name},
+      ...(location.gallery_urls||[]).map((url,i)=>({
+        url,alt:'Fotografía adicional '+(i+1)+' de '+location.name
+      }))
     ].filter(item=>item.url);
     card.classList.toggle('without-photo',photos.length===0);
     if(photos.length){
       const gallery=element('div',null,'official-location-photos');
-      gallery.classList.toggle('has-two',photos.length===2);
-      for(const entry of photos){
+      gallery.classList.toggle('has-two',photos.length>=2);
+      for(const [i,entry] of photos.slice(0,2).entries()){
+        const trigger=element('button',null,'official-photo-trigger');
+        trigger.type='button';
+        trigger.setAttribute('aria-label','Ver fotografía '+(i+1)+' de '+location.name+' ampliada');
         const image=element('img',null,'official-location-image');
         image.src=entry.url;image.alt=entry.alt;
         image.loading='lazy';image.decoding='async';
-        gallery.append(image);
+        trigger.append(image);
+        trigger.addEventListener('click',()=>openLocationViewer(location,photos,i));
+        gallery.append(trigger);
+      }
+      if(photos.length>2){
+        const count=element('span','+'+(photos.length-2)+' fotos','official-photo-count');
+        gallery.append(count);
       }
       card.append(gallery);
     }
@@ -197,6 +273,11 @@ function renderOfficialLocations(values,active){
     }
     content.append(element('p','Compra directa y retiro en tienda'));
     const actions=element('div',null,'official-location-actions');
+    if(photos.length){
+      const view=element('button','Ver fotos ('+photos.length+')','official-view-photos');
+      view.type='button';view.addEventListener('click',()=>openLocationViewer(location,photos));
+      actions.append(view);
+    }
     if(location.address){
       const directions=element('a','Cómo llegar');
       directions.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(location.address+', '+location.city+', Venezuela');
