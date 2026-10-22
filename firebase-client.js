@@ -277,6 +277,7 @@ function sanitize(body) {
     name: String(body.name || '').trim().slice(0, 180),
     brand: String(body.brand || '').trim().slice(0, 80),
     description: String(body.description || '').trim().slice(0, 1000),
+    area_id: /^[a-z0-9-]{1,55}$/.test(String(body.area_id||''))?String(body.area_id||''):'',
     status: body.status,
     sort_order: Math.max(0, Math.min(100000, Number(body.sort_order) || 0)),
     image_url: String(body.image_url || ''),
