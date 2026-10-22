@@ -1224,3 +1224,46 @@ footer a[href*="wa.me"]{font-weight:750;color:#097d69}
   body.storefront-active.storefront-theme-premium-compacta #quick-areas{width:calc(100% - 22px)}
   .inquiry-quick{font-size:13px}
 }
+
+
+/* Fotografías reales de sedes: galería de 1–2 fotos dentro de la misma tarjeta. */
+.official-location-photos{
+  position:relative;display:flex;gap:4px;overflow:hidden;min-height:235px;
+  width:100%;background:#e8f1f7
+}
+.official-location-photos>.official-location-image{
+  display:block;flex:1 1 0;min-width:0;width:100%;height:235px;
+  object-fit:cover;object-position:center;min-height:0
+}
+.official-location-photos.has-two>.official-location-image:first-child{flex:1.4 1 0}
+.official-location-photos.has-two>.official-location-image:last-child{flex:.8 1 0}
+body.storefront-active.storefront-theme-premium-confianza .official-location-photos,
+body.storefront-active.storefront-theme-premium-compacta .official-location-photos{
+  height:100%;min-height:240px
+}
+body.storefront-active.storefront-theme-premium-confianza .official-location-photos>.official-location-image,
+body.storefront-active.storefront-theme-premium-compacta .official-location-photos>.official-location-image{
+  height:100%;min-height:240px
+}
+@media(max-width:950px){
+  body.storefront-active.storefront-theme-premium-confianza .official-location-photos,
+  body.storefront-active.storefront-theme-premium-compacta .official-location-photos{
+    height:205px;min-height:0
+  }
+  body.storefront-active.storefront-theme-premium-confianza .official-location-photos>.official-location-image,
+  body.storefront-active.storefront-theme-premium-compacta .official-location-photos>.official-location-image{
+    height:205px;min-height:0
+  }
+}
+@media(max-width:700px){
+  .official-location-photos,
+  body.storefront-active.storefront-theme-premium-confianza .official-location-photos,
+  body.storefront-active.storefront-theme-premium-compacta .official-location-photos{
+    height:165px;min-height:0
+  }
+  .official-location-photos>.official-location-image,
+  body.storefront-active.storefront-theme-premium-confianza .official-location-photos>.official-location-image,
+  body.storefront-active.storefront-theme-premium-compacta .official-location-photos>.official-location-image{
+    height:165px;min-height:0
+  }
+}
