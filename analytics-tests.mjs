@@ -99,6 +99,25 @@ assert.equal(febClamp.previous.end.getDate(),1);
 const weekly=comparisonRanges('week','',now);
 assert.equal((weekly.current.start-weekly.previous.start)/86400000,7);
 assert.equal((weekly.current.end-weekly.current.start)/86400000,7);
+
+const quick=await import('data:text/javascript;base64,'+
+  Buffer.from(readFileSync('catalog-quick-search.js','utf8')).toString('base64'));
+const candidates=new Map([
+  ['endo-1',{name:'Limas para endodoncia',brand:'ADALTA'}],
+  ['lab-1',{name:'Yeso dental',brand:'VRC'}]
+]);
+const subjects=quick.interestByArea([
+  {type:'product_open',product_id:'endo-1'},
+  {type:'product_open',product_id:'endo-1'},
+  {type:'product_open',product_id:'lab-1'},
+  {type:'visit',product_id:'endo-1'}
+],candidates);
+assert.deepEqual(subjects.slice(0,2).map(a=>[a.id,a.views]),
+  [['endodoncia',2],['laboratorio',1]]);
+const adminHtml=readFileSync('estadisticas.html','utf8');
+assert.ok(adminHtml.includes('id="analytics-areas"'));
+const tracker=readFileSync('catalog-analytics.js','utf8');
+assert.ok(tracker.includes('a#inquiry-quick'));
 const adminScript=readFileSync('analytics-admin.js','utf8');
 assert.ok(adminScript.includes('listProducts(true)'));
 assert.ok(adminScript.includes('productNames()'));
@@ -106,6 +125,9 @@ assert.ok(adminScript.includes('Promise.all(['));
 assert.ok(adminScript.includes('listAnalyticsEvents(previous.start,previous.end)'));
 assert.ok(adminScript.includes('renderProductInsights'));
 assert.ok(adminScript.includes('renderWhatsappByBrand'));
+assert.ok(adminScript.includes('renderAreaInsights(events,names)'));
+assert.ok(adminScript.includes('interestByArea'));
+
 assert.ok(!adminScript.includes('.innerHTML'));
 for (const id of ['analytics-products','analytics-whatsapp-brands','compare-visits','compare-whatsapp']){
   assert.ok(dashboard.includes('id="'+id+'"'));

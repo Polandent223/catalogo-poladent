@@ -1,5 +1,6 @@
 import {configured,login,logout,restoreSession,listAnalyticsEvents,listProducts} from './catalog-service.js';
 import {summarizeAnalytics,comparisonRanges,metricChange,formatDuration} from './analytics-summary.js';
+import {interestByArea} from './catalog-quick-search.js';
 const $=q=>document.querySelector(q),message=$('#analytics-message'),months=$('#analytics-month');
 function tell(text,error=false){message.textContent=text;message.className=error?'error':'';}
 function monthName(date){return new Intl.DateTimeFormat('es',{month:'long',year:'numeric'}).format(date);}
@@ -58,6 +59,17 @@ function renderWhatsappByBrand(data){
     appendInsightRow(list,item.name,'Consultas iniciadas',item.clicks,'clics');
   }
 }
+function renderAreaInsights(events,names){
+  const target=$('#analytics-areas');target.replaceChildren();
+  const areas=interestByArea(events,names);
+  if(!areas.length){
+    target.append(label('Aún no hay suficientes aperturas de fichas con nombres reconocibles para agrupar por área.'));
+    return;
+  }
+  for(const area of areas)appendInsightRow(target,area.name,
+    'Coincidencias aproximadas por nombre del producto',area.views,'aperturas');
+}
+
 function buildChart(summary,range){
   const chart=$('#analytics-chart');chart.replaceChildren();
   // Gráfico de barras del periodo, incluidos días con cero visitas.
@@ -89,6 +101,7 @@ function render(events,range,previousEvents,comparisonLabel,names){
   renderComparisons(data,summarizeAnalytics(previousEvents),comparisonLabel);
   renderProductInsights(data,names);
   renderWhatsappByBrand(data);
+  renderAreaInsights(events,names);
   const brands=$('#analytics-brands');brands.replaceChildren();
   if(!data.brands.length)brands.append(label('Todavía no hay productos abiertos en este periodo.'));
   for(const item of data.brands.slice(0,12)){

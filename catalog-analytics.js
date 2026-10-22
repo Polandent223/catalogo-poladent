@@ -73,7 +73,7 @@ export function startCatalogAnalytics() {
     record('product_open',0,detail.brand,detail.id);
   });
   document.addEventListener('click',event=>{
-    const link=event.target?.closest?.('a#inquiry-whatsapp, a#cart-whatsapp');
+    const link=event.target?.closest?.('a#inquiry-whatsapp, a#inquiry-quick, a#cart-whatsapp');
     if(!isRealWhatsAppClick(event,link))return;
     if(link.id==='cart-whatsapp'){
       // Una solicitud múltiple representa un clic, no uno por producto.

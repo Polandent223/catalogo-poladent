@@ -247,7 +247,7 @@ assert.equal(compact.enabled,false);
 assert.equal(compact.replace_welcome,false);
 assert.equal(compact.compact_order_mobile[2],'catalogo','Marcas y productos llegan pronto en móvil');
 assert.equal(compact.compact_order_desktop[2],'about','La versión PC prioriza presentación');
-assert.equal(compact.compact_mobile_hero_height,315);
+assert.equal(compact.compact_mobile_hero_height,280);
 assert.equal(compact.compact_desktop_hero_height,430);
 assert.equal(normalizeStorefront({theme:'premium-compacta',replace_welcome:true}).replace_welcome,true);
 assert.deepEqual(normalizeStorefront({
@@ -259,7 +259,7 @@ assert.deepEqual(normalizeStorefront({compact_order_mobile:['steps','hero','cata
   ['steps','hero','catalogo'],'Se respeta orden personalizado');
 assert.deepEqual([...normalizeStorefront({compact_order_mobile:['steps','hero','catalogo']}).compact_order_mobile].sort(),
   [...allSections].sort(),'Nunca se pierden secciones del catálogo');
-assert.equal(normalizeStorefront({compact_mobile_hero_height:900}).compact_mobile_hero_height,315);
+assert.equal(normalizeStorefront({compact_mobile_hero_height:900}).compact_mobile_hero_height,280);
 assert.equal(normalizeStorefront({compact_desktop_hero_height:-1}).compact_desktop_hero_height,430);
 assert.ok(page.includes('id="compact-mobile-title"'));
 assert.ok(page.includes('id="compact-mobile-summary"'));
@@ -272,7 +272,7 @@ assert.ok(adminCode.includes('function renderCompactOrder(device)'));
 assert.ok(adminCode.includes('compact_order_mobile:[...compactOrderMobile]'));
 assert.ok(adminCode.includes('compact_order_desktop:[...compactOrderDesktop]'));
 assert.ok(publicCode.includes('function applyCompactLayout(values,active)'));
-assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','.filters','.cart-toolbar'"));
+assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar'"));
 assert.ok(!publicCode.includes('main.appendChild(\'#products\')'));
 assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta main'));
 assert.ok(style.includes('order:var(--compact-mobile-order,4)'));
@@ -284,4 +284,39 @@ assert.ok(style.includes('scroll-snap-type:x proximity'));
 assert.ok(publicCode.includes("locationsLink.dataset.compactHideMobile='1'"));
 assert.ok(publicCode.includes("locationsLink.dataset.compactHideDesktop='1'"));
 
+
+const quick=await load('catalog-quick-search.js');
+assert.ok(quick.QUICK_AREAS.length>=5,'Hay accesos rápidos para distintas áreas');
+const sampleItems=[
+ {name:'Limas endodónticas 25 mm',brand:'ADALTA',status:'available'},
+ {name:'Brackets ortodoncia metálicos',brand:'DENCO',status:'available'},
+ {name:'Fresas carburo dental',brand:'ICE',status:'available'},
+ {name:'Cureta Gracey',brand:'ADALTA',status:'sold_out'}
+];
+const areas=quick.quickAreaCounts(sampleItems);
+assert.equal(areas.endodoncia,1);
+assert.equal(areas.ortodoncia,1);
+assert.equal(areas.instrumental,1);
+assert.equal(quick.quickAreasForProduct({name:'Lámpara de fotocurado'}).includes('equipos'),true);
+assert.equal(quick.quickAreasForProduct({name:'Una categoría inventada'}).length,0);
+assert.ok(page.includes('id="quick-areas"')&&page.includes('id="quick-area-buttons"'));
+assert.ok(page.includes('id="inquiry-quick"'));
+assert.ok(page.includes('RIF J-401910769'));
+assert.ok(!page.includes('<a href="admin.html">Administración</a>'),'Ocultar enlace administrativo en el sitio público');
+assert.ok(publicCode.includes('function renderQuickAreas()'));
+assert.ok(publicCode.includes('quickAreasForProduct(p).includes(activeQuickArea)'));
+assert.ok(publicCode.includes('function refreshQuickInquiry()'));
+assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas'"));
+assert.ok(publicCode.includes("field.primary='Ver productos'"));
+assert.ok(style.includes('.quick-area-buttons'));
+assert.ok(style.includes('.inquiry-quick'));
+
+
+const businessMatch=page.split('<script type="application/ld+json" id="poladent-business-schema">')[1]?.split('</script>')[0];
+assert.ok(businessMatch,'Datos públicos de empresa');
+const business=JSON.parse(businessMatch);
+assert.equal(business.taxID,'J-401910769');
+assert.equal(business.location.length,2);
+assert.deepEqual(business.location.map(x=>x.address.addressLocality),['Valencia','Maracay']);
+assert.ok(!JSON.stringify(business).includes('aggregateRating'),'Nunca inventar valoración');
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
