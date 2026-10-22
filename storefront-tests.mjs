@@ -247,7 +247,7 @@ assert.equal(compact.enabled,false);
 assert.equal(compact.replace_welcome,false);
 assert.equal(compact.compact_order_mobile[2],'catalogo','Marcas y productos llegan pronto en móvil');
 assert.equal(compact.compact_order_desktop[2],'about','La versión PC prioriza presentación');
-assert.equal(compact.compact_mobile_hero_height,315);
+assert.equal(compact.compact_mobile_hero_height,280);
 assert.equal(compact.compact_desktop_hero_height,430);
 assert.equal(normalizeStorefront({theme:'premium-compacta',replace_welcome:true}).replace_welcome,true);
 assert.deepEqual(normalizeStorefront({
@@ -259,7 +259,7 @@ assert.deepEqual(normalizeStorefront({compact_order_mobile:['steps','hero','cata
   ['steps','hero','catalogo'],'Se respeta orden personalizado');
 assert.deepEqual([...normalizeStorefront({compact_order_mobile:['steps','hero','catalogo']}).compact_order_mobile].sort(),
   [...allSections].sort(),'Nunca se pierden secciones del catálogo');
-assert.equal(normalizeStorefront({compact_mobile_hero_height:900}).compact_mobile_hero_height,315);
+assert.equal(normalizeStorefront({compact_mobile_hero_height:900}).compact_mobile_hero_height,280);
 assert.equal(normalizeStorefront({compact_desktop_hero_height:-1}).compact_desktop_hero_height,430);
 assert.ok(page.includes('id="compact-mobile-title"'));
 assert.ok(page.includes('id="compact-mobile-summary"'));
