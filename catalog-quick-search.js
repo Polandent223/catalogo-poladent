@@ -11,15 +11,17 @@ export const QUICK_AREAS=Object.freeze([
 export function searchFold(value){
   return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 }
-export function quickAreasForProduct(product,areas=QUICK_AREAS){
+export function quickAreasForProduct(product,areas=QUICK_AREAS,autoMatch=true){
+  if(product?.area_id){const id=String(product.area_id);return areas.some(a=>a.id===id&&a.enabled!==false)?[id]:[];}
+  if(!autoMatch)return [];
   const text=searchFold((product?.name||'')+' '+(product?.description||''));
   return areas.filter(area=>area.enabled!==false&&Array.isArray(area.terms)&&area.terms.some(term=>text.includes(searchFold(term)))).map(area=>area.id);
 }
-export function quickAreaCounts(products,areas=QUICK_AREAS){
+export function quickAreaCounts(products,areas=QUICK_AREAS,autoMatch=true){
   const counts=Object.fromEntries(areas.map(x=>[x.id,0]));
   for(const p of products||[]){
     if(!['available','sold_out'].includes(p.status))continue;
-    for(const id of quickAreasForProduct(p,areas))counts[id]++;
+    for(const id of quickAreasForProduct(p,areas,autoMatch))counts[id]++;
   }
   return counts;
 }
