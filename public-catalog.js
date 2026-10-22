@@ -2,6 +2,7 @@ import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES} from './storefront-settings.js';
+import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -15,7 +16,7 @@ let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map()
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
 const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
 let storefrontSettings=null,storefrontDraft=null;
-let selected=null,filtered=[],limit=12,searchTimer=0;
+let selected=null,filtered=[],limit=12,searchTimer=0,activeQuickArea='';
 let cartLines=[],catalogLoaded=false;
 const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function legacy(){
@@ -271,6 +272,7 @@ function renderStorefront(){
   renderPremiumSections(values,active);
   applyCompactLayout(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
+  $('#footer-locations').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   const premium=active&&['premium-confianza','premium-compacta'].includes(values.theme);
   const logo=$('#premium-brand-logo');
   logo.hidden=!(premium&&values.brand_logo_url);
@@ -387,11 +389,32 @@ function updatePagination(){
   const hasBackCover=back.childElementCount>0;
   back.hidden=!hasBackCover||!brand.value||!more.hidden||Boolean(search.value.trim())||available.checked;
 }
+function renderQuickAreas(){
+  const section=$('#quick-areas'),container=$('#quick-area-buttons');
+  const counts=quickAreaCounts(products);
+  const options=QUICK_AREAS.filter(area=>counts[area.id]>0);
+  section.hidden=options.length===0;
+  if(section.hidden){activeQuickArea='';return;}
+  container.replaceChildren();
+  const addButton=(id,label,count)=>{
+    const button=element('button',label+(count===null?'':' · '+count),'quick-area-button');
+    button.type='button';button.dataset.area=id;
+    button.setAttribute('aria-pressed',String(activeQuickArea===id));
+    button.addEventListener('click',()=>{
+      activeQuickArea=id;limit=12;renderQuickAreas();renderProducts();
+    });
+    container.append(button);
+  };
+  addButton('','Todos',products.length);
+  for(const area of options)addButton(area.id,area.label,counts[area.id]);
+}
+
 function renderProducts(){
   const q=normalize(search.value);
   filtered=products.filter(p=>(!brand.value||p.brand===brand.value)
     &&(!available.checked||p.status==='available')
-    &&(!q||searchIndex.get(p.id)?.includes(q)));
+    &&(!q||searchIndex.get(p.id)?.includes(q))
+    &&(!activeQuickArea||quickAreasForProduct(p).includes(activeQuickArea)));
   grid.replaceChildren();
   appendCards(filtered.slice(0,limit),0);
   status.textContent=filtered.length?filtered.length+' productos':'No encontramos productos con estos filtros.';
@@ -589,6 +612,18 @@ function renderInquiry(){
   label.hidden=contacts.length===1;
   $('#quote-title').textContent=selected.status==='sold_out'
     ?'Consulta disponibilidad y solicita cotización':'Solicita una cotización';
+  const quick=$('#inquiry-quick');
+  const phone=chooser.value||contacts[0]?.phone||'';
+  const shortMessage=selected
+    ?'Hola, POLADENT Casa Dental. Quisiera consultar precio y disponibilidad de '+selected.name+
+      ' ('+selected.brand+'). Producto: '+shareProductUrl(selected)
+    :'';
+  const quickUrl=/^[1-9][0-9]{7,14}$/.test(phone)&&shortMessage
+    ?'https://wa.me/'+phone+'?text='+encodeURIComponent(shortMessage):'';
+  quick.hidden=!quickUrl;
+  if(quickUrl)quick.href=quickUrl;
+  else quick.removeAttribute('href');
+  $('#inquiry-quick').nextElementSibling.hidden=!quickUrl;
   updateQuoteLink();
 }
 quoteForm.addEventListener('input',updateQuoteLink);
@@ -667,7 +702,8 @@ async function load(){
     cartLines=restoreCart();
     catalogLoaded=true;
     renderCart();
-    searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand)]));
+    searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand+' '+(p.description||''))]));
+    renderQuickAreas();
     const names=[...new Set([...products.map(p=>p.brand),...profiles.map(p=>p.name)])].sort();
     const fragment=document.createDocumentFragment();
     for(const name of names){
