@@ -171,7 +171,7 @@ assert.ok(style.includes('.official-location-card'));
 assert.ok(adminPage.includes('id="design-add-location"'),'Se pueden agregar más sucursales');
 assert.ok(adminCode.includes('function appendLocationEditor('),'Deben existir formularios dinámicos de sedes');
 assert.ok(adminCode.includes('function getLocationUploadFiles('),'Las fotos locales deben subirse al guardar');
-assert.ok(adminCode.includes('locationPhotoPreviews.has(section)'),'Las vistas previas no dependen del orden de las sedes');
+assert.ok(adminCode.includes('locationPhotoPreviews.get(section)'),'Las vistas previas no dependen del orden de las sedes');
 assert.ok(publicCode.includes("$('#storefront-locations-link').hidden="),'El botón de sedes permanece oculto hasta activarse');
 assert.ok(page.includes('id="storefront-locations-link"'));
 const previewLocation=normalizeStorefront({locations:[{name:'Sucursal de prueba',photo_url:'blob:https://example.com/abc'}]},true);
