@@ -120,6 +120,10 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 .storefront-admin #design-workspace[data-preview-device=desktop] .design-preview{position:static;overflow-x:auto}
 .storefront-admin #design-workspace[data-preview-device=desktop] .design-preview iframe{width:100%;min-width:840px;max-width:none;height:670px;border-radius:13px}
 @media(max-width:680px){.storefront-admin .compact-order-columns{grid-template-columns:1fr}}
+.storefront-admin .location-pack-upload{border:1px dashed #8ec4e4;background:#f0faff;border-radius:12px;padding:14px;margin:12px 0}
+.storefront-admin .location-pack-upload strong{color:#125481;font-size:14px}
+.storefront-admin .location-pack-upload p{font-size:12px;line-height:1.5}
+.storefront-admin .location-pack-upload input{max-width:100%}
 </style>
 </head>
 <body>
@@ -268,6 +272,12 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <fieldset id="design-locations"><legend>Sedes oficiales · Valencia y Maracay</legend>
 <p>Este apartado es editable y permanece oculto al público hasta que actives «Mostrar sedes». Puedes subir dos fotografías reales por sede: la principal (entrada, identificación o fachada) y otra del interior. También puedes colocar sus enlaces HTTPS.</p>
 <label class="design-toggle"><input id="design-locations-enabled" type="checkbox"> Mostrar las sedes oficiales en el diseño comercial</label>
+<div class="location-pack-upload">
+<strong>Carga rápida de las fotos reales de POLADENT</strong>
+<p>Selecciona juntas las fotografías <code>valencia_principal.webp</code>, <code>valencia_interior.webp</code>, <code>maracay_fachada.webp</code> y <code>maracay_interior.webp</code> (primero extrae el ZIP). El editor las asigna a cada sede para la vista previa.</p>
+<label>Elegir las cuatro imágenes
+<input id="design-location-pack" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+</div>
 <div id="design-location-fields"></div>
 <button type="button" id="design-add-location">+ Agregar otra sucursal</button>
 <p>Las sedes se pueden agregar, retirar y modificar. Comprueba primero la vista previa: las fotos solo cambiarán para tus clientes al guardar una configuración activa.</p>
