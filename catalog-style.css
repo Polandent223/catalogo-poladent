@@ -1054,7 +1054,7 @@ body.storefront-active.storefront-theme-premium-compacta .product-grid{gap:13px}
   body.storefront-active.storefront-theme-premium-compacta header .edition{display:none}
   body.storefront-active.storefront-theme-premium-compacta #premium-brand-logo{width:30px;height:30px}
   body.storefront-active.storefront-theme-premium-compacta #storefront-hero{
-    width:calc(100% - 22px);min-height:var(--compact-mobile-hero-height,315px);
+    width:calc(100% - 22px);min-height:var(--compact-mobile-hero-height,280px);
     height:auto;margin:9px auto 6px;padding:17px 16px 18px;align-items:center;
     border-radius:17px;box-shadow:0 11px 30px #1a548225
   }
