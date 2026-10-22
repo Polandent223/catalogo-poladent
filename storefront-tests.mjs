@@ -338,7 +338,7 @@ assert.ok(adminCode.includes("file.dataset.locationPhoto=key"));
 assert.ok(adminCode.includes("requested.locations[i][key]=uploaded.url"));
 assert.ok(publicCode.includes("url:location.interior_url"));
 assert.ok(publicCode.includes("'official-location-photos'"));
-assert.ok(publicCode.includes("gallery.classList.toggle('has-two',photos.length===2)"));
+assert.ok(publicCode.includes("gallery.classList.toggle('has-two',photos.length>=2)"));
 assert.ok(style.includes('.official-location-photos.has-two'));
 
 
@@ -346,5 +346,45 @@ assert.ok(adminPage.includes('id="design-location-pack"'));
 assert.ok(adminCode.includes("$('#design-location-pack').addEventListener('change'"));
 assert.ok(adminCode.includes("selected.items.add(file)"));
 assert.ok(adminCode.includes("assigned+' fotografías asignadas"));
+
+
+const galleryValues=normalizeStorefront({locations:[{
+  name:'Sucursal real',gallery_urls:[
+    'https://example.com/tercera.jpg','javascript:alert(1)','http://insecure.example/x.jpg',
+    'https://example.com/cuarta.jpg'
+  ]
+}]});
+assert.deepEqual(galleryValues.locations[0].gallery_urls,
+  ['https://example.com/tercera.jpg','https://example.com/cuarta.jpg']);
+assert.deepEqual(original.locations[0].gallery_urls,[]);
+assert.equal(normalizeStorefront({locations:[{
+  gallery_urls:['blob:https://example.com/temp']
+}]}).locations[0].gallery_urls.length,0);
+assert.deepEqual(normalizeStorefront({locations:[{
+  gallery_urls:['blob:https://example.com/temp']
+}]},true).locations[0].gallery_urls,['blob:https://example.com/temp']);
+assert.equal(normalizeStorefront({locations:[{
+  gallery_urls:Array(20).fill('https://example.com/photo.jpg')
+}]}).locations[0].gallery_urls.length,6);
+assert.ok(page.includes('id="location-photo-dialog"'));
+assert.ok(page.includes('id="location-photo-full"'));
+assert.ok(page.includes('id="location-photo-thumbs"'));
+assert.ok(page.includes('id="location-photo-close"'));
+assert.ok(page.includes('id="location-photo-prev"'));
+assert.ok(page.includes('id="location-photo-next"'));
+assert.ok(publicCode.includes('function openLocationViewer(location,photos,index=0)'));
+assert.ok(publicCode.includes('function showLocationViewerPhoto(index)'));
+assert.ok(publicCode.includes("locationViewer.showModal()"));
+assert.ok(publicCode.includes("location.gallery_urls||[]"));
+assert.ok(publicCode.includes("photos.slice(0,2)"));
+assert.ok(publicCode.includes("'Ver fotos ('+photos.length+')'"));
+assert.ok(publicCode.includes("event.key==='ArrowLeft'||event.key==='ArrowRight'"));
+assert.ok(publicCode.includes("event.changedTouches[0].clientX"));
+assert.ok(adminCode.includes('function appendExtraLocationPhoto(section,url='));
+assert.ok(adminCode.includes('MAX_EXTRA_LOCATION_PHOTOS=6'));
+assert.ok(adminCode.includes("requested.locations[i].gallery_urls=gallery"));
+assert.ok(adminCode.includes("row.querySelector('[data-location-extra-file]')?.files[0]"));
+assert.ok(style.includes('.location-photo-dialog::backdrop'));
+assert.ok(style.includes('.official-photo-trigger'));
 
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');

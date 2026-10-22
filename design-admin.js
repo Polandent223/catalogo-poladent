@@ -13,6 +13,8 @@ let published=normalizeStorefront(STORE_DEFAULTS),busy=false,previewURLs={deskto
 
 
 const locationPhotoPreviews=new Map();
+const locationExtraPreviews=new Map();
+const MAX_EXTRA_LOCATION_PHOTOS=6;
 const locationFields=['name','city','address','hours','phone','rif','photo_url','interior_url'];
 const locationLabels={
   name:'Nombre de la sede',city:'Ciudad y estado',address:'Dirección',
@@ -20,7 +22,51 @@ const locationLabels={
   photo_url:'Fotografía principal: fachada o identificación de la sede (URL HTTPS)',
   interior_url:'Segunda fotografía: interior de la tienda (URL HTTPS)'
 };
+function releaseExtraLocationPreview(row){
+  const url=locationExtraPreviews.get(row);
+  if(url)URL.revokeObjectURL(url);
+  locationExtraPreviews.delete(row);
+}
+function appendExtraLocationPhoto(section,url=''){
+  const box=section.querySelector('[data-gallery-extras]');
+  if(box.children.length>=MAX_EXTRA_LOCATION_PHOTOS)return;
+  const row=document.createElement('div');row.className='location-extra-row';
+  const label=document.createElement('label');
+  label.textContent='Fotografía adicional '+(box.children.length+1)+' (URL HTTPS)';
+  const urlInput=document.createElement('input');
+  urlInput.type='url';urlInput.maxLength=2000;urlInput.placeholder='https://...';
+  urlInput.value=url;urlInput.dataset.locationExtraUrl='true';
+  label.append(urlInput);row.append(label);
+  const fileLabel=document.createElement('label');
+  fileLabel.textContent='O seleccionar otra fotografía';
+  const fileInput=document.createElement('input');
+  fileInput.type='file';fileInput.accept='image/jpeg,image/png,image/webp';
+  fileInput.dataset.locationExtraFile='true';
+  fileInput.addEventListener('change',()=>{
+    releaseExtraLocationPreview(row);
+    if(fileInput.files[0])locationExtraPreviews.set(row,URL.createObjectURL(fileInput.files[0]));
+    sendPreview();
+  });
+  fileLabel.append(fileInput);row.append(fileLabel);
+  const remove=document.createElement('button');
+  remove.type='button';remove.textContent='Quitar foto adicional';
+  remove.addEventListener('click',()=>{
+    releaseExtraLocationPreview(row);
+    row.remove();
+    refreshExtraLocationNumbers(section);
+    sendPreview();
+  });
+  row.append(remove);box.append(row);refreshExtraLocationNumbers(section);
+}
+function refreshExtraLocationNumbers(section){
+  const rows=[...section.querySelectorAll('[data-gallery-extras] .location-extra-row')];
+  rows.forEach((row,i)=>row.querySelector('label').firstChild.textContent=
+    'Fotografía adicional '+(i+1)+' (URL HTTPS)');
+  const add=section.querySelector('[data-add-extra-photo]');
+  if(add)add.disabled=busy||rows.length>=MAX_EXTRA_LOCATION_PHOTOS;
+}
 function releaseLocationPreview(section){
+  for(const row of section.querySelectorAll('.location-extra-row'))releaseExtraLocationPreview(row);
   for(const url of Object.values(locationPhotoPreviews.get(section)||{}))URL.revokeObjectURL(url);
   locationPhotoPreviews.delete(section);
 }
@@ -28,6 +74,7 @@ function refreshLocationNumbers(){
   for(const [index,card] of [...$('#design-location-fields').children].entries())
     card.querySelector('h3').textContent='Sucursal '+(index+1);
   $('#design-add-location').disabled=busy||$('#design-location-fields').children.length>=8;
+  for(const section of $('#design-location-fields').children)refreshExtraLocationNumbers(section);
 }
 function appendLocationEditor(location={}){
   const holder=$('#design-location-fields');
@@ -63,6 +110,21 @@ function appendLocationEditor(location={}){
     });
     fileLabel.append(file);section.append(fileLabel);
   }
+  const galleryBox=document.createElement('div');
+  galleryBox.className='location-extra-photos';galleryBox.dataset.galleryExtras='true';
+  const galleryHeading=document.createElement('h4');
+  galleryHeading.textContent='Más fotografías para mostrar al público (hasta 6 adicionales)';
+  section.append(galleryHeading,galleryBox);
+  const addPhoto=document.createElement('button');
+  addPhoto.type='button';addPhoto.textContent='+ Agregar otra fotografía';
+  addPhoto.dataset.addExtraPhoto='true';
+  addPhoto.addEventListener('click',()=>{
+    appendExtraLocationPhoto(section);sendPreview();
+  });
+  section.append(addPhoto);
+  for(const url of (Array.isArray(location.gallery_urls)?location.gallery_urls:[]).slice(0,MAX_EXTRA_LOCATION_PHOTOS))
+    appendExtraLocationPhoto(section,url);
+  refreshExtraLocationNumbers(section);
   const remove=document.createElement('button');
   remove.type='button';remove.textContent='Quitar esta sede de la propuesta';
   remove.addEventListener('click',()=>{
@@ -72,7 +134,7 @@ function appendLocationEditor(location={}){
   section.append(remove);holder.append(section);refreshLocationNumbers();
 }
 function drawLocationEditor(settings){
-  for(const section of locationPhotoPreviews.keys())releaseLocationPreview(section);
+  for(const section of $('#design-location-fields').children)releaseLocationPreview(section);
   $('#design-location-fields').replaceChildren();
   $('#design-locations-enabled').checked=Boolean(settings.locations_enabled);
   for(const location of settings.locations||[])appendLocationEditor(location);
@@ -84,6 +146,9 @@ function readLocations(useFilePreview=true){
     for(const input of section.querySelectorAll('[data-location-field]'))
       entry[input.dataset.locationField]=input.value.trim();
     if(useFilePreview)Object.assign(entry,locationPhotoPreviews.get(section)||{});
+    entry.gallery_urls=[...section.querySelectorAll('.location-extra-row')].map(row=>
+      useFilePreview&&locationExtraPreviews.has(row)?locationExtraPreviews.get(row):
+      row.querySelector('[data-location-extra-url]').value.trim()).filter(Boolean);
     return entry;
   });
 }
@@ -402,6 +467,24 @@ form.addEventListener('submit',async event=>{
         toRemove.push(uploaded.path);
         requested.locations[i][key]=uploaded.url;
       }
+    }
+    // No alterar URL/fotos anteriores hasta que la subida nueva finalice.
+    for(const [i,section] of [...$('#design-location-fields').children].entries()){
+      const gallery=[];
+      for(const row of section.querySelectorAll('.location-extra-row')){
+        const file=row.querySelector('[data-location-extra-file]')?.files[0];
+        const url=row.querySelector('[data-location-extra-url]').value.trim();
+        if(file){
+          report('Subiendo foto adicional de sucursal '+(i+1)+'…');
+          const uploaded=await uploadImage(file);
+          toRemove.push(uploaded.path);
+          gallery.push(uploaded.url);
+        }else if(url){
+          if(!/^https:\/\//i.test(url))throw Error('Las fotografías adicionales requieren HTTPS.');
+          gallery.push(url);
+        }
+      }
+      requested.locations[i].gallery_urls=gallery;
     }
     report('Guardando el diseño en Firebase…');
     const result=await saveStorefrontSettings(requested);

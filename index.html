@@ -95,6 +95,23 @@
 </div>
 <p id="cart-feedback" class="cart-feedback" role="status" aria-live="polite"></p>
 <p id="catalog-status" role="status">Cargando productos…</p><section id="products" class="product-grid" aria-label="Productos"></section><button id="more" hidden>Ver más productos</button><section id="brand-back-cover" class="brand-back-cover" hidden></section></main>
+<dialog id="location-photo-dialog" class="location-photo-dialog" aria-labelledby="location-photo-title" aria-modal="true">
+  <div class="location-photo-top">
+    <div>
+      <p class="location-photo-kicker">SEDES OFICIALES · POLADENT CASA DENTAL</p>
+      <h2 id="location-photo-title">Galería de la sucursal</h2>
+      <p id="location-photo-count" role="status" aria-live="polite"></p>
+    </div>
+    <button id="location-photo-close" type="button" aria-label="Cerrar galería">Cerrar ✕</button>
+  </div>
+  <div class="location-photo-stage">
+    <button id="location-photo-prev" type="button" aria-label="Ver fotografía anterior">‹</button>
+    <img id="location-photo-full" alt="">
+    <button id="location-photo-next" type="button" aria-label="Ver fotografía siguiente">›</button>
+  </div>
+  <div id="location-photo-thumbs" class="location-photo-thumbs" aria-label="Elegir fotografía de la sede"></div>
+  <p class="location-photo-hint">Desliza la foto en el teléfono o utiliza las flechas para recorrerlas.</p>
+</dialog>
 <dialog id="detail" aria-labelledby="detail-name">
 <button id="close-detail" aria-label="Cerrar detalle">Cerrar ✕</button>
 <div class="product-dialog-layout">
