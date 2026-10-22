@@ -29,4 +29,9 @@ assert.equal(den[0].source_key,'csv-denco-denco-001');
 assert.equal(readEntries(header+'2,Forceps,MEDESY,,disponible,forceps.webp,,2\n')[0].area_id,'');
 assert.throws(()=>readEntries(denco.replace('endodoncia','mal area')),/area_id/);
 
-console.log('Importador CSV: 14 pruebas correctas.');
+assert.equal(readEntries('nombre,marca,foto,area\nLimas,DENCO,limas.webp,endodoncia')[0].area_id,'endodoncia');
+assert.equal(readEntries('nombre,marca,foto,categoria\nMotor endodóntico,DENCO,motor.webp,endodoncia')[0].area_id,'endodoncia');
+const template = readFileSync(new URL('./plantilla_productos.csv', import.meta.url),'utf8');
+assert.equal(template.trim().split(',').at(-1),'area_id');
+assert.equal(readEntries(template+'1,Prueba,DENCO,,oculto,prueba.webp,,1,endodoncia\n')[0].status,'hidden');
+console.log('Importador CSV: pruebas de área, plantilla y compatibilidad correctas.');
