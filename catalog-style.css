@@ -1189,3 +1189,38 @@ body.storefront-active.storefront-theme-premium-compacta .product-grid{gap:13px}
 @media(min-width:701px){
   body.storefront-active.storefront-theme-premium-compacta main [data-compact-hide-desktop="1"]{display:none!important}
 }
+
+
+/* Navegación rápida: muestras reales, nunca categorías ficticias */
+.quick-areas{max-width:1104px;width:100%;margin:7px auto 13px;padding:13px 15px;
+  background:#fff;border:1px solid #dce8f1;border-radius:14px;box-shadow:0 5px 16px #123c6010}
+.quick-areas-header{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-bottom:11px}
+.quick-areas-header strong{font-size:14px;color:#123d64}
+.quick-areas-header span{font-size:11px;color:#678092}
+.quick-area-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.quick-area-button{display:inline-flex;align-items:center;white-space:nowrap;min-height:35px;
+  border-radius:30px;border:1px solid #c6dfed;color:#0e5078;background:#f5fbff;
+  padding:8px 13px;font-size:11px;font-weight:750;cursor:pointer}
+.quick-area-button[aria-pressed=true]{background:#0a5890;border-color:#0a5890;color:#fff}
+.quick-area-button:focus-visible{outline:3px solid #53b0e0;outline-offset:2px}
+.inquiry-quick{display:block;text-align:center;text-decoration:none;border-radius:10px;
+  padding:13px 12px;min-height:46px;margin:10px 0 7px;background:#078565;color:#fff;
+  font-size:14px;font-weight:800;box-shadow:0 5px 17px #06563b29}
+.inquiry-quick:hover,.inquiry-quick:focus-visible{background:#08664e;color:#fff}
+.inquiry-quick-caption{font-size:11px;color:#426753;margin:4px 0 17px;line-height:1.45}
+body.storefront-active.storefront-theme-premium-compacta #quick-areas{width:calc(100% - 36px);max-width:1180px}
+body.storefront-active.storefront-theme-premium-compacta .quick-areas{margin:4px auto 8px}
+footer{line-height:1.5}
+footer span{display:block;font-size:12px;color:#546e82}
+footer a[href*="wa.me"]{font-weight:750;color:#097d69}
+@media(max-width:700px){
+  .quick-areas{width:calc(100% - 22px);max-width:100%;margin:6px auto 9px;
+    padding:10px 11px;border-radius:11px}
+  .quick-areas-header{margin-bottom:7px}
+  .quick-areas-header span{display:none}
+  .quick-area-buttons{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .quick-area-button{flex:0 0 auto;scroll-snap-align:start;font-size:10px;padding:7px 11px;min-height:33px}
+  body.storefront-active.storefront-theme-premium-compacta #quick-areas{width:calc(100% - 22px)}
+  .inquiry-quick{font-size:13px}
+}
