@@ -311,4 +311,12 @@ assert.ok(publicCode.includes("field.primary='Ver productos'"));
 assert.ok(style.includes('.quick-area-buttons'));
 assert.ok(style.includes('.inquiry-quick'));
 
+
+const businessMatch=page.match(/<script type="application\\/ld\\+json" id="poladent-business-schema">([^<]+)<\\/script>/);
+assert.ok(businessMatch,'Datos públicos de empresa');
+const business=JSON.parse(businessMatch[1]);
+assert.equal(business.taxID,'J-401910769');
+assert.equal(business.location.length,2);
+assert.deepEqual(business.location.map(x=>x.address.addressLocality),['Valencia','Maracay']);
+assert.ok(!JSON.stringify(business).includes('aggregateRating'),'Nunca inventar valoración');
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
