@@ -341,4 +341,10 @@ assert.ok(publicCode.includes("'official-location-photos'"));
 assert.ok(publicCode.includes("gallery.classList.toggle('has-two',photos.length===2)"));
 assert.ok(style.includes('.official-location-photos.has-two'));
 
+
+assert.ok(adminPage.includes('id="design-location-pack"'));
+assert.ok(adminCode.includes("$('#design-location-pack').addEventListener('change'"));
+assert.ok(adminCode.includes("selected.items.add(file)"));
+assert.ok(adminCode.includes("assigned+' fotografías asignadas"));
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
