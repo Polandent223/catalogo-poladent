@@ -95,6 +95,36 @@ function getLocationUploadFiles(){
 $('#design-add-location').addEventListener('click',()=>{
   appendLocationEditor();sendPreview();
 });
+$('#design-location-pack').addEventListener('change',event=>{
+  const files=[...event.target.files];
+  if(!files.length)return;
+  let assigned=0;
+  for(const file of files){
+    const name=file.name.toLowerCase().replace(/\.[^.]+$/,'');
+    const city=name.startsWith('valencia_')?'valencia':
+      name.startsWith('maracay_')?'maracay':'';
+    const field=['valencia_principal','maracay_fachada','maracay_principal'].includes(name)
+      ?'photo_url':
+      ['valencia_interior','maracay_interior'].includes(name)?'interior_url':'';
+    if(!city||!field)continue;
+    const section=[...$('#design-location-fields').children].find(node=>
+      [...node.querySelectorAll('[data-location-field="city"],[data-location-field="name"]')]
+        .some(input=>input.value.toLowerCase().includes(city)));
+    const target=section?.querySelector('[data-location-photo="'+field+'"]');
+    if(!target)continue;
+    try{
+      const selected=new DataTransfer();selected.items.add(file);
+      target.files=selected.files;
+      target.dispatchEvent(new Event('change',{bubbles:true}));
+      assigned++;
+    }catch{
+      report('Tu navegador no permite la selección automática. Puedes cargar cada imagen en su campo.',true);
+      return;
+    }
+  }
+  report(assigned+' fotografías asignadas a las sedes para vista previa; no se han publicado.');
+});
+
 
 const compactLabels={
   hero:'Portada principal',trust:'Mensajes rápidos',catalogo:'Marcas y productos',
