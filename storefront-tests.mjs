@@ -10,6 +10,30 @@ const load=async name=>{
 };
 const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL}=await load('storefront-settings.js');
 const {parseCatalogDocuments}=await load('catalog-public-data.js');
+const {bannerImageForViewport}=await load('banner-slides.js');
+const dualBanner={desktop_url:'https://example.com/escritorio.webp',mobile_url:'https://example.com/telefono.webp'};
+assert.equal(bannerImageForViewport(dualBanner,false),dualBanner.desktop_url);
+assert.equal(bannerImageForViewport(dualBanner,true),dualBanner.mobile_url);
+assert.equal(bannerImageForViewport({desktop_url:dualBanner.desktop_url},true),dualBanner.desktop_url,
+  'Si falta la imagen móvil, debe avanzar usando la de PC');
+assert.equal(bannerImageForViewport({mobile_url:dualBanner.mobile_url},false),dualBanner.mobile_url,
+  'Si falta la imagen PC, debe utilizar la de móvil');
+assert.equal(bannerImageForViewport(null,true),'');
+
+
+const publicBannerJS=read('public-catalog.js'),responsiveStyles=read('catalog-style.css');
+assert.ok(publicBannerJS.includes("bannerMobileViewport.matches"),
+  'En Android se debe cambiar directamente el IMG por la imagen del teléfono');
+assert.ok(publicBannerJS.includes("source.removeAttribute('srcset')"),
+  'No depender de la mutación de picture/source para pasar al siguiente banner');
+assert.ok(publicBannerJS.includes("window.setTimeout"),
+  'El carrusel debe programar cada paso en móviles y PC');
+assert.ok(publicBannerJS.includes("bannerMobileViewport.addEventListener('change',paintBannerSlide)"),
+  'Al girar el teléfono se debe actualizar la imagen');
+assert.ok(responsiveStyles.includes('body.storefront-active.storefront-theme-premium-compacta #brand-hero:not([hidden])'),
+  'El selector de marca debe tener una tarjeta horizontal de ancho controlado');
+assert.ok(responsiveStyles.includes('max-height:min(60dvh,450px);object-fit:contain'),
+  'Las fotos del móvil deben conservar su composición original');
 
 const original=normalizeStorefront();
 assert.equal(original.enabled,false,'Por defecto nadie ve el rediseño hasta la aprobación');
