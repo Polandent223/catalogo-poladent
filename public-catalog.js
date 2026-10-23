@@ -3,6 +3,7 @@ import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
+import {bannerImageForViewport} from './banner-slides.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -92,6 +93,7 @@ function renderBrandHero(){
   if(!brand.value)return;
   const name=brand.value,profile=profiles.find(p=>p.name===name);
   const main=element('div',null,'brand-hero-content');
+  main.classList.toggle('brand-hero-with-logo',Boolean(profile?.logo_url));
   if(profile?.cover_url) {
     const cover=element('img',null,'brand-hero-cover');
     cover.src=cloudinaryImage(imageUrl(profile.cover_url),1440);
@@ -351,19 +353,22 @@ function applyCompactLayout(values,active){
 }
 
 let slideTimer=null,bannerSlides=[],bannerSlideIndex=0,bannerSlideKey='';
+const bannerMobileViewport=window.matchMedia('(max-width:700px) and (orientation:portrait)');
 let bannerAutoPlay=true;
 const bannerReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 function stopBannerTimer(){
-  if(slideTimer!==null)window.clearInterval(slideTimer);
+  if(slideTimer!==null)window.clearTimeout(slideTimer);
   slideTimer=null;
 }
 function paintBannerSlide(){
   if(!bannerSlides.length)return;
   const slide=bannerSlides[bannerSlideIndex];
   const img=$('#storefront-banner'),source=$('#storefront-mobile-source');
-  img.src=slide.desktop_url||slide.mobile_url;
-  if(slide.mobile_url)source.srcset=slide.mobile_url;
-  else source.removeAttribute('srcset');
+  // Actualizar el IMG real evita que algunos navegadores Android mantengan
+  // la primera foto al cambiar dinámicamente source.srcset de un picture.
+  source.removeAttribute('srcset');
+  const url=bannerImageForViewport(slide,bannerMobileViewport.matches);
+  if(url && img.getAttribute('src')!==url) img.src=url;
   for(const [i,dot] of [...$('#storefront-slide-dots').children].entries()){
     dot.setAttribute('aria-pressed',String(i===bannerSlideIndex));
     dot.setAttribute('aria-label','Ver banner '+(i+1)+' de '+bannerSlides.length);
@@ -372,8 +377,10 @@ function paintBannerSlide(){
 function startBannerTimer(){
   stopBannerTimer();
   if(!bannerAutoPlay||bannerSlides.length<2||bannerReducedMotion.matches||document.hidden)return;
-  slideTimer=window.setInterval(()=>{
+  slideTimer=window.setTimeout(()=>{
+    slideTimer=null;
     if(!document.hidden){bannerSlideIndex=(bannerSlideIndex+1)%bannerSlides.length;paintBannerSlide();}
+    startBannerTimer();
   },5000);
 }
 function chooseBannerSlide(index){
@@ -384,6 +391,9 @@ function chooseBannerSlide(index){
 $('#storefront-slide-prev').addEventListener('click',()=>chooseBannerSlide(bannerSlideIndex-1));
 $('#storefront-slide-next').addEventListener('click',()=>chooseBannerSlide(bannerSlideIndex+1));
 document.addEventListener('visibilitychange',startBannerTimer);
+window.addEventListener('pageshow',startBannerTimer);
+if(bannerMobileViewport.addEventListener)
+  bannerMobileViewport.addEventListener('change',paintBannerSlide);
 if(bannerReducedMotion.addEventListener)
   bannerReducedMotion.addEventListener('change',startBannerTimer);
 function setupBannerSlides(slides,autoPlay){
