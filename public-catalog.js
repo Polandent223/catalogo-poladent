@@ -354,7 +354,7 @@ function applyCompactLayout(values,active){
 
 let slideTimer=null,bannerSlides=[],bannerSlideIndex=0,bannerSlideKey='';
 const bannerMobileViewport=window.matchMedia('(max-width:700px) and (orientation:portrait)');
-let bannerAutoPlay=true;
+let bannerAutoPlay=true,bannerIntervalMs=3000,bannerUserPaused=false;
 const bannerReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 function stopBannerTimer(){
   if(slideTimer!==null)window.clearTimeout(slideTimer);
@@ -376,33 +376,70 @@ function paintBannerSlide(){
 }
 function startBannerTimer(){
   stopBannerTimer();
-  if(!bannerAutoPlay||bannerSlides.length<2||bannerReducedMotion.matches||document.hidden)return;
+  // La preferencia de menos animaciones elimina transiciones, pero no impide
+  // la rotación solicitada por el propietario. Siempre puede pausarse.
+  if(!bannerAutoPlay||bannerUserPaused||bannerSlides.length<2||document.hidden)return;
   slideTimer=window.setTimeout(()=>{
     slideTimer=null;
     if(!document.hidden){bannerSlideIndex=(bannerSlideIndex+1)%bannerSlides.length;paintBannerSlide();}
     startBannerTimer();
-  },5000);
+  },bannerIntervalMs);
 }
 function chooseBannerSlide(index){
   if(!bannerSlides.length)return;
   bannerSlideIndex=(index+bannerSlides.length)%bannerSlides.length;
   paintBannerSlide();startBannerTimer();
 }
+const bannerStage=$('#storefront-picture');
+let bannerTouchStart=null;
+bannerStage.addEventListener('touchstart',event=>{
+  if(event.touches.length!==1)return;
+  bannerTouchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+},{passive:true});
+bannerStage.addEventListener('touchend',event=>{
+  if(!bannerTouchStart||!event.changedTouches.length)return;
+  const dx=event.changedTouches[0].clientX-bannerTouchStart.x;
+  const dy=event.changedTouches[0].clientY-bannerTouchStart.y;
+  bannerTouchStart=null;
+  if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)*1.15)return;
+  chooseBannerSlide(bannerSlideIndex+(dx<0?1:-1));
+},{passive:true});
+bannerStage.addEventListener('touchcancel',()=>{bannerTouchStart=null;},{passive:true});
+const bannerPlayButton=document.createElement('button');
+bannerPlayButton.type='button';
+bannerPlayButton.className='storefront-slide-toggle';
+function renderBannerPlayButton(){
+  const running=bannerAutoPlay&&!bannerUserPaused;
+  bannerPlayButton.textContent=running?'Ⅱ':'▶';
+  bannerPlayButton.setAttribute('aria-label',running?'Pausar cambio automático':'Reproducir banners cada 3 segundos');
+  bannerPlayButton.setAttribute('aria-pressed',String(!running));
+}
+bannerPlayButton.addEventListener('click',()=>{
+  bannerUserPaused=!bannerUserPaused;
+  renderBannerPlayButton();
+  startBannerTimer();
+});
+$('#storefront-slider-controls').append(bannerPlayButton);
 $('#storefront-slide-prev').addEventListener('click',()=>chooseBannerSlide(bannerSlideIndex-1));
 $('#storefront-slide-next').addEventListener('click',()=>chooseBannerSlide(bannerSlideIndex+1));
 document.addEventListener('visibilitychange',startBannerTimer);
 window.addEventListener('pageshow',startBannerTimer);
 if(bannerMobileViewport.addEventListener)
   bannerMobileViewport.addEventListener('change',paintBannerSlide);
+// Cuando Android cambia preferencias de movimiento no se bloquea el carrusel.
 if(bannerReducedMotion.addEventListener)
   bannerReducedMotion.addEventListener('change',startBannerTimer);
-function setupBannerSlides(slides,autoPlay){
-  const key=JSON.stringify(slides)+'|'+autoPlay;
+function setupBannerSlides(slides,autoPlay,intervalSeconds=3){
+  const key=JSON.stringify(slides)+'|'+autoPlay+'|'+intervalSeconds;
   if(key===bannerSlideKey)return;
   bannerSlideKey=key;
   bannerSlides=slides;
   bannerSlideIndex=0;
   bannerAutoPlay=autoPlay;
+  bannerIntervalMs=Math.max(3000,Math.min(15000,Number(intervalSeconds||3)*1000));
+  bannerUserPaused=false;
+  renderBannerPlayButton();
+  bannerPlayButton.hidden=!autoPlay;
   const controls=$('#storefront-slider-controls');
   controls.hidden=slides.length<2;
   const dots=$('#storefront-slide-dots');dots.replaceChildren();
@@ -474,7 +511,7 @@ function renderStorefront(){
   picture.hidden=!hasBanner;
   art.hidden=hasBanner||Boolean(photo);
   heroStage.classList.toggle('storefront-has-banner',hasBanner);
-  setupBannerSlides(slides,values.banner_autoplay);
+  setupBannerSlides(slides,values.banner_autoplay,values.banner_interval_seconds);
   if(!hasBanner){
     banner.removeAttribute('src');
     source.removeAttribute('srcset');
