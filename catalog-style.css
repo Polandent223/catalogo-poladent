@@ -1505,3 +1505,77 @@ body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storef
   }
   body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-decoration{display:none}
 }
+
+
+/* Ajuste 23 oct: marcas más legibles y un escaparate más corto en Android. */
+body.storefront-active.storefront-theme-premium-compacta .brand-shortcuts{
+  gap:10px;
+}
+body.storefront-active.storefront-theme-premium-compacta .brand-shortcut{
+  min-height:66px;gap:12px;padding:12px 14px;
+  font-size:14px;font-weight:750;line-height:1.35;
+}
+body.storefront-active.storefront-theme-premium-compacta .brand-shortcut img{
+  width:46px;height:46px;flex-shrink:0;object-fit:contain;
+}
+body.storefront-active.storefront-theme-premium-compacta #brand-hero .brand-hero-logo{
+  width:62px;height:62px;max-width:62px;max-height:62px;
+}
+body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-slider-controls{
+  gap:7px;
+}
+.storefront-slide-toggle{
+  font-size:15px!important;line-height:1;font-weight:750;
+}
+#storefront-picture{touch-action:pan-y}
+@media(max-width:700px){
+  body.storefront-active.storefront-theme-premium-compacta .brand-shortcuts{
+    gap:9px;padding:5px 2px 12px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta .brand-shortcut{
+    flex:0 0 190px;min-width:176px;max-width:220px;
+    min-height:64px;padding:10px 12px;
+    font-size:13px;gap:10px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta .brand-shortcut img{
+    width:43px;height:43px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #brand-hero .brand-hero-content.brand-hero-with-logo{
+    grid-template-columns:53px minmax(0,1fr)
+  }
+  body.storefront-active.storefront-theme-premium-compacta #brand-hero .brand-hero-logo{
+    width:53px;height:53px;max-width:53px;max-height:53px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-picture{
+    height:clamp(245px,45dvh,350px);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:#e6f3fa;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-picture img{
+    display:block;width:100%;height:100%;max-height:none;min-height:0;
+    object-fit:contain;object-position:center;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-slider-controls{
+    min-height:39px;margin:7px auto 0;
+    padding:4px 7px;gap:6px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-copy{
+    padding:10px 14px 6px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner #compact-mobile-title{
+    font-size:clamp(22px,5.8vw,27px);
+    margin:5px 0 8px;line-height:1.14;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner #compact-mobile-summary{
+    font-size:12px;line-height:1.42;margin:0;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-actions{
+    margin-top:10px;gap:7px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-actions a{
+    min-height:38px;padding:8px 9px;
+  }
+  body.storefront-active.storefront-theme-premium-compacta #storefront-hero.storefront-has-banner .storefront-eyebrow{
+    padding:5px 9px;font-size:9px;
+  }
+}

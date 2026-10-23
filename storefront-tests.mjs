@@ -426,7 +426,7 @@ const bannerSettings=normalizeStorefront({
   ]
 });
 assert.equal(bannerSettings.banner_autoplay,true);
-assert.equal(bannerSettings.banner_interval_seconds,5);
+assert.equal(bannerSettings.banner_interval_seconds,3);
 assert.deepEqual(bannerSettings.banner_extra_slides,[
  {desktop_url:'https://example.com/pc-2.webp',mobile_url:'https://example.com/mobile-2.webp'},
  {desktop_url:'https://example.com/pc-3.webp',mobile_url:''}
@@ -457,7 +457,18 @@ assert.ok(adminPage.includes('id="design-banner-autoplay"'));
 assert.ok(read('admin.html').includes('id="product-area"'));
 assert.ok(read('admin.js').includes("area_id:$('#product-area').value"));
 assert.ok(backend.includes("area_id: /^[a-z0-9-]{1,55}$/.test"));
-assert.ok(publicCode.includes("},5000);"));
+assert.ok(publicCode.includes("},bannerIntervalMs);"),'Carrusel usa intervalo de 3 segundos');
+assert.ok(publicCode.includes("bannerIntervalMs=3000"),'El valor inicial es 3 segundos');
+assert.ok(publicCode.includes("bannerStage.addEventListener('touchstart'"),'Permite deslizar banners en teléfono');
+assert.ok(publicCode.includes("bannerStage.addEventListener('touchend'"),'Deslizamiento horizontal activo en teléfono');
+assert.ok(publicCode.includes("bannerUserPaused"),'Es posible pausar el carrusel');
+assert.ok(publicCode.includes("bannerPlayButton.setAttribute('aria-label'"),'Botón pausar accesible');
+assert.ok(!publicCode.includes("bannerReducedMotion.matches||document.hidden"),
+  'La preferencia Android de reducir animaciones no debe bloquear la rotación solicitada');
+assert.ok(style.includes('height:clamp(245px,45dvh,350px)'), 'El banner móvil tiene altura moderada');
+assert.ok(style.includes('flex:0 0 190px'), 'Tarjetas de marcas más grandes en móvil');
+assert.ok(adminPage.includes('Cambiar automáticamente cada 3 segundos'),
+  'La configuración explica la cadencia nueva');
 assert.ok(publicCode.includes("currentQuickAreas=values.quick_areas"));
 assert.ok(publicCode.includes("quickAreasForProduct(p,currentQuickAreas,currentQuickAuto)"));
 assert.ok(adminCode.includes("requested.banner_extra_slides=uploadedExtras"));
