@@ -10,10 +10,11 @@ import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,
 const $=selector=>document.querySelector(selector);
 const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search'),
   brand=$('#brand-filter'),available=$('#available'),more=$('#more'),dialog=$('#detail'),
-  shortcuts=$('#brand-shortcuts'),copyBrand=$('#copy-brand'),hero=$('#brand-hero'),
+  shortcuts=$('#brand-shortcuts'),brandsToggle=$('#brands-show-more'),copyBrand=$('#copy-brand'),hero=$('#brand-hero'),
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
+let brandsExpanded=false;
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
 const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
 let storefrontSettings=null,storefrontDraft=null;
@@ -88,6 +89,10 @@ function drawBrands(){
     fragment.append(button);
   }
   shortcuts.replaceChildren(fragment);
+  shortcuts.classList.toggle('expanded',brandsExpanded);
+  brandsToggle.hidden=names.length<=4;
+  brandsToggle.textContent=brandsExpanded?'Mostrar menos marcas':'Ver todas las marcas ('+names.length+')';
+  brandsToggle.setAttribute('aria-expanded',String(brandsExpanded));
   copyBrand.hidden=!brand.value;
 }
 function renderBrandHero(){
@@ -888,6 +893,10 @@ $('#share-product').onclick=async()=>{
 search.addEventListener('input',()=>{
   limit=12;clearTimeout(searchTimer);
   searchTimer=setTimeout(renderProducts,130);
+});
+brandsToggle.addEventListener('click',()=>{
+  brandsExpanded=!brandsExpanded;
+  drawBrands();
 });
 brand.addEventListener('change',()=>selectBrand(brand.value));
 available.addEventListener('change',()=>{limit=12;renderProducts();});
