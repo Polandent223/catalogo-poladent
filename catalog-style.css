@@ -1866,3 +1866,37 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
 @media(prefers-reduced-motion:reduce){
   .brands-heading .brands-show-more-chevron{transition:none}
 }
+
+
+/* Administrador: filtros de productos, independientes del estado guardado. */
+.admin-products-panel{min-width:0}
+.admin-products-panel>h2{
+  font-size:19px;margin:0 0 13px;color:var(--navy);
+}
+.admin-product-filters{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin-bottom:10px;
+}
+.admin-product-filters label{
+  display:grid;gap:7px;min-width:0;
+  color:#244b66;font-size:13px;font-weight:700;
+}
+.admin-product-filters input,
+.admin-product-filters select{
+  display:block;width:100%;max-width:100%;min-width:0;
+  min-height:44px;padding:10px 12px;
+  border:1px solid #bbcddd;border-radius:10px;
+  background:#fff;color:var(--navy);font:inherit;font-weight:500;
+}
+.admin-product-filters input:focus-visible,
+.admin-product-filters select:focus-visible{
+  outline:3px solid #79c8e5;outline-offset:1px;
+}
+.admin-empty-results{
+  padding:18px;margin:12px 0;
+  border:1px dashed #a7c3d5;border-radius:10px;
+  background:#f6fbff;color:#466277;font-size:13px;
+}
+@media(max-width:850px){
+  .admin-product-filters{grid-template-columns:1fr}
+}
