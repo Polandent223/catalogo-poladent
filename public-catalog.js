@@ -1,7 +1,7 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
-import {normalizeStorefront,STORE_THEMES} from './storefront-settings.js';
+import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
@@ -73,7 +73,7 @@ function drawBrands(){
   // La selección activa sigue a la vista incluso si no está destacada.
   const settings=normalizeStorefront(storefrontDraft||storefrontSettings);
   const featured=new Set(settings.featured_brands);
-  const visible=brandsExpanded?names:names.filter(name=>featured.has(name)||name===brand.value);
+  const visible=visibleBrandNames(names,settings.featured_brands,brand.value,brandsExpanded);
   const fragment=document.createDocumentFragment();
   for(const name of visible){
     const button=element('button',null,'brand-shortcut');
