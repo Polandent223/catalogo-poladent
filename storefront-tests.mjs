@@ -496,4 +496,15 @@ assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compac
 assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta #brand-hero #copy-brand'),
   'El botón de copiar enlace debe tener estilo compacto');
 
+assert.ok(page.includes('id="brands-show-more"'),'Se puede desplegar el resto de marcas en teléfono');
+assert.ok(page.includes('aria-controls="brand-shortcuts"'),'Botón de ver más marcas accesible');
+assert.ok(publicCode.includes("brandsToggle.setAttribute('aria-expanded',String(brandsExpanded))"),
+  'El estado expandido de las marcas debe exponerse a accesibilidad');
+assert.ok(publicCode.includes("brandsToggle.addEventListener('click'"),
+  'Ver todas las marcas es un control funcional');
+assert.ok(style.includes(".brand-shortcuts:not(.expanded) .brand-shortcut:nth-child(n+5):not(.active)"),
+  'Se muestran 4 marcas inicialmente y la marca seleccionada permanece visible');
+assert.ok(style.includes('.brands-show-more:not([hidden])'),
+  'Teléfono debe permitir desplegar las marcas restantes');
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
