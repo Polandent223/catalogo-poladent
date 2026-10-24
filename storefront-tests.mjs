@@ -8,7 +8,7 @@ const load=async name=>{
       read('catalog-quick-search.js').replaceAll('export ',''));
   return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 };
-const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL}=await load('storefront-settings.js');
+const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL,visibleBrandNames}=await load('storefront-settings.js');
 const {parseCatalogDocuments}=await load('catalog-public-data.js');
 const {bannerImageForViewport}=await load('banner-slides.js');
 const dualBanner={desktop_url:'https://example.com/escritorio.webp',mobile_url:'https://example.com/telefono.webp'};
@@ -506,5 +506,32 @@ assert.ok(style.includes(".brand-shortcuts:not(.expanded) .brand-shortcut:nth-ch
   'Se muestran 4 marcas inicialmente y la marca seleccionada permanece visible');
 assert.ok(style.includes('.brands-show-more:not([hidden])'),
   'Teléfono debe permitir desplegar las marcas restantes');
+
+
+// Las marcas elegidas en el administrador definen exactamente el inicio de la lista.
+const allBrandNames=['ADALTA','AZDENT','DENCO','EASYINSMILE','VRC'];
+assert.deepEqual(visibleBrandNames(allBrandNames,['ADALTA','DENCO']),['ADALTA','DENCO'],
+  'PC y móvil deben mostrar únicamente las marcas marcadas al abrir');
+assert.deepEqual(visibleBrandNames(allBrandNames,['ADALTA','DENCO'],'',true),allBrandNames,
+  'Un clic en Explora todas nuestras marcas debe desplegarlas todas');
+assert.deepEqual(visibleBrandNames(allBrandNames,['ADALTA','DENCO'],'VRC',false),
+  ['ADALTA','DENCO','VRC'],
+  'La marca activa de un enlace directo no debe desaparecer');
+assert.deepEqual(visibleBrandNames(allBrandNames,[]),[],
+  'Si el administrador no marca ninguna, el inicio no debe inventar marcas');
+assert.ok(page.includes('<h2 id="storefront-brands-title"><button id="brands-show-more"'),
+  'El título Explora todas nuestras marcas es el botón de apertura');
+assert.ok(publicCode.includes("visibleBrandNames(names,settings.featured_brands,brand.value,brandsExpanded)"),
+  'La cuadrícula utiliza las selecciones guardadas en el editor');
+assert.ok(publicCode.includes("brandsToggle.querySelector('.brands-show-more-text').textContent"),
+  'El texto cambia sin perder el indicador del desplegable');
+assert.ok(publicCode.includes("drawBrands(); // Actualiza la selección también en la vista previa del administrador."),
+  'La vista previa del panel muestra las marcas marcadas sin guardar primero');
+assert.ok(!publicCode.includes("selectedBrands.push(...[...counts.keys()].slice(0,3))"),
+  'No agregar marcas no seleccionadas en el bloque de destacadas');
+assert.ok(adminPage.includes('Marcas visibles al entrar (máximo cuatro)'),
+  'El administrador sabe para qué sirven las casillas');
+assert.ok(style.includes('/* Navegación de marcas: selección administrada'),
+  'El desplegable funciona en PC y móvil');
 
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');
