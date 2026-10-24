@@ -69,8 +69,13 @@ function drawBrands(){
   const counts=new Map();
   for(const product of products)counts.set(product.brand,(counts.get(product.brand)||0)+1);
   const names=[...new Set([...counts.keys(),...profiles.map(p=>p.name)])].sort();
+  // Solo se enseñan al inicio las marcas marcadas en Diseño del catálogo.
+  // La selección activa sigue a la vista incluso si no está destacada.
+  const settings=normalizeStorefront(storefrontDraft||storefrontSettings);
+  const featured=new Set(settings.featured_brands);
+  const visible=brandsExpanded?names:names.filter(name=>featured.has(name)||name===brand.value);
   const fragment=document.createDocumentFragment();
-  for(const name of names){
+  for(const name of visible){
     const button=element('button',null,'brand-shortcut');
     button.type='button';
     const label=element('span',null,'brand-shortcut-label');
@@ -90,8 +95,11 @@ function drawBrands(){
   }
   shortcuts.replaceChildren(fragment);
   shortcuts.classList.toggle('expanded',brandsExpanded);
-  brandsToggle.hidden=names.length<=4;
-  brandsToggle.textContent=brandsExpanded?'Mostrar menos marcas':'Ver todas las marcas ('+names.length+')';
+  brandsToggle.hidden=names.length===0;
+  brandsToggle.disabled=names.length<=featured.size;
+  brandsToggle.textContent=brandsExpanded
+    ?'Mostrar solo marcas destacadas'
+    :brandsToggle.dataset.collapseLabel||'Explora todas nuestras marcas';
   brandsToggle.setAttribute('aria-expanded',String(brandsExpanded));
   copyBrand.hidden=!brand.value;
 }
@@ -501,7 +509,8 @@ function renderStorefront(){
   document.body.classList.toggle('storefront-active',design);
   for(const name of STORE_THEMES)document.body.classList.remove('storefront-theme-'+name);
   if(design)document.body.classList.add('storefront-theme-'+values.theme);
-  $('#storefront-brands-title').textContent=design?values.brands_title:'Explora por marca';
+  brandsToggle.dataset.collapseLabel=design?values.brands_title:'Explora todas nuestras marcas';
+  drawBrands(); // Actualiza la selección también en la vista previa del administrador.
   if(!active){setupBannerSlides([],false);return;}
   const field={eyebrow:values.eyebrow,title:values.title,subtitle:values.subtitle,
     primary:values.primary_label,secondary:values.secondary_label,
@@ -541,9 +550,7 @@ function renderStorefront(){
   const counts=new Map();
   for(const p of products)counts.set(p.brand,(counts.get(p.brand)||0)+1);
   const selectedBrands=values.featured_brands.filter(n=>counts.has(n)).slice(0,4);
-  if(!selectedBrands.length){
-    selectedBrands.push(...[...counts.keys()].slice(0,3));
-  }
+  // Sin marcas elegidas en el administrador, no publicar marcas de forma automática.
   const block=$('#storefront-featured');
   block.hidden=selectedBrands.length===0;
   const grid=$('#storefront-featured-grid');
