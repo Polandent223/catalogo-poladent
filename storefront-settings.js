@@ -121,6 +121,13 @@ export function secureBannerURL(value,allowBlob=false) {
     return '';
   }catch{return ''}
 }
+// Navegación visual: el administrador decide qué marcas se ven al entrar.
+export function visibleBrandNames(allNames,featuredBrands=[],activeBrand='',expanded=false){
+  const names=Array.isArray(allNames)?allNames:[];
+  if(expanded)return [...names];
+  const featured=new Set(Array.isArray(featuredBrands)?featuredBrands:[]);
+  return names.filter(name=>featured.has(name)||name===activeBrand);
+}
 export function normalizeStorefront(input={},allowBlob=false) {
   const s=input&&typeof input==='object'?input:{};
   const list=Array.isArray(s.trust_items)?s.trust_items:STORE_DEFAULTS.trust_items;
