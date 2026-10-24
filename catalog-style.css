@@ -1738,3 +1738,24 @@ body.storefront-active.storefront-theme-premium-compacta #brand-hero .brand-hero
   }
   body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label strong{font-size:11px}
 }
+
+
+/* Mostrar inicialmente cuatro marcas en teléfono evita alargar la página. */
+body.storefront-active.storefront-theme-premium-compacta .brands-show-more{
+  display:none;
+}
+@media(max-width:700px){
+  body.storefront-active.storefront-theme-premium-compacta .brand-shortcuts:not(.expanded) .brand-shortcut:nth-child(n+5):not(.active){
+    display:none;
+  }
+  body.storefront-active.storefront-theme-premium-compacta .brands-show-more:not([hidden]){
+    display:block;margin:10px auto 1px;padding:9px 14px;
+    min-height:40px;width:auto;max-width:100%;
+    font-size:12px;font-weight:750;line-height:1.25;
+    border:1px solid #bfdbe8;border-radius:10px;
+    color:#10547d;background:#eef8fd;cursor:pointer;
+  }
+  body.storefront-active.storefront-theme-premium-compacta .brands-show-more:focus-visible{
+    outline:3px solid #58b2de;outline-offset:2px;
+  }
+}
