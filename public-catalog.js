@@ -892,9 +892,16 @@ search.addEventListener('input',()=>{
 brand.addEventListener('change',()=>selectBrand(brand.value));
 available.addEventListener('change',()=>{limit=12;renderProducts();});
 copyBrand.onclick=async()=>{
+  if(!brand.value)return;
   const url=brandUrl(brand.value);
-  try{await navigator.clipboard.writeText(url);copyBrand.textContent='Enlace copiado';}
-  catch{copyBrand.textContent='Enlace: '+url;}
+  try{
+    await navigator.clipboard.writeText(url);
+    copyBrand.textContent='Enlace copiado ✓';
+  }catch{
+    // Evitar pintar una URL extensa en el botón y desordenar la ficha móvil.
+    window.prompt('Copia el enlace de esta marca:',url);
+    copyBrand.textContent='Copiar enlace';
+  }
 };
 more.onclick=()=>{
   const previous=limit;
