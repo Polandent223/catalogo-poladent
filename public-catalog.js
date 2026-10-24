@@ -96,8 +96,8 @@ function drawBrands(){
   shortcuts.replaceChildren(fragment);
   shortcuts.classList.toggle('expanded',brandsExpanded);
   brandsToggle.hidden=names.length===0;
-  brandsToggle.disabled=names.length<=featured.size;
-  brandsToggle.textContent=brandsExpanded
+  brandsToggle.disabled=names.length<=names.filter(name=>featured.has(name)).length;
+  brandsToggle.querySelector('.brands-show-more-text').textContent=brandsExpanded
     ?'Mostrar solo marcas destacadas'
     :brandsToggle.dataset.collapseLabel||'Explora todas nuestras marcas';
   brandsToggle.setAttribute('aria-expanded',String(brandsExpanded));
