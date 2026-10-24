@@ -70,8 +70,13 @@ function drawBrands(){
   const names=[...new Set([...counts.keys(),...profiles.map(p=>p.name)])].sort();
   const fragment=document.createDocumentFragment();
   for(const name of names){
-    const button=element('button',name+' · '+(counts.get(name)||0),'brand-shortcut');
+    const button=element('button',null,'brand-shortcut');
     button.type='button';
+    const label=element('span',null,'brand-shortcut-label');
+    label.append(element('strong',name),element('small',(counts.get(name)||0)+' productos'));
+    button.append(label);
+    button.setAttribute('aria-label','Ver productos de '+name);
+    button.setAttribute('aria-pressed',String(brand.value===name));
     const p=profiles.find(x=>x.name===name);
     if(p?.logo_url) {
       const img=element('img');img.src=cloudinaryImage(imageUrl(p.logo_url),120);
@@ -86,6 +91,8 @@ function drawBrands(){
   copyBrand.hidden=!brand.value;
 }
 function renderBrandHero(){
+  // El botón comparte la ficha de la marca: jamás ocupa otra fila arriba.
+  if(hero.contains(copyBrand))$('.brands-heading').append(copyBrand);
   hero.replaceChildren();
   back.replaceChildren();
   hero.hidden=!brand.value;
@@ -114,7 +121,9 @@ function renderBrandHero(){
   meta.append(element('span',total+' producto'+(total===1?'':'s')));
   const reset=element('button','Ver todas las marcas','brand-hero-reset');
   reset.type='button';reset.addEventListener('click',()=>selectBrand(''));
-  meta.append(reset);main.append(meta);hero.append(main);
+  copyBrand.textContent='Copiar enlace';
+  copyBrand.title='Copiar enlace de la marca '+name;
+  meta.append(reset,copyBrand);main.append(meta);hero.append(main);
   if(profile?.back_cover_url){
     const finish=element('div',null,'brand-back-message');
     finish.append(element('p','CATÁLOGO DE '+name,'eyebrow'),
