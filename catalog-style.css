@@ -1841,3 +1841,28 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
     transition:none;
   }
 }
+
+
+/* Mantener el encabezado interactivo legible en todas las plantillas. */
+.brands-heading .brands-show-more:not([hidden]){
+  display:inline-flex;align-items:center;gap:9px;
+  max-width:100%;width:auto;min-height:38px;
+  border:0;border-radius:0;padding:2px 0;margin:0;
+  font:inherit;font-weight:800;line-height:1.2;
+  background:transparent;color:inherit;text-align:left;
+  white-space:normal;cursor:pointer;
+}
+.brands-heading .brands-show-more:disabled{cursor:default}
+.brands-heading .brands-show-more-chevron{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:none;font-size:1.1em;transition:transform .15s ease;
+}
+.brands-heading .brands-show-more[aria-expanded="true"] .brands-show-more-chevron{
+  transform:rotate(180deg);
+}
+.brands-heading .brands-show-more:focus-visible{
+  outline:3px solid #58b2de;outline-offset:3px;border-radius:4px;
+}
+@media(prefers-reduced-motion:reduce){
+  .brands-heading .brands-show-more-chevron{transition:none}
+}
