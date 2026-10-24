@@ -475,4 +475,36 @@ assert.ok(adminCode.includes("requested.banner_extra_slides=uploadedExtras"));
 assert.ok(adminCode.includes("quick_areas:readAreas()"));
 assert.ok(style.includes('.storefront-slider-controls'));
 
+
+// Marcas alineadas y presentación compacta verificables en escritorio y teléfono.
+assert.ok(publicCode.includes("button.setAttribute('aria-pressed',String(brand.value===name))"),
+  'La marca seleccionada debe identificarse para lectores de pantalla');
+assert.ok(publicCode.includes("element('span',null,'brand-shortcut-label')"),
+  'Las tarjetas deben distinguir nombre de marca y cantidad de productos');
+assert.ok(publicCode.includes("if(hero.contains(copyBrand))$('.brands-heading').append(copyBrand)"),
+  'Compartir marca debe conservarse al cambiar de filtro');
+assert.ok(publicCode.includes("meta.append(reset,copyBrand)"),
+  'Copiar enlace debe integrarse en la ficha y no dejar un botón suelto arriba');
+assert.ok(publicCode.includes("window.prompt('Copia el enlace de esta marca:',url)"),
+  'Los errores de portapapeles no deben imprimir una URL larga en la tarjeta');
+assert.ok(style.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),
+  'Teléfono debe mostrar dos columnas sin desplazamiento horizontal');
+assert.ok(style.includes('/* POLADENT · marcas alineadas y legibles en teléfono y PC'),
+  'Debe aplicar el ajuste final de presentación responsive');
+assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta #brand-hero .brand-hero-cover{\n  display:none;'),
+  'La portada miniatura redundante no debe dejar grandes huecos en la ficha');
+assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta #brand-hero #copy-brand'),
+  'El botón de copiar enlace debe tener estilo compacto');
+
+assert.ok(page.includes('id="brands-show-more"'),'Se puede desplegar el resto de marcas en teléfono');
+assert.ok(page.includes('aria-controls="brand-shortcuts"'),'Botón de ver más marcas accesible');
+assert.ok(publicCode.includes("brandsToggle.setAttribute('aria-expanded',String(brandsExpanded))"),
+  'El estado expandido de las marcas debe exponerse a accesibilidad');
+assert.ok(publicCode.includes("brandsToggle.addEventListener('click'"),
+  'Ver todas las marcas es un control funcional');
+assert.ok(style.includes(".brand-shortcuts:not(.expanded) .brand-shortcut:nth-child(n+5):not(.active)"),
+  'Se muestran 4 marcas inicialmente y la marca seleccionada permanece visible');
+assert.ok(style.includes('.brands-show-more:not([hidden])'),
+  'Teléfono debe permitir desplegar las marcas restantes');
+
 console.log('Escaparate editable: vista previa, datos reales, protección y opciones móviles/PC correctos.');

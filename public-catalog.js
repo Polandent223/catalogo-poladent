@@ -10,10 +10,11 @@ import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,
 const $=selector=>document.querySelector(selector);
 const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search'),
   brand=$('#brand-filter'),available=$('#available'),more=$('#more'),dialog=$('#detail'),
-  shortcuts=$('#brand-shortcuts'),copyBrand=$('#copy-brand'),hero=$('#brand-hero'),
+  shortcuts=$('#brand-shortcuts'),brandsToggle=$('#brands-show-more'),copyBrand=$('#copy-brand'),hero=$('#brand-hero'),
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
+let brandsExpanded=false;
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
 const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
 let storefrontSettings=null,storefrontDraft=null;
@@ -70,8 +71,13 @@ function drawBrands(){
   const names=[...new Set([...counts.keys(),...profiles.map(p=>p.name)])].sort();
   const fragment=document.createDocumentFragment();
   for(const name of names){
-    const button=element('button',name+' · '+(counts.get(name)||0),'brand-shortcut');
+    const button=element('button',null,'brand-shortcut');
     button.type='button';
+    const label=element('span',null,'brand-shortcut-label');
+    label.append(element('strong',name),element('small',(counts.get(name)||0)+' productos'));
+    button.append(label);
+    button.setAttribute('aria-label','Ver productos de '+name);
+    button.setAttribute('aria-pressed',String(brand.value===name));
     const p=profiles.find(x=>x.name===name);
     if(p?.logo_url) {
       const img=element('img');img.src=cloudinaryImage(imageUrl(p.logo_url),120);
@@ -83,9 +89,15 @@ function drawBrands(){
     fragment.append(button);
   }
   shortcuts.replaceChildren(fragment);
+  shortcuts.classList.toggle('expanded',brandsExpanded);
+  brandsToggle.hidden=names.length<=4;
+  brandsToggle.textContent=brandsExpanded?'Mostrar menos marcas':'Ver todas las marcas ('+names.length+')';
+  brandsToggle.setAttribute('aria-expanded',String(brandsExpanded));
   copyBrand.hidden=!brand.value;
 }
 function renderBrandHero(){
+  // El botón comparte la ficha de la marca: jamás ocupa otra fila arriba.
+  if(hero.contains(copyBrand))$('.brands-heading').append(copyBrand);
   hero.replaceChildren();
   back.replaceChildren();
   hero.hidden=!brand.value;
@@ -114,7 +126,9 @@ function renderBrandHero(){
   meta.append(element('span',total+' producto'+(total===1?'':'s')));
   const reset=element('button','Ver todas las marcas','brand-hero-reset');
   reset.type='button';reset.addEventListener('click',()=>selectBrand(''));
-  meta.append(reset);main.append(meta);hero.append(main);
+  copyBrand.textContent='Copiar enlace';
+  copyBrand.title='Copiar enlace de la marca '+name;
+  meta.append(reset,copyBrand);main.append(meta);hero.append(main);
   if(profile?.back_cover_url){
     const finish=element('div',null,'brand-back-message');
     finish.append(element('p','CATÁLOGO DE '+name,'eyebrow'),
@@ -880,12 +894,23 @@ search.addEventListener('input',()=>{
   limit=12;clearTimeout(searchTimer);
   searchTimer=setTimeout(renderProducts,130);
 });
+brandsToggle.addEventListener('click',()=>{
+  brandsExpanded=!brandsExpanded;
+  drawBrands();
+});
 brand.addEventListener('change',()=>selectBrand(brand.value));
 available.addEventListener('change',()=>{limit=12;renderProducts();});
 copyBrand.onclick=async()=>{
+  if(!brand.value)return;
   const url=brandUrl(brand.value);
-  try{await navigator.clipboard.writeText(url);copyBrand.textContent='Enlace copiado';}
-  catch{copyBrand.textContent='Enlace: '+url;}
+  try{
+    await navigator.clipboard.writeText(url);
+    copyBrand.textContent='Enlace copiado ✓';
+  }catch{
+    // Evitar pintar una URL extensa en el botón y desordenar la ficha móvil.
+    window.prompt('Copia el enlace de esta marca:',url);
+    copyBrand.textContent='Copiar enlace';
+  }
 };
 more.onclick=()=>{
   const previous=limit;
