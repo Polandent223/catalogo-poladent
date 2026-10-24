@@ -1,5 +1,6 @@
 import{configured,login,logout,listProducts,getStorefrontSettings,listAdminOverview,uploadImage,validImage,saveProduct,deleteProduct,importProducts,removeImage,adminCheck,restoreSession,retryImageCleanups}from'./catalog-service.js';
 import{initBulkImport}from'./bulk-import.js';
+import{filterAdminProducts}from'./admin-product-filters.js';
 const $=s=>document.querySelector(s),message=$('#admin-message'),form=$('#product-form');let products=[],editing=null,busy=false,visibleLimit=24,productAreas=[];
 function fillAreaOptions(){
  const select=$('#product-area'),current=select.value;
@@ -61,12 +62,39 @@ $('#copy-uid').onclick=async()=>{
 function lock(value){busy=value;document.querySelectorAll('#workspace button,#workspace input,#workspace select,#workspace textarea').forEach(e=>e.disabled=value)}
 async function refresh(){const overview=await listAdminOverview();products=overview.products;render();$('#brands').replaceChildren();for(const b of new Set(products.map(p=>p.brand))){const o=document.createElement('option');o.value=b;$('#brands').append(o)}const pending=overview.cleanups;$('#image-cleanup-tools').hidden=pending.length===0;$('#pending-image-count').textContent=String(pending.length)}
 function el(tag,text){const e=document.createElement(tag);if(text)e.textContent=text;return e}
-function render(){const q=$('#admin-search').value.toLocaleLowerCase();$('#admin-list').replaceChildren();const matches=products.filter(p=>(p.name+' '+p.brand).toLocaleLowerCase().includes(q));$('#admin-visible-count').textContent='Mostrando '+Math.min(visibleLimit,matches.length)+' de '+matches.length+' productos';$('#admin-more').hidden=matches.length<=visibleLimit;for(const p of matches.slice(0,visibleLimit)){const row=el('article');row.className='admin-item';const img=el('img');img.src=validImage(p.image_url);img.alt=p.name;img.loading='lazy';const content=el('div');content.append(el('strong',p.name),el('p',p.brand+' · '+({available:'Disponible',sold_out:'Agotado',hidden:'Oculto'}[p.status])));const edit=el('button','Editar');edit.onclick=()=>editProduct(p);const remove=el('button','Eliminar');remove.onclick=()=>removeProduct(p);row.append(img,content,edit,remove);$('#admin-list').append(row)}}
+function render(){
+ const query=$('#admin-search').value;
+ const statusFilter=$('#admin-status-filter').value;
+ const matches=filterAdminProducts(products,query,statusFilter);
+ const list=$('#admin-list');list.replaceChildren();
+ const shown=Math.min(visibleLimit,matches.length);
+ const labels={all:'productos',available:'productos disponibles',hidden:'productos ocultos',sold_out:'productos agotados'};
+ $('#admin-visible-count').textContent=matches.length
+   ?'Mostrando '+shown+' de '+matches.length+' '+(labels[statusFilter]||'productos')
+   :'No se encontraron '+(labels[statusFilter]||'productos')+' con estos filtros.';
+ $('#admin-more').hidden=matches.length<=visibleLimit;
+ if(!matches.length){
+   const empty=el('p','No hay productos que coincidan. Puedes cambiar el estado o la búsqueda.');
+   empty.className='admin-empty-results';
+   list.append(empty);
+   return;
+ }
+ for(const p of matches.slice(0,visibleLimit)){
+   const row=el('article');row.className='admin-item';
+   const img=el('img');img.src=validImage(p.image_url);img.alt=p.name;img.loading='lazy';
+   const content=el('div');
+   content.append(el('strong',p.name),
+     el('p',p.brand+' · '+({available:'Disponible',sold_out:'Agotado',hidden:'Oculto'}[p.status]||'Sin estado')));
+   const edit=el('button','Editar');edit.onclick=()=>editProduct(p);
+   const remove=el('button','Eliminar');remove.onclick=()=>removeProduct(p);
+   row.append(img,content,edit,remove);list.append(row);
+ }
+}
 function clear(){editing=null;form.reset();$('#product-id').value='';$('#editor-title').textContent='Nuevo producto'}
 function editProduct(p){editing=p;fillAreaOptions();if(p.area_id&&!productAreas.some(a=>a.id===p.area_id)){const option=document.createElement('option');option.value=p.area_id;option.textContent='Área anterior: '+p.area_id;$('#product-area').append(option);}$('#product-area').value=p.area_id||'';$('#product-id').value=p.id;for(const key of ['name','brand','description','status'])$('#'+key).value=p[key]||'';$('#sort-order').value=p.sort_order;$('#image-file').value='';$('#image-url').value=p.image_path?'':p.image_url;$('#editor-title').textContent='Editar producto';form.scrollIntoView({behavior:'smooth'})}
 async function showWorkspace(){await adminCheck();await Promise.all([refresh(),fetchAreas()]);$('#login-form').hidden=true;$('#workspace').hidden=false;tell('Sesión iniciada. Los cambios guardados se publican en el catálogo.')}
 $('#login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;tell('Entrando…');showDiagnostic(null);try{await login($('#email').value.trim(),$('#password').value);$('#password').value='';await showWorkspace()}catch(err){tell(readableLoginError(err),true);showDiagnostic(err)}finally{button.disabled=false}};
-$('#logout').onclick=async()=>{try{await logout()}finally{location.reload()}};$('#new-product').onclick=clear;$('#cancel-edit').onclick=clear;$('#admin-search').oninput=()=>{visibleLimit=24;render()};$('#admin-more').onclick=()=>{visibleLimit+=24;render()};
+$('#logout').onclick=async()=>{try{await logout()}finally{location.reload()}};$('#new-product').onclick=clear;$('#cancel-edit').onclick=clear;$('#admin-search').oninput=()=>{visibleLimit=24;render()};$('#admin-status-filter').onchange=()=>{visibleLimit=24;render()};$('#admin-more').onclick=()=>{visibleLimit+=24;render()};
 form.onsubmit=async e=>{e.preventDefault();if(busy)return;const name=$('#name').value.trim(),brand=$('#brand').value.trim();if(!name||!brand){tell('Escribe el nombre y la marca.',true);return}const file=$('#image-file').files[0],imageUrl=$('#image-url').value.trim();if(imageUrl&&!validImage(imageUrl)){tell('Indica una dirección HTTPS válida para la foto.',true);return}if(!editing&&!file&&!imageUrl){tell('Selecciona una imagen o pega su enlace.',true);return}lock(true);let uploaded=null,saved=false;try{tell('Guardando producto…');if(file)uploaded=await uploadImage(file);const body={name,brand,description:$('#description').value.trim(),area_id:$('#product-area').value,status:$('#status').value,sort_order:Number($('#sort-order').value)||0,image_url:uploaded?.url||imageUrl||editing?.image_url||'',image_path:uploaded?.path||(imageUrl&&imageUrl!==editing?.image_url?null:editing?.image_path)||null,source_key:editing?.source_key||null};const id=editing?.id;await saveProduct(id,body);saved=true;clear();await refresh();tell('Producto guardado. Ya está actualizado para tus clientes.')}catch(err){tell(saved?'El producto se guardó, pero no pudimos actualizar la lista. Recarga la página.':err.message,true);if(uploaded&&!saved){try{await removeImage(uploaded.path)}catch(cleanupError){tell('No se guardó el producto y también falló la limpieza de su imagen. Revisa Cloudinary. Detalle: '+cleanupError.message,true)}}}finally{lock(false)}};
 async function removeProduct(p){if(busy||!confirm('¿Eliminar «'+p.name+'»? Puedes marcarlo como agotado u ocultarlo si prefieres conservarlo.'))return;lock(true);try{const result=await deleteProduct(p);if(editing?.id===p.id)clear();await refresh();if(result?.pendingCleanup)tell('El producto desapareció del catálogo, PERO la fotografía no se eliminó de Cloudinary. Se guardó una tarea pendiente. Pulsa «Reintentar eliminación de fotografías». Detalle: '+result.error,true);else if(result?.imageDeleted)tell('Producto eliminado y fotografía borrada de Cloudinary.');else tell('Producto eliminado del catálogo.')}catch(e){tell(e.message,true)}finally{lock(false)}}
 $('#retry-image-cleanup').onclick=async()=>{if(busy)return;lock(true);tell('Intentando eliminar las fotografías pendientes…');try{const result=await retryImageCleanups();await refresh();if(result.failures.length){tell('Se eliminaron '+result.deleted+' fotografía(s), pero '+result.failures.length+' siguen pendientes. '+result.failures[0].error,true)}else tell('Limpieza completada: '+result.deleted+' fotografía(s) eliminada(s) de Cloudinary.')}catch(error){tell(error.message,true)}finally{lock(false)}};
