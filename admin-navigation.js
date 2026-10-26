@@ -79,11 +79,17 @@ function tabs(host,items,initial){
   return {bar,panels,activate};
 }
 function activateOnInvalid(form,manager){
+  let handling=false;
   form.addEventListener('invalid',event=>{
+    if(handling)return;
     const panel=event.target.closest('.ux-tab-panel');
     if(panel?.dataset.uxSection && panel.hidden){
+      handling=true; // La primera casilla inválida tiene prioridad, no la última.
       manager.activate(panel.dataset.uxSection);
-      requestAnimationFrame(()=>event.target.focus({preventScroll:false}));
+      requestAnimationFrame(()=>{
+        event.target.focus({preventScroll:false});
+        handling=false;
+      });
     }
   },true);
 }
@@ -159,6 +165,8 @@ function productsPanel(workspace){
     row.append(importAdalta);
     importPanel.append(row);
   }
+  const logout=$('#logout');
+  if(logout)workspace.querySelector('.ux-admin-global').append(logout);
   manager.panels.get('herramientas').append(actions);
   if(cleanup)manager.panels.get('herramientas').append(cleanup);
   // El enlace de edición sigue en la misma pestaña que la lista de productos.
