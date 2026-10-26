@@ -11,11 +11,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validar JavaScript como módulos
         run: |
-          for file in admin-product-filters.js admin.js app.js catalogo.js public-catalog.js config.js data-client.js firebase-client.js catalog-service.js cloudinary-upload-worker.js brand-admin.js brand-management.js storefront-settings.js design-admin.js bulk-import.js contact-admin.js contact-links.js quote-cart.js catalog-public-data.js catalog-images.js welcome.js welcome-routing.js welcome-admin.js catalog-analytics.js analytics-admin.js analytics-summary.js analytics-quality.js backup-utils.js backup-admin.js; do
+          for file in admin-navigation.js admin-product-filters.js admin.js app.js catalogo.js public-catalog.js config.js data-client.js firebase-client.js catalog-service.js cloudinary-upload-worker.js brand-admin.js brand-management.js storefront-settings.js design-admin.js bulk-import.js contact-admin.js contact-links.js quote-cart.js catalog-public-data.js catalog-images.js welcome.js welcome-routing.js welcome-admin.js catalog-analytics.js analytics-admin.js analytics-summary.js analytics-quality.js backup-utils.js backup-admin.js; do
             node --input-type=module --check < "$file"
           done
       - name: Comprobar filtros de productos en administración
         run: node admin-product-filters-tests.mjs
+      - name: Verificar navegación compacta sin cambios de datos
+        run: node admin-navigation-tests.mjs
       - name: Verificar lectura e importación de CSV
         run: node bulk-import-tests.mjs
       - name: Verificar gestión y corrección segura de marcas
