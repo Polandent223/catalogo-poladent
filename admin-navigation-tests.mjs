@@ -33,7 +33,7 @@ assert.ok(js.includes("['textos','Textos']"));
 assert.ok(js.includes("['sedes','Sedes']"));
 assert.ok(js.includes("manager.bar.after(actions,status)"),
  'Los botones originales de guardar y deshacer se conservan dentro del formulario.');
-assert.ok(js.includes('requestAnimationFrame(()=>event.target.focus'),
+assert.ok(js.includes('event.target.focus({preventScroll:false})'),
  'El campo requerido oculto debe revelarse para corregir la validación.');
 assert.ok(js.includes("list.addEventListener('click',event=>"),
  'Abrir una marca desde su listado debe revelar el formulario antes de editar.');
