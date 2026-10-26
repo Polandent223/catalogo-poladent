@@ -1,0 +1,129 @@
+/* POLADENT · administración compacta 2026: solo navegación, no datos */
+.ux-admin-global{
+  display:flex;align-items:center;gap:6px;
+  padding:10px;margin:14px 0 13px;
+  border:1px solid #d5e3ef;border-radius:13px;
+  background:#f6fbff;box-shadow:0 2px 9px #0735580b;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+}
+.ux-admin-global-caption{flex:none;font-weight:800;color:#52718b;font-size:11px;margin:0 6px}
+.ux-admin-global-link{
+  display:inline-flex;align-items:center;justify-content:center;
+  white-space:nowrap;min-height:39px;padding:8px 12px;
+  border-radius:9px;color:#235173;text-decoration:none;
+  font-size:12px;font-weight:750;flex:none;
+}
+.ux-admin-global-link:hover,.ux-admin-global-link:focus-visible{
+  background:#e1f3ff;color:#0b537d;
+}
+.ux-admin-global-link[aria-current=page]{
+  background:#075b91;color:#fff;box-shadow:0 2px 7px #0c4d8333;
+}
+.ux-admin-global #logout{
+  margin-left:auto;flex:none;padding:8px 12px;white-space:nowrap;
+  min-height:39px;font-size:12px;border-radius:9px;
+}
+.ux-section-tabs{
+  display:flex;align-items:center;gap:7px;padding:9px;
+  margin:13px 0 12px;border-radius:13px;
+  background:#eaf2f9;border:1px solid #d0e2ef;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+  position:sticky;top:0;z-index:31;min-width:0;
+}
+.ux-section-tab{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:40px;padding:9px 14px;border-radius:9px;flex:none;
+  border:1px solid transparent;background:#ffffffb8;
+  color:#23516b;white-space:nowrap;font-weight:750;
+  font-size:12px;line-height:1.2;
+}
+.ux-section-tab:hover{background:#fff;border-color:#92b9d6}
+.ux-section-tab[aria-selected=true]{
+  background:#075f96;color:#fff;border-color:#075f96;
+  box-shadow:0 3px 8px #0c467a2c;
+}
+.ux-section-tab:focus-visible{outline:3px solid #60b8df;outline-offset:2px}
+.ux-tab-panel{display:grid;gap:12px;min-width:0;align-content:start}
+.ux-tab-panel[hidden]{display:none!important}
+.ux-sticky-save{
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  position:sticky;top:64px;z-index:30;
+  background:#f7fbff;border:1px solid #c5dce9;border-radius:12px;
+  padding:11px;box-shadow:0 4px 14px #103d6314;
+}
+.ux-sticky-save button{min-height:40px}
+.ux-product-toolbar{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:9px 0 5px;
+}
+.ux-product-toolbar button,.ux-quick-link{
+  min-height:41px;padding:9px 15px;border-radius:9px;font-size:13px;
+}
+.ux-quick-link{
+  background:#f0f7fc;border:1px solid #c0d8e9;color:#125887;
+  text-decoration:none;display:inline-flex;align-items:center;
+}
+#workspace .ux-tab-panel>.admin-layout{margin-top:4px}
+#workspace .ux-tab-panel>.bulk-import{margin:0}
+.ux-import-legacy{
+  display:grid;gap:10px;padding:15px;border:1px solid #cbdde9;
+  border-radius:12px;background:#f8fbff;
+}
+.ux-import-legacy p{font-size:12px;margin:0;color:#3e5c71}
+.ux-import-legacy button{justify-self:start}
+#workspace .ux-tab-panel>.admin-actions{
+  display:flex;flex-wrap:wrap;gap:10px;margin:0;
+}
+#brand-workspace .ux-tab-panel>.admin-form{max-width:850px}
+#brand-workspace .ux-tab-panel>.admin-item{max-width:100%}
+.ux-media-fold{
+  border:1px solid #d4e6ef;border-radius:11px;
+  background:#f7fbfe;overflow:visible;
+}
+.ux-media-fold>summary{
+  list-style:revert;cursor:pointer;padding:14px;
+  font-weight:750;font-size:13px;color:#195677;
+}
+.ux-media-fold[open]>summary{border-bottom:1px solid #dce8f1}
+.ux-media-fold>fieldset{margin:10px}
+.storefront-admin .design-form .ux-tab-panel{gap:12px}
+.storefront-admin .design-form .ux-tab-panel>fieldset{margin:0}
+.storefront-admin .design-form .ux-section-tabs{margin:0}
+.storefront-admin .design-form .ux-sticky-save{margin:0}
+.storefront-admin .design-form .ux-tab-panel[hidden]{display:none!important}
+.storefront-admin .design-preview{position:static}
+.storefront-admin .ux-preview-fold{
+  position:sticky;top:12px;align-self:start;
+  min-width:0;border:0;
+}
+.storefront-admin .ux-preview-fold>summary{
+  display:none;cursor:pointer;font-size:13px;font-weight:800;
+  color:#0d527f;background:#eaf5fb;padding:12px 14px;
+  border:1px solid #c4dfe9;border-radius:11px;
+}
+.storefront-admin #design-workspace[data-preview-device=desktop] .ux-preview-fold{
+  position:static;overflow-x:auto;
+}
+.storefront-admin .ux-preview-fold .design-preview{width:100%}
+#analytics-workspace .ux-tab-panel .analytics-columns{width:100%}
+#analytics-workspace .ux-tab-panel .analytics-panel{min-width:0}
+#welcome-form>.ux-sticky-save{margin:0}
+#welcome-form>.ux-tab-panel{gap:13px}
+#welcome-form>.ux-tab-panel>.welcome-mobile-fields{margin:0}
+#contact-form .ux-simple-save{margin-top:7px}
+@media(max-width:890px){
+  .storefront-admin .ux-preview-fold{position:static}
+  .storefront-admin .ux-preview-fold>summary{display:list-item;margin-bottom:8px}
+  .storefront-admin .ux-preview-fold:not([open]) .design-preview{display:none!important}
+}
+@media(max-width:700px){
+  .ux-admin-global{margin:10px 0 12px;padding:8px;gap:4px}
+  .ux-admin-global-caption{display:none}
+  .ux-admin-global-link{font-size:11px;min-height:40px;padding:8px 10px}
+  .ux-section-tabs{top:0;padding:7px;gap:5px}
+  .ux-section-tab{min-height:39px;padding:8px 11px;font-size:12px}
+  .ux-sticky-save{top:57px;padding:9px;gap:7px}
+  .storefront-admin .design-actions button{font-size:12px;padding:9px;flex:1}
+  .ux-product-toolbar button,.ux-quick-link{font-size:12px}
+  .admin-wrap .ux-tab-panel .admin-layout{grid-template-columns:minmax(0,1fr)}
+}
