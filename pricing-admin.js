@@ -1,7 +1,7 @@
 import {configured,login,logout,restoreSession,adminCheck,listProducts,
  getPricingSettings,saveProductPrice,savePricingEnabled,
  applyBulkPriceChanges,listBulkPriceOperations,undoBulkPriceOperation} from './catalog-service.js';
-import {fetchBcvRate,cleanUSD,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
+import {fetchBcvRate,cleanUSD,formatUSD,formatVES,formatBcvRate,convertVES} from './catalog-pricing.js';
 import {filterAdminProducts} from './admin-product-filters.js';
 import {previewPercentPrices,previewCSVPrices} from './price-bulk.js';
 
@@ -21,7 +21,7 @@ async function refreshRate(){
  output.textContent='Consultando tasa vigente…';
  try{
    rate=await fetchBcvRate();
-   output.textContent='1 USD = '+formatVES(rate.usd_ves);
+   output.textContent='1 USD = Bs. '+formatBcvRate(rate.usd_ves);
    meta.textContent='Vigente desde '+rate.effective_date+' · '+rate.provider+'. Fuente original: BCV.';
  }catch(error){
    rate=null;
