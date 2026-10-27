@@ -36,6 +36,78 @@ try{
   assert.equal(response.updated,false);
   assert.equal(requests,1,'Comprobar un documento, NO hacer lecturas masivas ni de clientes.');
 }finally{await rm(base,{recursive:true,force:true})}
+// Simular la captura completa (255 productos y diseño) sin llamadas externas.
+const second=await mkdtemp(join(tmpdir(),'poladent-sync-complete-'));
+try{
+  await writeFile(join(second,'config.js'),
+    "window.CATALOGO_FIREBASE={apiKey:'public-test-key',projectId:'catalogo-poladent'};\n");
+  const field=value=>{
+    if(value===null)return {nullValue:null};
+    if(typeof value==='boolean')return {booleanValue:value};
+    if(typeof value==='number')return {doubleValue:value};
+    if(typeof value==='string')return {stringValue:value};
+    if(Array.isArray(value))return {arrayValue:{values:value.map(field)}};
+    return {mapValue:{fields:Object.fromEntries(Object.entries(value).map(([k,v])=>[k,field(v)]))}};
+  };
+  const documents=[
+    {name:'catalogPublic/_catalog_state',fields:{updated_at:field(revision),type:field('catalog_state'),status:field('available')}},
+    {name:'catalogPublic/_catalog_contacts',fields:Object.fromEntries(Object.entries({
+      kind:'contact_settings',status:'available',
+      contacts:[{label:'Valencia',phone:'584226710634'}],
+      pricing:{enabled:true},welcome_enabled:true,
+      welcome_image_url:'https://res.cloudinary.com/poladent/image/upload/portada.webp',
+      storefront:{enabled:true,theme:'premium-compacta',banner_desktop_url:'https://res.cloudinary.com/poladent/image/upload/banner.webp',
+        featured_brands:['ADALTA','DENCO']}
+    }).map(([k,v])=>[k,field(v)]))},
+    ...['ADALTA','DENCO','IMODONTO'].map((name,i)=>({
+      name:'catalogPublic/brand_'+i,fields:Object.fromEntries(Object.entries({
+        kind:'brand_profile',name,logo_url:'https://res.cloudinary.com/poladent/image/upload/'+i+'.webp'
+      }).map(([k,v])=>[k,field(v)]))
+    })),
+    ...Array.from({length:255},(_,i)=>({
+      name:'catalogPublic/item_'+i,
+      fields:Object.fromEntries(Object.entries({
+        name:'Producto '+i,brand:'ADALTA',status:'available',price_usd:15.5,
+        image_url:'https://res.cloudinary.com/poladent/image/upload/'+i+'.webp'
+      }).map(([k,v])=>[k,field(v)]))
+    }))
+  ];
+  let collectionCalls=0,stateCalls=0;
+  const fetchStub=async href=>{
+    const url=new URL(href);
+    if(url.pathname.endsWith('/_catalog_state')){
+      stateCalls++;
+      return {ok:true,status:200,json:async()=>documents[0]};
+    }
+    collectionCalls++;
+    const page=url.searchParams.get('pageToken')||'0';
+    const offset=Number(page);
+    return {ok:true,status:200,json:async()=>({
+      documents:documents.slice(offset,offset+200),
+      nextPageToken:offset+200<documents.length?String(offset+200):''
+    })};
+  };
+  const built=await syncPublicSnapshot({
+    root:second,request:fetchStub,now:new Date(date)
+  });
+  assert.equal(built.updated,true);
+  assert.equal(built.count,255);
+  assert.equal(collectionCalls,2,'Dos páginas y no múltiples descargas redundantes.');
+  assert.equal(stateCalls,3,'Comparar revision inicial, antes y después del listado.');
+  const out=JSON.parse(readFileSync(join(second,'catalog-public-snapshot.json'),'utf8'));
+  const welcome=JSON.parse(readFileSync(join(second,'catalog-welcome-snapshot.json'),'utf8'));
+  assert.equal(out.source_revision,revision);
+  assert.equal(out.storefront.banner_desktop_url,'https://res.cloudinary.com/poladent/image/upload/banner.webp');
+  assert.equal(out.products[0].price_usd,15.5);
+  assert.equal(welcome.welcome.enabled,true);
+  assert.ok(out.products.every(p=>!('image_path' in p)), 'Nunca exportar rutas privadas.');
+  const secondRun=await syncPublicSnapshot({
+    root:second,request:fetchStub,now:new Date(date+60000)
+  });
+  assert.equal(secondRun.updated,false);
+  assert.equal(collectionCalls,2,'El segundo ciclo sólo comprueba revisión de 1 documento.');
+}finally{await rm(second,{recursive:true,force:true})}
+
 const source=readFileSync('firebase-client.js','utf8');
 for(const marker of [
   'markCatalogActive(batch);',
