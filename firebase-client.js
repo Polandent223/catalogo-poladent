@@ -6,6 +6,7 @@ import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 import {normalizeStorefront} from './storefront-settings.js';
 import {cleanUSD} from './catalog-pricing.js';
+import {adjustedPriceUSD} from './price-bulk.js';
 import {brandKey,planBrandRename} from './brand-management.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -80,7 +81,7 @@ function sortProducts(a, b) {
 export async function listProducts(admin = false) {
   if (admin) await adminCheck();
   const snap = await getDocs(collection(db, admin ? 'catalogProducts' : 'catalogPublic'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && p.kind !== 'contact_settings' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.kind !== 'image_cleanup' && p.kind !== 'brand_profile' && p.kind !== 'contact_settings' && p.kind !== 'price_adjustment' && (!admin || p.id !== '_catalog_state')).sort(sortProducts);
 }
 export async function listBrands(admin = false) {
   if (admin) await adminCheck();
@@ -553,4 +554,119 @@ export async function savePricingEnabled(enabled){
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
   await batch.commit();
   return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
+}
+
+
+// Ajustes masivos: previa verificación de todas las fichas. No modifica fotos,
+// productos sin USD ni reglas Firebase. Auditoría privada por bloque; sin borrados.
+export async function applyBulkPriceChanges(rows,meta={}){
+ await adminCheck();
+ if(!Array.isArray(rows)||!rows.length||rows.length>5000)
+   throw Error('Selecciona entre 1 y 5.000 precios válidos.');
+ const method=meta.method;
+ if(!['percent','csv'].includes(method))throw Error('Operación de precios desconocida.');
+ const seen=new Set(),changes=[];
+ const snapshot=await getDocs(collection(db,'catalogProducts'));
+ const byId=new Map(snapshot.docs.map(x=>[x.id,x.data()]).filter(x=>!x[1].kind));
+ for(const row of rows){
+   const id=String(row.id||'');
+   if(!id||seen.has(id))throw Error('Hay productos duplicados o sin identificador.');
+   seen.add(id);
+   const product=byId.get(id);
+   if(!product||!product.name||!product.brand)throw Error('Producto que ya no existe: '+id);
+   const previous=cleanUSD(product.price_usd),expected=cleanUSD(row.before),next=cleanUSD(row.after);
+   if(previous!==expected)throw Error('Otro usuario cambió un precio. Actualiza la vista previa antes de aplicar.');
+   if(next===null)throw Error('No se permiten precios vacíos en la actualización masiva.');
+   if(method==='percent' && next!==adjustedPriceUSD(previous,meta.percent,meta.direction))
+     throw Error('El porcentaje y el precio esperado no coinciden.');
+   if(previous!==next)changes.push({id,name:product.name,brand:product.brand,before:previous,after:next,status:product.status});
+ }
+ if(!changes.length)throw Error('No hay variaciones de precios para guardar.');
+ const pricing=await getPricingSettings();
+ const published=new Map();
+ if(pricing.enabled){
+   const p=await getDocs(collection(db,'catalogPublic'));
+   for(const docSnap of p.docs)published.set(docSnap.id,docSnap.data());
+ }
+ const operationId='AJ-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
+ let completed=0;
+ try{
+   for(let index=0;index<changes.length;index+=100){
+     const chunk=changes.slice(index,index+100),batch=writeBatch(db),now=new Date().toISOString();
+     for(const row of chunk){
+       batch.update(doc(db,'catalogProducts',row.id),{price_usd:row.after,price_updated_at:now,price_batch:operationId});
+       if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+         batch.update(doc(db,'catalogPublic',row.id),{price_usd:row.after});
+     }
+     const audit=doc(collection(db,'catalogProducts'));
+     batch.set(audit,{kind:'price_adjustment',operation_id:operationId,method,
+       direction:method==='percent'?meta.direction:'',
+       percent:method==='percent'?Number(meta.percent):null,
+       created_at:now,created_by:auth.currentUser.uid,records:chunk,undone_at:null});
+     await batch.commit();
+     completed+=chunk.length;
+   }
+ }catch(error){
+   throw Object.assign(new Error('Actualización detenida: '+completed+' de '+changes.length+
+     ' precios guardados. Código '+operationId+'. Podrás revisar y deshacer los bloques confirmados. '+error.message),
+       {operationId,completed});
+ }
+ return {operationId,completed};
+}
+export async function listBulkPriceOperations(){
+ await adminCheck();
+ const snapshot=await getDocs(query(collection(db,'catalogProducts'),where('kind','==','price_adjustment')));
+ const groups=new Map();
+ for(const document of snapshot.docs){
+   const item=document.data(),id=String(item.operation_id||'');
+   if(!id)continue;
+   const group=groups.get(id)||{id,count:0,created_at:item.created_at,method:item.method,
+     percent:item.percent,direction:item.direction,undone:true};
+   group.count+=(Array.isArray(item.records)?item.records.length:0);
+   group.undone=group.undone&&Boolean(item.undone_at);
+   groups.set(id,group);
+ }
+ return [...groups.values()].sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,25);
+}
+export async function undoBulkPriceOperation(operationId){
+ await adminCheck();
+ if(!/^AJ-[0-9]{8}-[0-9A-F]{8}$/.test(String(operationId||'')))
+   throw Error('Código de ajuste inválido.');
+ const audits=await getDocs(query(collection(db,'catalogProducts'),where('kind','==','price_adjustment')));
+ const matching=audits.docs.filter(d=>d.data().operation_id===operationId);
+ if(!matching.length||matching.some(d=>d.data().undone_at))
+   throw Error('No encontramos ajustes pendientes de deshacer con ese código.');
+ const snapshot=await getDocs(collection(db,'catalogProducts'));
+ const byId=new Map(snapshot.docs.map(d=>[d.id,d.data()]));
+ const rows=matching.flatMap(d=>d.data().records||[]);
+ for(const row of rows){
+   const product=byId.get(row.id);
+   if(!product||product.price_batch!==operationId||cleanUSD(product.price_usd)!==row.after)
+     throw Error('Al menos un precio cambió después del ajuste. No se deshizo nada: revisa las diferencias.');
+ }
+ const pricing=await getPricingSettings();
+ const published=new Set();
+ if(pricing.enabled){
+   const snap=await getDocs(collection(db,'catalogPublic'));
+   for(const p of snap.docs)published.add(p.id);
+ }
+ let completed=0;
+ try{
+   for(const audit of matching){
+     const rows=audit.data().records||[],batch=writeBatch(db),now=new Date().toISOString();
+     for(const row of rows){
+       batch.update(doc(db,'catalogProducts',row.id),{
+         price_usd:row.before===null?deleteField():row.before,price_updated_at:now,price_batch:null});
+       if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+         batch.update(doc(db,'catalogPublic',row.id),{
+           price_usd:row.before===null?deleteField():row.before});
+     }
+     batch.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
+     await batch.commit();
+     completed+=rows.length;
+   }
+ }catch(error){
+   throw Error('Deshacer parcialmente terminado ('+completed+'/'+rows.length+'). Revisa el historial antes de repetir: '+error.message);
+ }
+ return {completed};
 }
