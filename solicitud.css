@@ -27,3 +27,8 @@ body{background:#f4f8fb;color:#0a2c4d}
 .summary-footer{text-align:center;font-size:12px;color:#4b6274;margin-bottom:20px}
 @media(max-width:600px){.summary-table{font-size:11px}.summary-table td,.summary-table th{padding:10px 7px}.summary-header{padding:10px}.summary-heading{padding:18px}.summary-actions button{flex:1}}
 @media print{.summary-header,.summary-actions,.summary-footer{display:none!important}.summary-page{max-width:100%;padding:0;margin:0}.summary-heading{background:#f1f7fb;color:#153d5b}.summary-heading h1,.summary-heading p{color:#153d5b}body{background:white}.summary-terms{break-inside:avoid}}
+
+.summary-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding:12px 13px;border-radius:9px;background:#ffffff1e}
+.summary-meta strong{color:#fff;font-size:13px;letter-spacing:.03em}
+.summary-meta span{color:#e0f2ff;font-size:12px}
+@media print{.summary-meta{border:1px solid #c1d6e3;background:white}.summary-meta strong,.summary-meta span{color:#173a57}.summary-totals{break-inside:avoid}.summary-page{margin:0 auto}.summary-heading{border:1px solid #c4d6e2}}
