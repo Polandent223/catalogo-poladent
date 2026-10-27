@@ -126,7 +126,8 @@ for (const id of ['storefront-home','storefront-hero','storefront-title','storef
 }
 assert.ok(page.includes('id="cart-open"'),'Mantener el carrito');
 assert.ok(page.includes('id="inquiry-whatsapp"'),'Mantener consulta individual');
-assert.ok(page.includes('id="quote-timing"'),'Mantener intención de compra');
+assert.ok(!page.includes('id="quote-timing"'),'La solicitud no exige definir cuándo comprar.');
+assert.ok(page.includes('class="cart-bag-icon"'),'Mantener bolsa premium con icono visible.');
 assert.ok(page.includes('id="welcome-screen"'),'No cambiar portada de bienvenida');
 assert.ok(page.includes('id="storefront-home" class="storefront-home" aria-label="Presentación comercial POLADENT" hidden'),
   'La vista previa no debe activarse automáticamente');
