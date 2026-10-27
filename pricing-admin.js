@@ -1,10 +1,13 @@
 import {configured,login,logout,restoreSession,adminCheck,listProducts,
- getPricingSettings,saveProductPrice,savePricingEnabled} from './catalog-service.js';
+ getPricingSettings,saveProductPrice,savePricingEnabled,
+ applyBulkPriceChanges,listBulkPriceOperations,undoBulkPriceOperation} from './catalog-service.js';
 import {fetchBcvRate,cleanUSD,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
 import {filterAdminProducts} from './admin-product-filters.js';
+import {previewPercentPrices,previewCSVPrices} from './price-bulk.js';
 
 const $=selector=>document.querySelector(selector);
 let products=[],pricing={enabled:false},rate=null,limit=30,busy=false;
+let bulkPlan=null;
 function note(message,error=false){
  const box=$('#pricing-message');box.textContent=message;box.className=error?'error':'';
 }
@@ -84,6 +87,7 @@ function render(){
      try{
        await saveProductPrice(product.id,price);
        product.price_usd=price;
+       cancelBulkPreview();
        renderConversion();
        note('Precio de '+product.name+' guardado: '+(price===null?'sin precio':formatUSD(price))+
          (pricing.enabled?' (visible al público).':' (privado, aún sin publicar).'));
@@ -93,6 +97,108 @@ function render(){
    row.append(image,name,field,save);list.append(row);
  }
 }
+
+function cancelBulkPreview(){
+ bulkPlan=null;
+ $('#bulk-review').hidden=true;
+}
+async function renderPriceHistory(){
+ try{
+   const operations=await listBulkPriceOperations();
+   const list=$('#bulk-history-list');list.replaceChildren();
+   $('#bulk-history-status').textContent=operations.length
+     ?'Últimos '+operations.length+' ajustes registrados. Solo se revierten precios que siguen intactos.'
+     :'Todavía no hay ajustes masivos.';
+   for(const item of operations){
+     const row=document.createElement('div');row.className='bulk-history-row';
+     const label=document.createElement('span');
+     label.textContent=item.id+' · '+item.count+' precios · '+item.created_at.slice(0,16).replace('T',' ')+
+       (item.method==='percent'?' · '+(item.direction==='increase'?'+':'−')+item.percent+' %':' · CSV')+
+       (item.undone?' · DESHECHO':'');
+     row.append(label);
+     if(!item.undone){
+       const undo=document.createElement('button');undo.type='button';undo.textContent='Deshacer este ajuste';
+       undo.addEventListener('click',async()=>{
+         if(busy)return;
+         if(!confirm('¿Revertir los precios del ajuste '+item.id+'? No se revertirán otros cambios posteriores.'))return;
+         setBusy(true);
+         try{
+           const outcome=await undoBulkPriceOperation(item.id);
+           products=await listProducts(true);render();
+           cancelBulkPreview();
+           note('Se restauraron '+outcome.completed+' precios desde el historial '+item.id+'.');
+         }catch(error){note(error.message,true)}
+         finally{setBusy(false);renderState();await renderPriceHistory();}
+       });
+       row.append(undo);
+     }
+     list.append(row);
+   }
+ }catch(error){$('#bulk-history-status').textContent='No pudimos leer el historial: '+error.message;}
+}
+$('#bulk-method').addEventListener('change',()=>{
+ const csv=$('#bulk-method').value==='csv';
+ $('#bulk-percent-controls').hidden=csv;
+ $('#bulk-csv-controls').hidden=!csv;
+ cancelBulkPreview();
+});
+for(const id of ['bulk-direction','bulk-percent','bulk-scope','bulk-csv-file'])
+ $('#'+id).addEventListener('change',cancelBulkPreview);
+$('#bulk-preview').addEventListener('click',async()=>{
+ if(busy)return;
+ cancelBulkPreview();
+ try{
+   if($('#bulk-method').value==='csv'){
+     const file=$('#bulk-csv-file').files[0];
+     if(!file||file.size>2*1024*1024)throw Error('Selecciona un CSV válido de máximo 2 MB.');
+     bulkPlan=previewCSVPrices(await file.text(),products);
+   }else{
+     const options=$('#bulk-scope').value==='filtered'
+       ?{brand:$('#pricing-brand').value,status:$('#pricing-status').value,query:$('#pricing-search').value}:{};
+     bulkPlan=previewPercentPrices(products,$('#bulk-percent').value,$('#bulk-direction').value,options);
+   }
+   if(!bulkPlan.rows.length)throw Error('No hay precios válidos que cambien con los parámetros elegidos.');
+   const box=$('#bulk-review-rows');box.replaceChildren();
+   for(const row of bulkPlan.rows.slice(0,18)){
+     const line=document.createElement('div');line.className='bulk-review-row';
+     const name=document.createElement('span');name.textContent=row.brand+' · '+row.name;
+     const price=document.createElement('strong');
+     price.textContent=formatUSD(row.before)+' → '+formatUSD(row.after);
+     line.append(name,price);box.append(line);
+   }
+   $('#bulk-review-count').textContent=bulkPlan.rows.length+' precios cambiarán'+
+     (bulkPlan.rows.length>18?' · mostrando los primeros 18':'')+
+     (bulkPlan.unpriced?' · '+bulkPlan.unpriced+' sin precio, omitidos':'')+
+     (bulkPlan.warnings?.length?' · '+bulkPlan.warnings.length+' filas sin coincidencia exacta':'')+
+     (bulkPlan.errors?.length?' · '+bulkPlan.errors.length+' errores de precio':'');
+   if(bulkPlan.warnings?.length){
+     const msg=document.createElement('p');msg.className='bulk-warning';
+     msg.textContent='Filas omitidas: '+bulkPlan.warnings.slice(0,5).join('; ');
+     box.append(msg);
+   }
+   $('#bulk-review').hidden=false;
+   $('#bulk-review').scrollIntoView({block:'nearest',behavior:'smooth'});
+ }catch(error){bulkPlan=null;note('Vista previa: '+error.message,true);}
+});
+$('#bulk-apply').addEventListener('click',async()=>{
+ if(busy||!bulkPlan?.rows?.length)return;
+ const snapshot=bulkPlan;
+ const amount=snapshot.rows.length;
+ if(!confirm('¿Confirmas que deseas actualizar '+amount+' precios base USD de POLADENT? Escribirás datos reales en Firebase. Se generará un historial privado para deshacerlos.'))return;
+ setBusy(true);
+ try{
+   const outcome=await applyBulkPriceChanges(snapshot.rows,snapshot);
+   products=await listProducts(true);render();cancelBulkPreview();
+   note('Actualización completa: '+outcome.completed+' precios guardados. Referencia: '+outcome.operationId+'.');
+ }catch(error){
+   note(error.message,true);
+   try{products=await listProducts(true);render();cancelBulkPreview();}catch{}
+ }finally{setBusy(false);renderState();await renderPriceHistory();}
+});
+for(const id of ['pricing-search','pricing-status','pricing-brand']){
+ $('#'+id).addEventListener(id==='pricing-search'?'input':'change',cancelBulkPreview);
+}
+
 async function load(){
  await adminCheck();
  [products,pricing]=await Promise.all([listProducts(true),getPricingSettings()]);
@@ -104,6 +210,7 @@ async function load(){
    $('#pricing-brand').append(option);
  }
  renderState();render();
+ await renderPriceHistory();
  await refreshRate();
  note('Panel de precios preparado. Los cambios solo se publican si los activas explícitamente.');
 }
