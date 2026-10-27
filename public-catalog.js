@@ -4,7 +4,7 @@ import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
-import {fetchBcvRate,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
+import {fetchBcvRate,cleanUSD,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -589,7 +589,9 @@ $('#storefront-secondary').addEventListener('click',()=>setTimeout(()=>{
 },0));
 
 function createPriceBlock(p){
- if(!pricingEnabled||!Number.isFinite(Number(p.price_usd))||Number(p.price_usd)<=0)return null;
+ if(!pricingEnabled)return null;
+ try{if(cleanUSD(p.price_usd)===null)return null;}
+ catch{return null;}
  const box=element('div',null,'catalog-product-price');
  box.append(element('strong',formatUSD(p.price_usd),'catalog-price-usd'));
  if(bcvRate){
