@@ -11,9 +11,8 @@ export function normalizeQuoteDetails(input){
   if(!Number.isSafeInteger(n)||n<1||n>9999)return null;
   const city=String(input?.city||'').replace(/[\u0000-\u001F\u007F]+/g,' ').replace(/\s+/g,' ').trim();
   if(city.length<2||city.length>60)return null;
-  const timing=String(input?.timing||'');
-  if(!Object.prototype.hasOwnProperty.call(PURCHASE_TIMINGS,timing))return null;
-  return {quantity:n,city,timing};
+  // Se solicita cotización sin preguntar ni anticipar fecha de compra.
+  return {quantity:n,city};
 }
 export function whatsappInquiryURL(phone,product,productLink,details){
   if(!/^[1-9][0-9]{7,14}$/.test(String(phone||'')))return '';
@@ -33,7 +32,6 @@ export function whatsappInquiryURL(phone,product,productLink,details){
     'Marca: '+String(product.brand).trim(),
     'Cantidad solicitada: '+quote.quantity+' unidad'+(quote.quantity===1?'':'es'),
     'Ciudad: '+quote.city,
-    'Compra prevista: '+PURCHASE_TIMINGS[quote.timing],
     'Enlace del producto: '+url.href,
     '¿Podrían confirmarme precio y disponibilidad? Gracias.'
   ].join('\n');
