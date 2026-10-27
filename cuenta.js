@@ -133,7 +133,7 @@ $('#customer-profile-form').addEventListener('submit',async event=>{
  event.preventDefault();const form=event.currentTarget,button=form.querySelector('button[type=submit]');
  button.disabled=true;
  try{
-   await registerCustomer(form.elements.name.value,form.elements.cedula.value);
+   await registerCustomer(form.elements.name.value,form.elements.cedula.value,form.elements.consent.checked);
    form.elements.cedula.value='';
    notify('Registro completado. Ya puedes consultar tu historial.');
    await refreshProfile();
