@@ -97,3 +97,16 @@ export async function listAnalyticsEvents(start,end) {
   if(!usingFirebase)throw Error('Las estadísticas necesitan Firebase.');
   return client.listAnalyticsEvents(start,end);
 }
+
+export async function getPricingSettings(){
+  if(!usingFirebase)throw Error('Los precios con tasa BCV requieren Firebase.');
+  return client.getPricingSettings();
+}
+export async function saveProductPrice(productId,value){
+  if(!usingFirebase)throw Error('Los precios con tasa BCV requieren Firebase.');
+  return client.saveProductPrice(productId,value);
+}
+export async function savePricingEnabled(enabled){
+  if(!usingFirebase)throw Error('Los precios con tasa BCV requieren Firebase.');
+  return client.savePricingEnabled(enabled);
+}
