@@ -9,6 +9,8 @@ on:
     paths:
       - 'scripts/generate-product-share.mjs'
       - 'scripts/product-preview-tests.mjs'
+      - 'scripts/build-static-catalog.mjs'
+      - 'scripts/build-static-catalog-tests.mjs'
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
@@ -27,9 +29,17 @@ jobs:
         run: node scripts/product-preview-tests.mjs
       # Los PR validan HTML sin consumir cuota de Firestore para cada commit.
       # La regeneración real solo ocurre en main, tareas programadas o ejecución manual.
-      - name: Generar páginas individuales con datos públicos de Firestore
+      - name: Intentar actualizar vistas previas (conservar anteriores si Firestore alcanza cuota)
         if: github.event_name != 'pull_request'
-        run: node scripts/generate-product-share.mjs
+        run: |
+          if ! node scripts/generate-product-share.mjs; then
+            echo "::warning::Firestore no disponible. No se borran las páginas de producto anteriores."
+          fi
+      - name: Crear respaldo seguro a partir de fichas públicas existentes
+        if: github.event_name != 'pull_request'
+        run: |
+          node scripts/build-static-catalog.mjs
+          node scripts/build-static-catalog-tests.mjs
       - name: Actualizar vistas previas y solicitar publicación
         if: github.event_name != 'pull_request'
         env:
@@ -37,7 +47,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A share/
+          git add -A share/ catalog-emergency-backup.json
           if git diff --cached --quiet; then
             echo "Vistas previas al día, sin cambios."
           else
