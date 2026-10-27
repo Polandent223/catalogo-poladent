@@ -2,6 +2,7 @@
 // mantiene los mismos formularios, ids, eventos, archivos y servicios de datos.
 const PATHS=[
   ['admin.html','Productos','package'],
+  ['precios.html','Precios USD / BCV','badge-dollar-sign'],
   ['marcas.html','Marcas','tags'],
   ['portada.html','Portada','image'],
   ['diseno.html','Diseño','palette'],
