@@ -27,7 +27,7 @@ assert.ok(app.includes('available.disabled=true'),'No prometer existencias confi
 assert.ok(app.includes('p.emergency_fallback?\'Consultar disponibilidad\''));
 assert.ok(index.includes('id="catalog-emergency-alert"'));
 assert.ok(index.includes('Precios, disponibilidad y fecha de vigencia deben confirmarse por WhatsApp.'));
-assert.ok(request.includes('data=await loadEmergencyCatalog()'),'La solicitud WhatsApp debe poder abrirse sin Firestore.');
+assert.ok(request.includes('restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog()'),'La solicitud WhatsApp conserva respaldo local o público si Firestore falla.');
 assert.ok(request.includes('data.emergencyFallback'),'No presentar el resumen como precio actualizado.');
 assert.ok(read('firestore.rules').includes('catalogProducts'),'No cambia reglas ni inventario.');
 console.log('POLADENT: respaldo verificado y sin precios falsos, 255 productos disponibles para consulta.');
