@@ -752,7 +752,7 @@ function getCartReference(){
 }
 function updateCartLink(){
   if(!catalogLoaded)return;
-  const details={city:$('#cart-city').value,timing:$('#cart-timing').value,
+  const details={city:$('#cart-city').value,
     name:$('#cart-name').value,phone:$('#cart-phone').value};
   const summaryURL=cartSummaryURL(cartLines,products,location.href,getCartReference());
   const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
@@ -776,6 +776,7 @@ function renderCart(){
   const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
   const financialRows=new Map(finance.rows.map(row=>[row.id,row]));
   $('#cart-count').textContent=String(amounts.products);
+  cartOpen.setAttribute('aria-label','Mi cotización, '+amounts.products+' producto'+(amounts.products===1?'':'s'));
   if(!amounts.products && $('#cart-feedback').textContent.includes('agregado')) $('#cart-feedback').textContent='';
   cartOpen.disabled=!catalogLoaded;
   $('#cart-empty').hidden=amounts.products>0;
@@ -892,8 +893,7 @@ function updateQuoteLink(){
   if(!selected||!contacts.length)return;
   const details={
     quantity:$('#quote-quantity').value,
-    city:$('#quote-city').value,
-    timing:$('#quote-timing').value
+    city:$('#quote-city').value
   };
   const url=whatsappInquiryURL($('#inquiry-contact').value,selected,shareProductUrl(selected),details);
   if(url){

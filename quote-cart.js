@@ -1,6 +1,6 @@
 // El carrito solo conserva IDs y cantidades de artículos públicos de la sesión.
 // La ciudad y el plazo de compra NUNCA se guardan.
-import {normalizeQuoteDetails,PURCHASE_TIMINGS} from './contact-links.js';
+import {normalizeQuoteDetails} from './contact-links.js';
 export const CART_LIMIT=10;
 export const CART_STORAGE_KEY='poladent.quote.cart.v1';
 export function cartQuantity(value){
@@ -130,7 +130,6 @@ export function cartWhatsAppURL(phone,lines,products,details,summaryLink,financi
     singleLink.href,
     '',
     'Ciudad: '+quote.city,
-    'Compra prevista: '+PURCHASE_TIMINGS[quote.timing],
     'Productos diferentes: '+totals.products,
     'Unidades solicitadas: '+totals.units,
     ...(financials?.complete?[
