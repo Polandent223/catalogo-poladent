@@ -21,7 +21,8 @@ export function parsePublicPage(id,html){
  const name=rest.slice(0,sep).trim(),brand=rest.slice(sep+3).trim();
  const image_url=decodePublicHTML(photo[1]);
  if(!name||!brand||name.length>180||brand.length>80||
-   !/^https:\/\/res\.cloudinary\.com\/[^/?#]+\/image\/upload\//.test(image_url))
+   !(/^https:\/\/res\.cloudinary\.com\/[^/?#]+\/image\/upload\//.test(image_url)||
+     /^https:\/\/polandent223\.github\.io\/catalogo-poladent\/imagenes\/[A-Za-z0-9_.-]+\.(png|jpg|jpeg|webp)$/i.test(image_url)))
    throw Error('Imagen o metadatos inesperados: '+id);
  return {id,name,brand,image_url,description:decodePublicHTML(description?.[1]||''),
    status:'available',emergency_fallback:true};
