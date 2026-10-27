@@ -84,7 +84,7 @@ assert.ok(msgUrl.startsWith('https://wa.me/584121234567?text='));
 const message=new URL(msgUrl).searchParams.get('text');
 assert.match(message,/Resumen de solicitud/);
 assert.match(message,/Ciudad: Valencia/);
-assert.match(message,/Compra prevista: Hoy/);
+assert.ok(!message.includes('Compra prevista'), 'No incluir fecha de compra en WhatsApp.');
 assert.match(message,/Productos diferentes: 2/);
 assert.match(message,/Unidades solicitadas: 7/);
 assert.match(message,/Total referencial USD: 29.85/);
@@ -97,7 +97,7 @@ assert.ok(!message.includes(share(products[1])),'No repetir URL de fichas de pro
 assert.equal((message.match(/https:\/\//g)||[]).length,1,'Solo un enlace dentro del mensaje.');
 assert.equal(cartWhatsAppURL('584121234567',[],priced,{city:'Valencia',timing:'today'},summary),'');
 assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'',timing:'today'},summary),'');
-assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'Valencia',timing:''},summary),'');
+assert.ok(cartWhatsAppURL('584121234567',lines,priced,{city:'Valencia'},summary).startsWith('https://wa.me/'));
 assert.equal(cartWhatsAppURL('invalid',lines,priced,{city:'Valencia',timing:'today'},summary),'');
 assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'Valencia',timing:'today'},
   'http://unsafe.test/'),'');
@@ -116,13 +116,15 @@ assert.ok(cartSummaryURL([{id:'long',quantity:1}],long,
 const publicCode=readFileSync('public-catalog.js','utf8');
 const html=readFileSync('index.html','utf8');
 const analytics=readFileSync('catalog-analytics.js','utf8');
-for(const id of ['cart-open','cart-dialog','cart-items','cart-form','cart-city','cart-timing',
+for(const id of ['cart-open','cart-dialog','cart-items','cart-form','cart-city',
   'cart-contact','cart-whatsapp','cart-count','detail-cart-add']){
   assert.ok(html.includes('id="'+id+'"'),id);
 }
-for(const term of ['value="today"','value="this_week"','value="this_month"','value="later"','value="comparing"']){
-  assert.ok(html.includes(term));
-}
+assert.ok(!html.includes('id="cart-timing"'));
+assert.ok(html.includes('class="cart-bag-icon"'));
+assert.ok(html.includes('class="cart-count-badge"'));
+assert.ok(html.includes('aria-label="Mi cotización, 0 productos"'));
+assert.ok(html.includes('no crea una cuenta ni un historial de cliente'));
 assert.ok(publicCode.includes('sessionStorage.setItem(CART_STORAGE_KEY'));
 assert.ok(publicCode.includes('cartLines=restoreCart()'));
 assert.ok(publicCode.includes('cartLines=addCartLine'));
