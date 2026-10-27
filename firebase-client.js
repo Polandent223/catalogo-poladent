@@ -2,7 +2,7 @@
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc, deleteField } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc, deleteField, runTransaction } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 import {normalizeStorefront} from './storefront-settings.js';
 import {cleanUSD} from './catalog-pricing.js';
@@ -592,18 +592,26 @@ export async function applyBulkPriceChanges(rows,meta={}){
  let completed=0;
  try{
    for(let index=0;index<changes.length;index+=100){
-     const chunk=changes.slice(index,index+100),batch=writeBatch(db),now=new Date().toISOString();
-     for(const row of chunk){
-       batch.update(doc(db,'catalogProducts',row.id),{price_usd:row.after,price_updated_at:now,price_batch:operationId});
-       if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
-         batch.update(doc(db,'catalogPublic',row.id),{price_usd:row.after});
-     }
+     const chunk=changes.slice(index,index+100),now=new Date().toISOString();
      const audit=doc(collection(db,'catalogProducts'));
-     batch.set(audit,{kind:'price_adjustment',operation_id:operationId,method,
-       direction:method==='percent'?meta.direction:'',
-       percent:method==='percent'?Number(meta.percent):null,
-       created_at:now,created_by:auth.currentUser.uid,records:chunk,undone_at:null});
-     await batch.commit();
+     await runTransaction(db,async transaction=>{
+       const snapshots=[];
+       for(const row of chunk)snapshots.push(await transaction.get(doc(db,'catalogProducts',row.id)));
+       for(let i=0;i<chunk.length;i++){
+         const current=snapshots[i].data(),row=chunk[i];
+         if(!snapshots[i].exists()||cleanUSD(current.price_usd)!==row.before||current.status!==row.status)
+           throw Error('El precio o estado de '+row.name+' cambió durante la operación. No se guardó este bloque.');
+       }
+       for(const row of chunk){
+         transaction.update(doc(db,'catalogProducts',row.id),{price_usd:row.after,price_updated_at:now,price_batch:operationId});
+         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+           transaction.update(doc(db,'catalogPublic',row.id),{price_usd:row.after});
+       }
+       transaction.set(audit,{kind:'price_adjustment',operation_id:operationId,method,
+         direction:method==='percent'?meta.direction:'',
+         percent:method==='percent'?Number(meta.percent):null,
+         created_at:now,created_by:auth.currentUser.uid,records:chunk,undone_at:null});
+     });
      completed+=chunk.length;
    }
  }catch(error){
@@ -653,16 +661,25 @@ export async function undoBulkPriceOperation(operationId){
  let completed=0;
  try{
    for(const audit of matching){
-     const rows=audit.data().records||[],batch=writeBatch(db),now=new Date().toISOString();
-     for(const row of rows){
-       batch.update(doc(db,'catalogProducts',row.id),{
-         price_usd:row.before===null?deleteField():row.before,price_updated_at:now,price_batch:null});
-       if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
-         batch.update(doc(db,'catalogPublic',row.id),{
-           price_usd:row.before===null?deleteField():row.before});
-     }
-     batch.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
-     await batch.commit();
+     const rows=audit.data().records||[],now=new Date().toISOString();
+     await runTransaction(db,async transaction=>{
+       const docs=[];
+       for(const row of rows)docs.push(await transaction.get(doc(db,'catalogProducts',row.id)));
+       for(let i=0;i<rows.length;i++){
+         const current=docs[i].data(),row=rows[i];
+         if(!docs[i].exists()||current.price_batch!==operationId||cleanUSD(current.price_usd)!==row.after||
+            current.status!==row.status)
+           throw Error('El producto '+row.name+' cambió. No se deshizo el bloque.');
+       }
+       for(const row of rows){
+         transaction.update(doc(db,'catalogProducts',row.id),{
+           price_usd:row.before===null?deleteField():row.before,price_updated_at:now,price_batch:null});
+         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+           transaction.update(doc(db,'catalogPublic',row.id),{
+             price_usd:row.before===null?deleteField():row.before});
+       }
+       transaction.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
+     });
      completed+=rows.length;
    }
  }catch(error){
