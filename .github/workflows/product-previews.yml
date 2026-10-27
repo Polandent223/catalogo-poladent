@@ -11,8 +11,10 @@ on:
       - 'scripts/product-preview-tests.mjs'
       - 'scripts/build-static-catalog.mjs'
       - 'scripts/build-static-catalog-tests.mjs'
+      - 'scripts/create-public-snapshot.mjs'
+      - 'scripts/create-public-snapshot-tests.mjs'
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '17 */2 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,6 +31,14 @@ jobs:
         run: node scripts/product-preview-tests.mjs
       # Los PR validan HTML sin consumir cuota de Firestore para cada commit.
       # La regeneración real solo ocurre en main, tareas programadas o ejecución manual.
+      - name: Guardar última presentación ORIGINAL validada (banners, marcas, precios y sedes)
+        if: github.event_name != 'pull_request'
+        run: |
+          if node scripts/create-public-snapshot.mjs; then
+            echo "Copia íntegra verificada. GitHub Pages podrá servir el catálogo sin nuevas lecturas por visitante."
+          else
+            echo "::warning::Firestore no permitió confirmar todo el catálogo. Se conserva intacta la copia anterior y el respaldo de contingencia."
+          fi
       - name: Intentar actualizar vistas previas (conservar anteriores si Firestore alcanza cuota)
         if: github.event_name != 'pull_request'
         run: |
@@ -47,7 +57,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A share/ catalog-emergency-backup.json
+          git add -A share/ catalog-emergency-backup.json catalog-public-snapshot.json
           if git diff --cached --quiet; then
             echo "Vistas previas al día, sin cambios."
           else
