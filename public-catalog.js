@@ -758,9 +758,13 @@ function getCartReference(){
 async function startOptionalCustomerPortal(){
  if(!customerPortalEnabled)return;
  const link=$('#customer-account-link'),note=$('#customer-account-note'),save=$('#customer-save-quote');
- link.hidden=false;note.hidden=false;
  try{
    customerAPI=await import('./customer-client.js');
+   // Segunda barrera: el servicio privado valida respaldo y autorización del
+   // lanzamiento. No mostramos cuentas si Functions no está disponible.
+   const health=await customerAPI.customerFeatureStatus();
+   if(health?.enabled!==true)return;
+   link.hidden=false;note.hidden=false;
    customerAPI.observeCustomerSession(async user=>{
      save.hidden=true;
      alreadyQuotedIds=new Set();
