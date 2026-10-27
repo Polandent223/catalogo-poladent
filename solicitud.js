@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {loadPublicSnapshot,restoreLocallyVerifiedCatalog} from './catalog-public-snapshot.js';
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {parseSummaryFragment,cartFinancials,cartTotals} from './quote-cart.js';
 import {fetchBcvRate,formatUSD,formatVES,formatBcvRate} from './catalog-pricing.js';
@@ -28,10 +29,13 @@ async function displaySummary(){
    const cfg=window.CATALOGO_FIREBASE||{};
    if(!cfg.projectId||!cfg.apiKey)throw Error('No está disponible el catálogo público.');
    let data;
-   try{data=await loadPublicCatalog(cfg);}
-   catch(error){
-     console.warn('Solicitud temporal: Firestore no disponible, mostrando productos desde respaldo:',error.message);
-     data=await loadEmergencyCatalog();
+   try{data=await loadPublicSnapshot();}
+   catch(snapshotError){
+     try{data=await loadPublicCatalog(cfg);}
+     catch(error){
+       console.warn('Solicitud temporal: usando respaldo verificado en lugar de Firestore:',error.message);
+       data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
+     }
    }
    const available=new Map(data.products.map(p=>[String(p.id),p]));
    const current=requested.filter(x=>available.has(x.id));

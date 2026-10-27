@@ -59,7 +59,28 @@ function showWelcome(settings){
   screen.hidden=false;
   document.body.classList.add('has-welcome');
 }
+async function readSavedWelcome(){
+  // Esta copia reproduce la portada aprobada, sin leer Firestore por visita.
+  try{
+    const url=new URL('catalog-welcome-snapshot.json',import.meta.url);
+    const res=await fetch(url.href,{cache:'no-store',signal:AbortSignal.timeout(4500)});
+    if(!res.ok)return undefined;
+    const data=await res.json();
+    if(data.schema!=='poladent-welcome-snapshot-v1')return undefined;
+    const screen=data.storefront||{};
+    if(screen.enabled===true&&screen.replace_welcome===true&&
+      ['premium-confianza','premium-compacta'].includes(screen.theme))return {skip:true};
+    if(data.welcome?.enabled===true){
+      const image_url=secureImage(data.welcome.image_url);
+      if(!image_url)return undefined;
+      return {image_url,mobile_image_url:secureImage(data.welcome.mobile_image_url)};
+    }
+    return null;
+  }catch{return undefined}
+}
 async function readWelcome(){
+  const fromSnapshot=await readSavedWelcome();
+  if(fromSnapshot!==undefined)return fromSnapshot;
   const cfg=window.CATALOGO_FIREBASE||{};
   if(!cfg.projectId||!cfg.apiKey)return null;
   const endpoint=new URL('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(cfg.projectId)+'/databases/(default)/documents/catalogPublic/_catalog_contacts');

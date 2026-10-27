@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {loadPublicSnapshot,restoreLocallyVerifiedCatalog,saveLocallyVerifiedCatalog} from './catalog-public-snapshot.js';
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
@@ -687,7 +688,7 @@ function renderProducts(){
     &&(!activeQuickArea||quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)));
   grid.replaceChildren();
   appendCards(filtered.slice(0,limit),0);
-  status.textContent=filtered.length?filtered.length+' productos'+(emergencyFallback?' · consulta temporal':''):'No encontramos productos con estos filtros.';
+  status.textContent=filtered.length?filtered.length+' productos'+(emergencyFallback?' · consulta temporal':status.dataset.snapshot?' · '+status.dataset.snapshot:''):'No encontramos productos con estos filtros.';
   updatePagination();
   refreshCartButtons();
 }
@@ -1085,10 +1086,24 @@ async function load(){
     const cfg=window.CATALOGO_FIREBASE||{};
     if(cfg.apiKey&&cfg.projectId&&cfg.appId){
       let data;
-      try{data=await loadPublicCatalog(cfg);}
-      catch(error){
-        console.warn('Firestore no disponible; catálogo de contingencia sin precios ni stock:',error.message);
-        data=await loadEmergencyCatalog();
+      try{
+        // Una sola copia estática sirve a miles de visitas sin consumir Firestore.
+        data=await loadPublicSnapshot();
+      }catch(snapshotError){
+        try{
+          data=await loadPublicCatalog(cfg);
+          saveLocallyVerifiedCatalog(data);
+        }catch(firebaseError){
+          console.warn('Firestore no disponible, se conserva la última presentación verificada:',
+            firebaseError.message);
+          data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
+        }
+      }
+      if(data.publicSnapshot&&data.snapshotCapturedAt&&!data.emergencyFallback){
+        const timestamp=new Date(data.snapshotCapturedAt);
+        if(Number.isFinite(timestamp.getTime()))
+          status.dataset.snapshot='Sincronizado '+timestamp.toLocaleString('es-VE',
+            {timeZone:'America/Caracas',dateStyle:'short',timeStyle:'short'});
       }
       emergencyFallback=data.emergencyFallback===true;
       products=data.hasCatalogState||data.products.length?data.products:legacy();
@@ -1099,11 +1114,19 @@ async function load(){
       customerPortalEnabled=data.customerPortalEnabled===true;
      }else{
        try{
-         const data=await loadEmergencyCatalog();
-         emergencyFallback=true;products=data.products;
+         const data=await loadPublicSnapshot();
+         emergencyFallback=data.emergencyFallback===true;products=data.products;
          profiles=data.profiles;contacts=data.contacts;
-         storefrontSettings=null;pricingEnabled=false;customerPortalEnabled=false;
-       }catch{products=legacy();}
+         storefrontSettings=data.storefront;pricingEnabled=data.pricingEnabled===true;
+         customerPortalEnabled=false;
+       }catch{
+         try{
+           const data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
+           emergencyFallback=true;products=data.products;
+           profiles=data.profiles;contacts=data.contacts;
+           storefrontSettings=data.storefront||null;pricingEnabled=false;customerPortalEnabled=false;
+         }catch{products=legacy();}
+       }
      }
      const recoveryNotice=$('#catalog-emergency-alert');
      recoveryNotice.hidden=!emergencyFallback;

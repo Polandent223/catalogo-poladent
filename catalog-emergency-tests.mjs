@@ -20,14 +20,14 @@ await assert.rejects(()=>loadEmergencyCatalog(async()=>({ok:true,json:async()=>(
 await assert.rejects(()=>loadEmergencyCatalog(async()=>({ok:true,json:async()=>({
   ...real,products:[...real.products.slice(0,254),{...real.products[0],id:'../admin'}]})})));
 const app=read('public-catalog.js'),request=read('solicitud.js'),index=read('index.html');
-assert.ok(app.includes('try{data=await loadPublicCatalog(cfg);}'),'Prioridad consulta Firestore real.');
-assert.ok(app.includes('catch(error){')&&app.includes('data=await loadEmergencyCatalog()'),'Respaldo ante fallo de Firestore.');
+assert.ok(app.includes('data=await loadPublicSnapshot();')&&app.includes('data=await loadPublicCatalog(cfg);'),'Priorizar copia completa y conservar lectura Firebase cuando falte.');
+assert.ok(app.includes('restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog()'),'Respaldo ante fallo de Firestore.');
 assert.ok(app.includes("emergencyFallback=data.emergencyFallback===true"));
 assert.ok(app.includes('available.disabled=true'),'No prometer existencias confirmadas.');
 assert.ok(app.includes('p.emergency_fallback?\'Consultar disponibilidad\''));
 assert.ok(index.includes('id="catalog-emergency-alert"'));
 assert.ok(index.includes('Precios, disponibilidad y fecha de vigencia deben confirmarse por WhatsApp.'));
-assert.ok(request.includes('data=await loadEmergencyCatalog()'),'La solicitud WhatsApp debe poder abrirse sin Firestore.');
+assert.ok(request.includes('restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog()'),'La solicitud WhatsApp conserva respaldo local o público si Firestore falla.');
 assert.ok(request.includes('data.emergencyFallback'),'No presentar el resumen como precio actualizado.');
 assert.ok(read('firestore.rules').includes('catalogProducts'),'No cambia reglas ni inventario.');
 console.log('POLADENT: respaldo verificado y sin precios falsos, 255 productos disponibles para consulta.');
