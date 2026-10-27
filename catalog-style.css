@@ -1900,3 +1900,32 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
 @media(max-width:850px){
   .admin-product-filters{grid-template-columns:1fr}
 }
+
+
+/* Doble moneda de POLADENT: solo visible tras activación en administración */
+.catalog-product-price{
+ display:grid;gap:5px;background:#f5faff;
+ border:1px solid #c8e4f3;border-radius:10px;
+ padding:10px 12px;margin:10px 13px 12px;
+ text-align:left;
+}
+.catalog-price-usd{font-size:16px;color:#07396b;font-weight:850;line-height:1.25}
+.catalog-price-ves{font-size:15px;font-weight:800;color:#087056;line-height:1.25}
+.catalog-price-pending{font-size:11px;color:#8c6528;line-height:1.5}
+.bcv-rate-banner{
+ margin:13px 0 8px;padding:12px 14px;
+ border:1px solid #b8dce8;border-radius:10px;
+ background:#eaf8fb;color:#164762;
+ font-size:12px;line-height:1.5;
+}
+.bcv-rate-banner[hidden],#detail-price[hidden]{display:none!important}
+#detail-price.catalog-product-price{
+ margin:12px 0 16px;padding:14px;
+}
+#detail-price .catalog-price-usd{font-size:20px}
+#detail-price .catalog-price-ves{font-size:19px}
+@media(max-width:600px){
+ .catalog-product-price{margin:10px 9px;padding:9px}
+ .catalog-price-usd{font-size:14px}
+ .catalog-price-ves{font-size:13px}
+}

@@ -2,9 +2,10 @@
 // Solo se importa cuando CATALOGO_FIREBASE contiene configuración pública.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc, deleteField } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 import {normalizeStorefront} from './storefront-settings.js';
+import {cleanUSD} from './catalog-pricing.js';
 import {brandKey,planBrandRename} from './brand-management.js';
 
 const cfg = window.CATALOGO_FIREBASE || {};
@@ -283,6 +284,7 @@ function sanitize(body) {
     image_url: String(body.image_url || ''),
     image_path: body.image_path || null,
     source_key: body.source_key || null,
+    price_usd: cleanUSD(body.price_usd),
     updated_at: new Date().toISOString()
   };
 }
@@ -295,8 +297,11 @@ export async function saveProduct(id, body) {
   const batch = writeBatch(db);
   markCatalogActive(batch);
   batch.set(doc(db, 'catalogProducts', key), product);
+  const pricing=await getPricingSettings();
+  const publicProduct={...product};
+  if(!pricing.enabled)delete publicProduct.price_usd;
   if (product.status === 'hidden') batch.delete(doc(db, 'catalogPublic', key));
-  else batch.set(doc(db, 'catalogPublic', key), product);
+  else batch.set(doc(db, 'catalogPublic', key), publicProduct);
   await batch.commit();
   return key;
 }
@@ -372,13 +377,18 @@ export async function importProducts(rows) {
   if (!rows.length) return;
   const batch = writeBatch(db);
   markCatalogActive(batch);
+  const pricingEnabled=(await getPricingSettings()).enabled;
   for (const body of rows) {
     const product = sanitize(body);
     if (!product.name || !product.brand || !['available', 'sold_out', 'hidden'].includes(product.status)
         || !validImage(product.image_url)) throw Error('Producto incompleto en la importación: ' + (product.name || 'sin nombre'));
     const key = doc(collection(db, 'catalogProducts')).id;
     batch.set(doc(db, 'catalogProducts', key), product);
-    if (product.status !== 'hidden') batch.set(doc(db, 'catalogPublic', key), product);
+    if (product.status !== 'hidden') {
+      const publicProduct={...product};
+      if(!pricingEnabled)delete publicProduct.price_usd;
+      batch.set(doc(db, 'catalogPublic', key), publicProduct);
+    }
   }
   await batch.commit();
 }
@@ -482,4 +492,65 @@ export async function saveStorefrontSettings(settings){
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
   await batch.commit();
   return normalized;
+}
+
+
+// Los precios USD se preparan dentro del inventario PRIVADO. No publicamos
+// precios ni modificamos productos antiguos hasta que el administrador lo active.
+export async function getPricingSettings(){
+  await adminCheck();
+  const snapshot=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+  const details=snapshot.exists()?snapshot.data().pricing:null;
+  return {enabled:details?.enabled===true,updated_at:details?.updated_at||''};
+}
+export async function saveProductPrice(productId,value){
+  await adminCheck();
+  const price=cleanUSD(value);
+  const reference=doc(db,'catalogProducts',String(productId));
+  const snapshot=await getDoc(reference);
+  if(!snapshot.exists()||!snapshot.data().name||!snapshot.data().brand)
+    throw Error('No encontramos este producto en el inventario privado.');
+  const product=snapshot.data();
+  const pricing=await getPricingSettings();
+  const batch=writeBatch(db);
+  batch.update(reference,{price_usd:price,price_updated_at:new Date().toISOString()});
+  if(pricing.enabled&&product.status!=='hidden'){
+    const publicRef=doc(db,'catalogPublic',String(productId));
+    const exists=await getDoc(publicRef);
+    if(exists.exists())batch.update(publicRef,{
+      price_usd:price===null?deleteField():price
+    });
+  }
+  await batch.commit();
+  return price;
+}
+export async function savePricingEnabled(enabled){
+  await adminCheck();
+  const active=enabled===true;
+  const previous=await getPricingSettings();
+  if(previous.enabled===active)return previous;
+  const privateSnapshot=await getDocs(collection(db,'catalogProducts'));
+  const byId=new Map(privateSnapshot.docs.filter(d=>!d.data().kind&&d.data().name&&d.data().brand)
+    .map(d=>[d.id,d.data()]));
+  const publicSnapshot=await getDocs(collection(db,'catalogPublic'));
+  const published=publicSnapshot.docs.filter(d=>byId.has(d.id)&&
+    ['available','sold_out'].includes(d.data().status));
+  const patchPricing=docSnap=>{
+    const price=byId.get(docSnap.id)?.price_usd;
+    const valid=price!==null&&price!==undefined&&Number(price)>0&&Number.isFinite(Number(price));
+    return active&&valid?{price_usd:cleanUSD(price)}:{price_usd:deleteField()};
+  };
+  // Un lote atómico mantiene TODOS los precios y la bandera sincronizados.
+  // Por encima del límite seguro de Firestore no realizamos escrituras parciales.
+  if(published.length>450)
+    throw Error('Hay más de 450 productos públicos. Por seguridad no se activaron ni desactivaron precios: hace falta una sincronización por lotes supervisada.');
+  const data={kind:'contact_settings',status:'available',
+    pricing:{enabled:active,updated_at:new Date().toISOString()}};
+  const batch=writeBatch(db);
+  for(const current of published)
+    batch.update(current.ref,patchPricing(current));
+  batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  await batch.commit();
+  return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
 }

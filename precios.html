@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Precios USD y tasa BCV | POLADENT</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="catalog-style.css">
+<link rel="stylesheet" href="admin-navigation.css">
+<link rel="stylesheet" href="pricing-admin.css">
+</head>
+<body>
+<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrador</a></header>
+<main class="admin-wrap pricing-admin">
+<p class="eyebrow">CONTROL PRIVADO</p>
+<h1>Precios USD y bolívares BCV</h1>
+<p>Guarda un precio base en dólares para cada producto. El equivalente en bolívares se calcula con la tasa BCV vigente. <strong>Los precios públicos están desactivados de manera predeterminada</strong> hasta que los autorices.</p>
+<p id="pricing-message" role="status" aria-live="polite"></p>
+<form id="pricing-login" class="admin-form">
+<h2>Acceso de administración</h2>
+<label>Correo<input name="email" type="email" required autocomplete="username"></label>
+<label>Contraseña<input name="password" type="password" required autocomplete="current-password"></label>
+<button class="primary" type="submit">Entrar</button>
+</form>
+<section id="pricing-workspace" hidden>
+  <div class="admin-actions"><a class="brand-admin-link" href="admin.html">Editar productos</a><button type="button" id="pricing-logout">Cerrar sesión</button></div>
+  <div class="pricing-layout">
+    <section class="pricing-status">
+      <div><h2>Estado de publicación</h2><strong id="pricing-public-state">Precios no publicados</strong>
+      <p id="pricing-state-help">Puedes guardar precios USD sin mostrarlos a los clientes.</p></div>
+      <button id="pricing-switch" type="button" class="primary">Activar precios para clientes</button>
+    </section>
+    <section class="pricing-rate" aria-live="polite">
+      <div><h2>Tasa BCV USD/VES</h2>
+      <p id="pricing-rate-value">Consultando tasa…</p>
+      <p id="pricing-rate-meta">La consulta utiliza datos del BCV reproducidos por un proveedor independiente.</p></div>
+      <button id="pricing-rate-refresh" type="button">Actualizar tasa</button>
+      <p><a href="https://www.bcv.org.ve/" target="_blank" rel="noopener noreferrer">Consultar la publicación original del BCV</a></p>
+    </section>
+  </div>
+  <section class="pricing-products">
+    <h2>Precios por producto</h2>
+    <p>El valor USD que guardes será la base. Si el producto no tiene precio, el catálogo no mostrará un monto para esa ficha. Los productos ocultos siguen ocultos.</p>
+    <div class="admin-product-filters pricing-filters">
+      <label>Buscar producto o marca<input id="pricing-search" type="search" placeholder="Nombre o marca"></label>
+      <label>Disponibilidad<select id="pricing-status"><option value="all">Todos</option><option value="available">Disponibles</option><option value="hidden">Ocultos</option><option value="sold_out">Agotados</option></select></label>
+      <label>Marca<select id="pricing-brand"><option value="">Todas las marcas</option></select></label>
+    </div>
+    <p id="pricing-count" role="status" aria-live="polite"></p>
+    <div id="pricing-products-list"></div>
+    <button id="pricing-more" type="button" hidden>Mostrar más productos</button>
+  </section>
+</section>
+</main>
+<script src="config.js"></script>
+<script type="module" src="pricing-admin.js"></script>
+<script type="module" src="admin-navigation.js"></script>
+</body></html>

@@ -2,6 +2,7 @@
 // mantiene los mismos formularios, ids, eventos, archivos y servicios de datos.
 const PATHS=[
   ['admin.html','Productos','package'],
+  ['precios.html','Precios USD / BCV','badge-dollar-sign'],
   ['marcas.html','Marcas','tags'],
   ['portada.html','Portada','image'],
   ['diseno.html','Diseño','palette'],
@@ -247,7 +248,7 @@ function stickyShortForm(workspace,id){
   bar.append(submit);
 }
 function init(){
-  const workspace=$('#workspace,#brand-workspace,#contact-workspace,#welcome-admin-workspace,#design-workspace,#analytics-workspace,#backup-workspace');
+  const workspace=$('#workspace,#brand-workspace,#contact-workspace,#welcome-admin-workspace,#design-workspace,#analytics-workspace,#backup-workspace,#pricing-workspace');
   if(!workspace||workspace.dataset.uxMounted)return;
   workspace.dataset.uxMounted='1';
   globalNavigation(workspace);
