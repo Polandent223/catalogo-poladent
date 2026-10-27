@@ -18,6 +18,8 @@ jobs:
         run: node scripts/build-static-catalog-tests.mjs
       - name: Probar copia completa de banners, marcas y precios sin Firebase
         run: node scripts/create-public-snapshot-tests.mjs
+      - name: Probar sincronización ligera al guardar cambios en administración
+        run: node scripts/sync-public-catalog-tests.mjs
       - name: Probar catálogo y solicitudes en contingencia sin Firebase
         run: node catalog-emergency-tests.mjs
       - name: Comprobar sintaxis de Cloud Functions privadas
