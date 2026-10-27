@@ -641,8 +641,8 @@ export async function undoBulkPriceOperation(operationId){
  if(!/^AJ-[0-9]{8}-[0-9A-F]{8}$/.test(String(operationId||'')))
    throw Error('Código de ajuste inválido.');
  const audits=await getDocs(query(collection(db,'catalogProducts'),where('kind','==','price_adjustment')));
- const matching=audits.docs.filter(d=>d.data().operation_id===operationId);
- if(!matching.length||matching.some(d=>d.data().undone_at))
+ const matching=audits.docs.filter(d=>d.data().operation_id===operationId&&!d.data().undone_at);
+ if(!matching.length)
    throw Error('No encontramos ajustes pendientes de deshacer con ese código.');
  const snapshot=await getDocs(collection(db,'catalogProducts'));
  const byId=new Map(snapshot.docs.map(d=>[d.id,d.data()]));
