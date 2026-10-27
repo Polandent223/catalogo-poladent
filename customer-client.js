@@ -16,12 +16,12 @@ export const createCustomerLogin=(email,password)=>createUserWithEmailAndPasswor
 export const sendCustomerVerification=()=>sendEmailVerification(auth.currentUser);
 export const loginCustomer=(email,password)=>signInWithEmailAndPassword(auth,email,password);
 export const customerLogout=()=>signOut(auth);
-export async function registerCustomer(name,cedula){
+export async function registerCustomer(name,cedula,consent){
  if(!auth.currentUser)throw Error('Inicia sesión.');
  await auth.currentUser.reload();
  if(!auth.currentUser.emailVerified)throw Error('Primero confirma el correo de verificación.');
  await auth.currentUser.getIdToken(true);
- return call('customerRegister',{name,cedula});
+ return call('customerRegister',{name,cedula,consent:consent===true});
 }
 export async function getCustomerQuotes(){
  if(!auth.currentUser?.emailVerified)throw Error('Verifica tu correo antes de consultar tus cotizaciones.');
