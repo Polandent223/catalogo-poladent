@@ -492,6 +492,7 @@ export async function saveStorefrontSettings(settings){
   const batch=writeBatch(db);
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return normalized;
 }
