@@ -4,6 +4,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch, deleteDoc, deleteField, runTransaction } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
+import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js';
 import {normalizeStorefront} from './storefront-settings.js';
 import {cleanUSD} from './catalog-pricing.js';
 import {adjustedPriceUSD} from './price-bulk.js';
@@ -687,3 +688,14 @@ export async function undoBulkPriceOperation(operationId){
  }
  return {completed};
 }
+
+// Los endpoints llaman a Functions con token Firebase del administrador.
+// Todas las escrituras privadas se validan otra vez en el servidor.
+async function adminPortalCall(name,data={}){
+  await adminCheck();
+  const call=httpsCallable(getFunctions(app,'us-central1'),name);
+  const result=await call(data);
+  return result.data;
+}
+export const getCustomerPortalAdminHealth=()=>adminPortalCall('customerPortalAdminHealth');
+export const saveCustomerPortalEnabled=(enabled)=>adminPortalCall('customerPortalAdminSetEnabled',{enabled});

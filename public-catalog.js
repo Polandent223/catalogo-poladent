@@ -16,6 +16,8 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 let pricingEnabled=false,bcvRate=null;
+let customerPortalEnabled=false,customerAPI=null;
+let alreadyQuotedIds=new Set();
 let brandsExpanded=false;
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
 const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
@@ -636,6 +638,8 @@ function buildCard(p,index){
   card.append(button,element('p',p.brand,'eyebrow'),element('h2',p.name),
     element('span',labels[p.status]||'Disponible','badge '+p.status));
    const prices=createPriceBlock(p);if(prices)card.append(prices);
+  if(customerPortalEnabled&&alreadyQuotedIds.has(String(p.id)))
+    card.append(element('span','Ya lo cotizaste · vuelve a solicitarlo si lo necesitas','customer-quoted-label'));
   const view=element('button','Ver producto');view.type='button';
   view.addEventListener('click',()=>open(p));
   const add=element('button','+ Agregar a cotización','card-cart-add');
@@ -749,6 +753,50 @@ function getCartReference(){
    createdAt:now.toISOString()};
  try{sessionStorage.setItem(CART_REFERENCE_KEY,JSON.stringify(next))}catch{}
  return next;
+}
+// Las cuentas son optativas; el catálogo y WhatsApp no dependen de Firebase Auth.
+async function startOptionalCustomerPortal(){
+ if(!customerPortalEnabled)return;
+ const link=$('#customer-account-link'),note=$('#customer-account-note'),save=$('#customer-save-quote');
+ link.hidden=false;note.hidden=false;
+ try{
+   customerAPI=await import('./customer-client.js');
+   customerAPI.observeCustomerSession(async user=>{
+     save.hidden=true;
+     alreadyQuotedIds=new Set();
+     link.textContent=user?.emailVerified?'Mis cotizaciones':'Mi cuenta · Registro opcional';
+     if(!user?.emailVerified){renderProducts();return}
+     try{
+       const result=await customerAPI.getCustomerQuotes();
+       for(const quote of result.quotes||[])
+         for(const item of quote.items||[])alreadyQuotedIds.add(String(item.product_id));
+       save.hidden=false;
+     }catch{save.hidden=true;}
+     renderProducts();
+   });
+ }catch(error){console.warn('Portal privado no disponible. Catálogo anónimo intacto.',error.message)}
+ save.addEventListener('click',async()=>{
+   if(!customerAPI||!cartLines.length)return;
+   const fingerprint=cartLines.map(l=>l.id+':'+l.quantity).join('|');
+   let key;
+   try{key=JSON.parse(sessionStorage.getItem('poladent.customer.quote-key')||'null')}catch{}
+   if(!key||key.fingerprint!==fingerprint){
+     key={fingerprint,nonce:crypto.randomUUID()};
+     try{sessionStorage.setItem('poladent.customer.quote-key',JSON.stringify(key))}catch{}
+   }
+   save.disabled=true;save.textContent='Guardando en mi cuenta…';
+   try{
+     const result=await customerAPI.saveCustomerQuote(cartLines.map(l=>({id:l.id,quantity:l.quantity})),key.nonce);
+     showCartMessage('Solicitud '+result.code+' guardada en tu cuenta. Puedes enviarla por WhatsApp normalmente.');
+     save.textContent='Cotización guardada ✓';
+     const data=await customerAPI.getCustomerQuotes();
+     alreadyQuotedIds=new Set((data.quotes||[]).flatMap(q=>(q.items||[]).map(p=>String(p.product_id))));
+     renderProducts();
+   }catch(error){
+     save.textContent='Guardar esta cotización en mi cuenta';
+     showCartMessage('No pudimos guardar el historial: '+error.message+'. Puedes cotizar por WhatsApp sin registro.',true);
+   }finally{save.disabled=false;}
+ });
 }
 function updateCartLink(){
   if(!catalogLoaded)return;
@@ -1027,6 +1075,7 @@ async function load(){
       contacts=data.contacts;
       storefrontSettings=data.storefront;
       pricingEnabled=data.pricingEnabled===true;
+      customerPortalEnabled=data.customerPortalEnabled===true;
     }else products=legacy();
     if(pricingEnabled){
       $('#catalog-cart-intro').textContent='¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.';
@@ -1051,6 +1100,7 @@ async function load(){
     renderBrandHero();
     renderProducts();
     renderStorefront();
+    void startOptionalCustomerPortal();
     if(previewStorefront && window.parent!==window)
       window.parent.postMessage({type:'poladent:storefront-ready'},location.origin);
     const productId=new URLSearchParams(location.hash.slice(1)).get('producto');

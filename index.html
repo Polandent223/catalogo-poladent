@@ -97,7 +97,9 @@
 <div class="cart-toolbar">
 <p id="catalog-cart-intro"><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
 <button id="cart-open" class="cart-open-button cart-open-premium" type="button" aria-haspopup="dialog" aria-controls="cart-dialog" aria-label="Mi cotización, 0 productos" disabled><svg class="cart-bag-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg><span class="cart-open-label">Mi cotización</span><span id="cart-count" class="cart-count-badge" aria-hidden="true">0</span></button>
+<a id="customer-account-link" class="customer-account-link" href="cuenta.html" hidden>Mi cuenta · Mis cotizaciones</a>
 </div>
+<p id="customer-account-note" class="customer-account-note" hidden>¿Cotizas con frecuencia? Con una cuenta opcional puedes consultar productos cotizados y volver a solicitarlos. <a href="cuenta.html">Ver beneficios</a>. No necesitas registrarte para usar WhatsApp.</p>
 <p id="cart-feedback" class="cart-feedback" role="status" aria-live="polite"></p>
 <p id="catalog-status" role="status">Cargando productos…</p><section id="products" class="product-grid" aria-label="Productos"></section><button id="more" hidden>Ver más productos</button><section id="brand-back-cover" class="brand-back-cover" hidden></section></main>
 <dialog id="location-photo-dialog" class="location-photo-dialog" aria-labelledby="location-photo-title" aria-modal="true">
@@ -165,6 +167,7 @@
 <label for="cart-contact">Enviar cotización a
 <select id="cart-contact" name="contact" required></select></label>
 <a id="cart-whatsapp" class="whatsapp-contact" role="button" tabindex="0" aria-disabled="true" target="_blank" rel="noopener noreferrer">Completa los datos para solicitar cotización ↗</a>
+<button id="customer-save-quote" class="customer-save-quote" type="button" hidden>Guardar esta cotización en mi cuenta</button>
 <p id="cart-message" role="status" aria-live="polite">WhatsApp abrirá el mensaje preparado. No se enviará automáticamente.</p>
 <p class="cart-contact-privacy">Tu nombre y teléfono se incluyen únicamente en el mensaje preparado de WhatsApp. Este formulario no crea una cuenta ni un historial de cliente en POLADENT.</p>
 <p class="cart-public-notice">Los montos en Bs se calculan a la tasa BCV vigente y pueden cambiar si la tasa se actualiza. Para USDT u otras divisas, consulta las condiciones con un vendedor. El resumen no constituye factura fiscal ni reserva de mercancía.</p>

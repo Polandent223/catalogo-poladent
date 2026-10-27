@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Mi cuenta y cotizaciones | POLADENT Casa Dental</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="cuenta.css"></head>
+<body>
+<header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="./">Volver al catálogo</a></header>
+<main class="customer-page">
+<div class="customer-hero"><span>POLADENT CASA DENTAL</span><h1>Mi cuenta y mis cotizaciones</h1>
+<p>Guarda lo que cotizas, consulta tus productos anteriores y vuelve a solicitarlos sin empezar de cero. <strong>El catálogo siempre puede usarse sin registro.</strong></p>
+</div>
+<p id="customer-status" role="status" aria-live="polite">Comprobando si el portal está disponible…</p>
+<section id="customer-unavailable" hidden class="customer-panel">
+<h2>El registro de clientes no está habilitado</h2>
+<p>Puedes seguir buscando productos y solicitando cotizaciones por WhatsApp sin crear una cuenta.</p>
+<a href="./">Explorar productos</a>
+</section>
+<div id="customer-auth" hidden>
+<div class="customer-tabs">
+<button id="customer-show-login" type="button" aria-controls="customer-login-form">Entrar</button>
+<button id="customer-show-signup" type="button" aria-controls="customer-signup-form">Crear cuenta</button>
+</div>
+<form id="customer-login-form" class="customer-panel">
+<h2>Entrar a mis cotizaciones</h2>
+<label>Correo registrado<input name="email" type="email" autocomplete="email" maxlength="130" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+<button type="submit" class="primary">Entrar</button>
+<p>La cédula identifica tu perfil; por seguridad no es una contraseña ni permite ver cotizaciones ajenas.</p>
+</form>
+<form id="customer-signup-form" class="customer-panel" hidden>
+<h2>Crear cuenta opcional</h2>
+<label>Nombre y apellido<input name="name" autocomplete="name" maxlength="80" minlength="3" required></label>
+<label>Cédula venezolana<input name="cedula" autocomplete="off" placeholder="V12345678" maxlength="11" minlength="7" required></label>
+<label>Correo para verificar identidad<input name="email" type="email" autocomplete="email" maxlength="130" required></label>
+<label>Crear contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+<label class="customer-consent"><input type="checkbox" name="consent" required> Autorizo el uso de mis datos para mantener mi cuenta e historial de cotizaciones. <a href="privacidad-clientes.html" target="_blank" rel="noopener">Ver privacidad</a>.</label>
+<button type="submit" class="primary">Crear cuenta y verificar correo</button>
+<p>Te enviaremos un correo de verificación. No pedimos número telefónico para registrarte. Tu cédula no se publicará en el catálogo.</p>
+</form>
+</div>
+<section id="customer-verify" class="customer-panel" hidden>
+<h2>Verifica tu correo</h2>
+<p>Revisa el mensaje de verificación, abre su enlace y vuelve aquí para continuar.</p>
+<button id="customer-verify-check" type="button" class="primary">Ya verifiqué mi correo</button>
+<button id="customer-verify-resend" type="button">Reenviar correo</button>
+</section>
+<form id="customer-profile-form" class="customer-panel" hidden>
+<h2>Completa tu perfil</h2>
+<p>Tu correo ya está verificado. Para proteger tus cotizaciones, registraremos tu cédula como identificador, sin utilizarla como contraseña.</p>
+<label>Nombre y apellido<input name="name" autocomplete="name" maxlength="80" minlength="3" required></label>
+<label>Cédula venezolana<input name="cedula" autocomplete="off" placeholder="V12345678" maxlength="11" minlength="7" required></label>
+<label class="customer-consent"><input type="checkbox" name="consent" required> Autorizo el uso de mis datos para mantener mi cuenta e historial de cotizaciones. <a href="privacidad-clientes.html" target="_blank" rel="noopener">Ver privacidad</a>.</label>
+<button type="submit" class="primary">Completar mi registro</button>
+</form>
+<section id="customer-dashboard" hidden>
+<div class="customer-panel customer-dashboard-title">
+<div><h2 id="customer-greeting">Mis cotizaciones</h2><p id="customer-identification"></p></div>
+<button id="customer-signout" type="button">Cerrar sesión</button>
+</div>
+<div class="customer-panel">
+<h3>Productos ya cotizados</h3>
+<p id="customer-previous-count"></p>
+<p>Si vuelves a necesitar un artículo que ya cotizaste, puedes recuperarlo desde una solicitud anterior sin buscarlo otra vez.</p>
+<div id="customer-previous-products"></div>
+</div>
+<div class="customer-panel"><h3>Historial de cotizaciones</h3>
+<div id="customer-quotes"></div><p id="customer-history-info"></p>
+</div>
+</section>
+<div class="customer-anonymous">
+<p><strong>¿Solo quieres consultar?</strong> No necesitas registrarte. El catálogo y WhatsApp continúan disponibles para todos.</p>
+<a href="./">Ir al catálogo sin cuenta</a>
+</div>
+</main>
+<footer>Distribuido por <strong>POLADENT Casa Dental</strong> · Valencia y Maracay</footer>
+<script src="config.js"></script><script type="module" src="cuenta.js"></script>
+</body></html>
