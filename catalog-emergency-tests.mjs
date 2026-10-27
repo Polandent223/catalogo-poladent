@@ -20,8 +20,8 @@ await assert.rejects(()=>loadEmergencyCatalog(async()=>({ok:true,json:async()=>(
 await assert.rejects(()=>loadEmergencyCatalog(async()=>({ok:true,json:async()=>({
   ...real,products:[...real.products.slice(0,254),{...real.products[0],id:'../admin'}]})})));
 const app=read('public-catalog.js'),request=read('solicitud.js'),index=read('index.html');
-assert.ok(app.includes('try{data=await loadPublicCatalog(cfg);}'),'Prioridad consulta Firestore real.');
-assert.ok(app.includes('catch(error){')&&app.includes('data=await loadEmergencyCatalog()'),'Respaldo ante fallo de Firestore.');
+assert.ok(app.includes('data=await loadPublicSnapshot();')&&app.includes('data=await loadPublicCatalog(cfg);'),'Priorizar copia completa y conservar lectura Firebase cuando falte.');
+assert.ok(app.includes('restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog()'),'Respaldo ante fallo de Firestore.');
 assert.ok(app.includes("emergencyFallback=data.emergencyFallback===true"));
 assert.ok(app.includes('available.disabled=true'),'No prometer existencias confirmadas.');
 assert.ok(app.includes('p.emergency_fallback?\'Consultar disponibilidad\''));
