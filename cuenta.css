@@ -28,3 +28,7 @@
 #customer-status.error{color:#a24135}
 [hidden]{display:none!important}
 @media(max-width:620px){.customer-hero{padding:20px}.customer-dashboard-title{flex-direction:column;align-items:start}}
+
+.customer-panel label.customer-consent{display:block;font-size:12px;font-weight:500;line-height:1.6;color:#2f5b6f}
+.customer-panel label.customer-consent input{width:17px;height:17px;vertical-align:middle;margin:0 6px 0 0;accent-color:#096590}
+.customer-consent a{font-weight:750;color:#0b6490}
