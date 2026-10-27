@@ -527,6 +527,7 @@ export async function saveProductPrice(productId,value){
       price_usd:price===null?deleteField():price
     });
   }
+  if(pricing.enabled&&product.status!=='hidden')markCatalogActive(batch);
   await batch.commit();
   return price;
 }
@@ -617,6 +618,7 @@ export async function applyBulkPriceChanges(rows,meta={}){
          direction:method==='percent'?meta.direction:'',
          percent:method==='percent'?Number(meta.percent):null,
          created_at:now,created_by:auth.currentUser.uid,records:chunk,undone_at:null});
+       if(pricing.enabled)markCatalogActive(transaction);
      });
      completed+=chunk.length;
    }
@@ -685,6 +687,7 @@ export async function undoBulkPriceOperation(operationId){
              price_usd:row.before===null?deleteField():row.before});
        }
        transaction.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
+       if(pricing.enabled)markCatalogActive(transaction);
      });
      completed+=rows.length;
    }
