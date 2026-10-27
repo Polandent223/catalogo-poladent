@@ -142,6 +142,7 @@ export async function saveWelcomeSettings(settings) {
   const batch=writeBatch(db);
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return {
     enabled:data.welcome_enabled,
@@ -187,6 +188,7 @@ export async function saveWhatsAppContacts(contacts) {
   const batch = writeBatch(db);
   batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data, {merge:true});
   batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data, {merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return cleaned;
 }
@@ -252,6 +254,7 @@ export async function saveBrand(id, entry, sourceName = '') {
     if (product.status === 'available' || product.status === 'sold_out')
       batch.update(doc(db, 'catalogPublic', product.id), { brand:name });
   }
+  markCatalogActive(batch);
   await batch.commit();
   return {id:key,renamedProducts:changes.length};
 }
@@ -554,6 +557,7 @@ export async function savePricingEnabled(enabled){
     batch.update(current.ref,patchPricing(current));
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
 }
