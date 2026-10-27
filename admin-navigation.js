@@ -169,6 +169,8 @@ function productsPanel(workspace){
   const logout=$('#logout');
   if(logout)workspace.querySelector('.ux-admin-global').append(logout);
   manager.panels.get('herramientas').append(actions);
+  const futurePortal=$('#customer-portal-future');
+  if(futurePortal)manager.panels.get('herramientas').append(futurePortal);
   if(cleanup)manager.panels.get('herramientas').append(cleanup);
   // El enlace de edición sigue en la misma pestaña que la lista de productos.
 }
