@@ -540,23 +540,17 @@ export async function savePricingEnabled(enabled){
     const valid=price!==null&&price!==undefined&&Number(price)>0&&Number.isFinite(Number(price));
     return active&&valid?{price_usd:cleanUSD(price)}:{price_usd:deleteField()};
   };
-  // Desactivar primero la bandera pública. Activar solo después de actualizar
-  // TODAS las fichas; ningún precio incompleto se muestra en caso de fallo.
-  const saveFlag=async()=>{
-    const data={kind:'contact_settings',status:'available',
-      pricing:{enabled:active,updated_at:new Date().toISOString()}};
-    const batch=writeBatch(db);
-    batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
-    batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
-    await batch.commit();
-  };
-  if(!active)await saveFlag();
-  for(let start=0;start<published.length;start+=150){
-    const batch=writeBatch(db);
-    for(const current of published.slice(start,start+150))
-      batch.update(current.ref,patchPricing(current));
-    await batch.commit();
-  }
-  if(active)await saveFlag();
-  return {enabled:active,updated_at:new Date().toISOString(),products:published.length};
+  // Un lote atómico mantiene TODOS los precios y la bandera sincronizados.
+  // Por encima del límite seguro de Firestore no realizamos escrituras parciales.
+  if(published.length>450)
+    throw Error('Hay más de 450 productos públicos. Por seguridad no se activaron ni desactivaron precios: hace falta una sincronización por lotes supervisada.');
+  const data={kind:'contact_settings',status:'available',
+    pricing:{enabled:active,updated_at:new Date().toISOString()}};
+  const batch=writeBatch(db);
+  for(const current of published)
+    batch.update(current.ref,patchPricing(current));
+  batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  await batch.commit();
+  return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
 }
