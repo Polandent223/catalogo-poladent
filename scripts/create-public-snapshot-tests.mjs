@@ -16,6 +16,8 @@ const fakeData={
   {id:'c',name:'IMODONTO',logo_url:'https://res.cloudinary.com/poladent/image/upload/imodonto.png'}
  ],
  contacts:[{label:'Valencia',phone:'584226710634'}],hasCatalogState:true,
+ welcome:{enabled:true,image_url:'https://res.cloudinary.com/poladent/image/upload/welcome-pc.webp',
+ mobile_image_url:'https://res.cloudinary.com/poladent/image/upload/welcome-mobile.webp'},
  storefront:{
   enabled:true,theme:'premium-compacta',
   banner_desktop_url:'https://res.cloudinary.com/poladent/image/upload/banner-pc.webp',
@@ -35,6 +37,9 @@ assert.equal(copy.profiles.length,3);
 assert.equal(copy.contacts.length,1);
 assert.equal(copy.storefront.locations[0].name,'Valencia');
 assert.equal(copy.storefront.banner_mobile_url,fakeData.storefront.banner_mobile_url);
+assert.equal(copy.welcome.image_url,fakeData.welcome.image_url);
+assert.equal(copy.welcome.mobile_image_url,fakeData.welcome.mobile_image_url);
+assert.equal(copy.welcome.enabled,true);
 assert.equal(copy.storefront.banner_extra_slides.length,1);
 assert.equal(copy.pricingEnabled,true);
 assert.equal(copy.customerPortalEnabled,false);
@@ -70,6 +75,9 @@ assert.equal(result.products.length,255);
 await assert.rejects(()=>loadPublicSnapshot(async()=>({ok:false,status:404})));
 const index=readFileSync('public-catalog.js','utf8');
 const quote=readFileSync('solicitud.js','utf8');
+const welcomeJS=readFileSync('welcome.js','utf8');
+assert.ok(welcomeJS.includes("catalog-welcome-snapshot.json"),'Portada original conserva imagen y regla de reemplazo.');
+assert.ok(welcomeJS.includes('const fromSnapshot=await readSavedWelcome()'),'Bienvenida sin consultas Firestore por visita.');
 assert.ok(index.includes('data=await loadPublicSnapshot();'));
 assert.ok(index.includes('data=await loadPublicCatalog(cfg);'),
  'Conservar Firestore directo cuando falta copia estática.');
