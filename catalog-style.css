@@ -2075,3 +2075,17 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
 @media(max-width:700px){
   .cart-toolbar .customer-account-link{width:100%}
 }
+
+
+/* Contingencia de lectura: nunca afirmar stock o precios no verificados. */
+.catalog-emergency-alert{
+  margin:15px 0;padding:13px 16px;
+  background:#fff5df;border:1px solid #e3c886;border-radius:11px;
+  color:#6a4a18;font-size:13px;line-height:1.65;
+}
+.catalog-emergency-alert strong{color:#70400e}
+.product-card .badge.status-unverified{
+  color:#79561a;background:#fff3db;border-color:#eddda8;
+  font-size:11px;
+}
+.catalog-emergency-alert[hidden]{display:none!important}

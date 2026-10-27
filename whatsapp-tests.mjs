@@ -55,7 +55,7 @@ assert.equal(whatsappInquiryURL('584121234567',product,'javascript:alert(1)',det
 assert.equal(whatsappInquiryURL('584121234567',product,'http://example.com/',details),'');
 const publicScript=readFileSync(new URL('./public-catalog.js',import.meta.url),'utf8');
 assert.ok(publicScript.includes('block.hidden=!selected||contacts.length===0'));
-assert.ok(publicScript.includes('const data=await loadPublicCatalog(cfg)'));
+assert.ok(publicScript.includes('try{data=await loadPublicCatalog(cfg);}'), 'Mantener Firestore como fuente principal antes del respaldo.');
 assert.ok(publicScript.includes('contacts=data.contacts'));
 assert.ok(publicScript.includes('shareIds.has(String(p.id))'));
 assert.ok(publicScript.includes('quoteForm.reset()'), 'No reutilizar los datos de otro producto');

@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {parseSummaryFragment,cartFinancials,cartTotals} from './quote-cart.js';
 import {fetchBcvRate,formatUSD,formatVES,formatBcvRate} from './catalog-pricing.js';
 
@@ -26,7 +27,12 @@ async function displaySummary(){
  try{
    const cfg=window.CATALOGO_FIREBASE||{};
    if(!cfg.projectId||!cfg.apiKey)throw Error('No está disponible el catálogo público.');
-   const data=await loadPublicCatalog(cfg);
+   let data;
+   try{data=await loadPublicCatalog(cfg);}
+   catch(error){
+     console.warn('Solicitud temporal: Firestore no disponible, mostrando productos desde respaldo:',error.message);
+     data=await loadEmergencyCatalog();
+   }
    const available=new Map(data.products.map(p=>[String(p.id),p]));
    const current=requested.filter(x=>available.has(x.id));
    const missing=requested.length-current.length;
@@ -71,7 +77,9 @@ async function displaySummary(){
         ' · Fecha de vigencia '+rate.effective_date+' · Proveedor independiente (verificar en BCV).'
      :'Tasa BCV no validada. No se presenta conversión estimada en bolívares.';
    $('#summary-content').hidden=false;
-   status.textContent='Resumen actualizado con los precios vigentes. La referencia es temporal: no constituye un pedido registrado ni una factura fiscal.';
+   status.textContent=data.emergencyFallback
+     ?'Resumen temporal: productos encontrados en respaldo. Precios, existencias y tasa a confirmar directamente con POLADENT; este enlace no confirma venta ni disponibilidad.'
+     :'Resumen actualizado con los precios vigentes. La referencia es temporal: no constituye un pedido registrado ni una factura fiscal.';
  }catch(error){
    status.textContent='No pudimos abrir el resumen. Comprueba la conexión o solicita un enlace nuevo.';
    console.warn('No fue posible consultar solicitud:',error.message);

@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
@@ -15,7 +16,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
-let pricingEnabled=false,bcvRate=null;
+let pricingEnabled=false,bcvRate=null,emergencyFallback=false;
 let customerPortalEnabled=false,customerAPI=null;
 let alreadyQuotedIds=new Set();
 let brandsExpanded=false;
@@ -636,7 +637,8 @@ function buildCard(p,index){
   setCardImage(img,imageUrl(p.image_url),index);
   button.append(img);button.addEventListener('click',()=>open(p));
   card.append(button,element('p',p.brand,'eyebrow'),element('h2',p.name),
-    element('span',labels[p.status]||'Disponible','badge '+p.status));
+    element('span',p.emergency_fallback?'Consultar disponibilidad':labels[p.status]||'Disponible',
+       'badge '+(p.emergency_fallback?'status-unverified':p.status)));
    const prices=createPriceBlock(p);if(prices)card.append(prices);
   if(customerPortalEnabled&&alreadyQuotedIds.has(String(p.id)))
     card.append(element('span','Ya lo cotizaste · vuelve a solicitarlo si lo necesitas','customer-quoted-label'));
@@ -685,7 +687,7 @@ function renderProducts(){
     &&(!activeQuickArea||quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)));
   grid.replaceChildren();
   appendCards(filtered.slice(0,limit),0);
-  status.textContent=filtered.length?filtered.length+' productos':'No encontramos productos con estos filtros.';
+  status.textContent=filtered.length?filtered.length+' productos'+(emergencyFallback?' · consulta temporal':''):'No encontramos productos con estos filtros.';
   updatePagination();
   refreshCartButtons();
 }
@@ -849,7 +851,8 @@ function renderCart(){
     img.alt='';img.loading='lazy';img.width=100;img.height=100;
     const detail=element('div',null,'cart-item-details');
     detail.append(element('strong',p.name),element('span',p.brand));
-    if(p.status==='sold_out')detail.append(element('span','Agotado · consultar disponibilidad','cart-sold-out'));
+    if(p.emergency_fallback)detail.append(element('span','Precio y disponibilidad por confirmar','cart-sold-out'));
+    else if(p.status==='sold_out')detail.append(element('span','Agotado · consultar disponibilidad','cart-sold-out'));
     if(pricingEnabled){
       const priced=financialRows.get(line.id);
       if(priced?.subtotalUSD!==null&&priced?.subtotalUSD!==undefined){
@@ -979,7 +982,7 @@ function renderInquiry(){
   }
   if(contacts.some(c=>c.phone===previous))chooser.value=previous;
   label.hidden=contacts.length===1;
-  $('#quote-title').textContent=selected.status==='sold_out'
+  $('#quote-title').textContent=selected.emergency_fallback||selected.status==='sold_out'
     ?'Consulta disponibilidad y solicita cotización':'Solicita una cotización';
   refreshQuickInquiry();
   updateQuoteLink();
@@ -1026,7 +1029,8 @@ function open(p){
   const image=$('#detail-image');
   image.src=imageUrl(p.image_url);image.alt=p.name;
   for(const [id,value] of [
-    ['detail-name',p.name],['detail-brand',p.brand],['detail-status',labels[p.status]],
+    ['detail-name',p.name],['detail-brand',p.brand],
+     ['detail-status',p.emergency_fallback?'Precio y disponibilidad por confirmar':labels[p.status]],
     ['detail-description',p.description||''],['share-status','']]){
     document.getElementById(id).textContent=value||'';
   }
@@ -1080,14 +1084,36 @@ async function load(){
   try{
     const cfg=window.CATALOGO_FIREBASE||{};
     if(cfg.apiKey&&cfg.projectId&&cfg.appId){
-      const data=await loadPublicCatalog(cfg);
+      let data;
+      try{data=await loadPublicCatalog(cfg);}
+      catch(error){
+        console.warn('Firestore no disponible; catálogo de contingencia sin precios ni stock:',error.message);
+        data=await loadEmergencyCatalog();
+      }
+      emergencyFallback=data.emergencyFallback===true;
       products=data.hasCatalogState||data.products.length?data.products:legacy();
       profiles=data.profiles;
       contacts=data.contacts;
       storefrontSettings=data.storefront;
       pricingEnabled=data.pricingEnabled===true;
       customerPortalEnabled=data.customerPortalEnabled===true;
-    }else products=legacy();
+     }else{
+       try{
+         const data=await loadEmergencyCatalog();
+         emergencyFallback=true;products=data.products;
+         profiles=data.profiles;contacts=data.contacts;
+         storefrontSettings=null;pricingEnabled=false;customerPortalEnabled=false;
+       }catch{products=legacy();}
+     }
+     const recoveryNotice=$('#catalog-emergency-alert');
+     recoveryNotice.hidden=!emergencyFallback;
+     if(emergencyFallback){
+       // «Solo disponibles» no puede prometer existencias con datos históricos.
+       available.checked=false;
+       available.disabled=true;
+       available.title='Disponibilidad sin verificar: consulta por WhatsApp.';
+       $('#catalog-cart-intro').textContent='El catálogo funciona en modo consulta. Precios y existencia sujetos a confirmación por WhatsApp.';
+     }
     if(pricingEnabled){
       $('#catalog-cart-intro').textContent='¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.';
       updateBcvBanner();
