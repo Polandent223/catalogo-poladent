@@ -4,7 +4,7 @@ import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
-import {fetchBcvRate,cleanUSD,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
+import {fetchBcvRate,cleanUSD,formatUSD,formatVES,formatBcvRate,convertVES} from './catalog-pricing.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartFinancials,cartSummaryURL,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -616,7 +616,7 @@ function updateBcvBanner(){
  const banner=$('#bcv-rate-banner');banner.hidden=!pricingEnabled;
  if(!pricingEnabled)return;
  banner.textContent=bcvRate
-   ?'Tasa referencial BCV: 1 USD = '+formatVES(bcvRate.usd_ves)+
+   ?'Tasa referencial BCV: 1 USD = Bs. '+formatBcvRate(bcvRate.usd_ves)+
      ' · Vigente desde '+bcvRate.effective_date+
      ' · Datos a través de proveedor independiente, verificar en BCV.'
    :'Tasa BCV temporalmente no disponible: mostramos USD, sin calcular bolívares.';
@@ -734,10 +734,27 @@ function cartContactOptions(){
   }
   if(contacts.some(c=>c.phone===previous))chooser.value=previous;
 }
+const CART_REFERENCE_KEY='poladent.cart.reference.v1';
+function getCartReference(){
+ if(!cartLines.length)return null;
+ const fingerprint=cartLines.map(l=>l.id+':'+l.quantity).join('|');
+ try{
+   const previous=JSON.parse(sessionStorage.getItem(CART_REFERENCE_KEY)||'null');
+   if(previous?.fingerprint===fingerprint&&
+      /^POL-[0-9]{8}-[A-F0-9]{8}$/.test(previous.code))return previous;
+ }catch{}
+ const now=new Date();
+ const next={fingerprint,
+   code:'POL-'+now.toISOString().slice(0,10).replaceAll('-','')+'-'+crypto.randomUUID().slice(0,8).toUpperCase(),
+   createdAt:now.toISOString()};
+ try{sessionStorage.setItem(CART_REFERENCE_KEY,JSON.stringify(next))}catch{}
+ return next;
+}
 function updateCartLink(){
   if(!catalogLoaded)return;
-  const details={city:$('#cart-city').value,timing:$('#cart-timing').value};
-  const summaryURL=cartSummaryURL(cartLines,products,location.href);
+  const details={city:$('#cart-city').value,timing:$('#cart-timing').value,
+    name:$('#cart-name').value,phone:$('#cart-phone').value};
+  const summaryURL=cartSummaryURL(cartLines,products,location.href,getCartReference());
   const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
   const url=cartWhatsAppURL($('#cart-contact').value,cartLines,products,details,summaryURL,finance);
   if(url){
@@ -759,6 +776,7 @@ function renderCart(){
   const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
   const financialRows=new Map(finance.rows.map(row=>[row.id,row]));
   $('#cart-count').textContent=String(amounts.products);
+  if(!amounts.products && $('#cart-feedback').textContent.includes('agregado')) $('#cart-feedback').textContent='';
   cartOpen.disabled=!catalogLoaded;
   $('#cart-empty').hidden=amounts.products>0;
   cartForm.hidden=amounts.products===0;
@@ -845,6 +863,9 @@ cartOpen.addEventListener('click',()=>{
   cartDialog.showModal();
 });
 $('#cart-close').addEventListener('click',()=>cartDialog.close());
+window.addEventListener('pageshow',()=>{
+ if(catalogLoaded){cartLines=restoreCart();renderCart();}
+});
 cartForm.addEventListener('input',updateCartLink);
 cartForm.addEventListener('change',updateCartLink);
 cartForm.addEventListener('submit',event=>{

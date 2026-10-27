@@ -20,6 +20,11 @@ export function convertVES(usd,rate){
   const total=price*exchange;
   return Number.isFinite(total)?Math.round((total+Number.EPSILON)*100)/100:null;
 }
+export function formatBcvRate(value){
+ const n=Number(value);
+ if(!Number.isFinite(n)||n<=0)throw Error('Tasa BCV inválida.');
+ return n.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:6});
+}
 export function formatVES(value){
   return 'Bs. '+Number(value).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
 }

@@ -1,6 +1,6 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
 import {parseSummaryFragment,cartFinancials,cartTotals} from './quote-cart.js';
-import {fetchBcvRate,formatUSD,formatVES} from './catalog-pricing.js';
+import {fetchBcvRate,formatUSD,formatVES,formatBcvRate} from './catalog-pricing.js';
 
 const $=selector=>document.querySelector(selector);
 const status=$('#summary-status');
@@ -12,6 +12,15 @@ function cell(row,value,label=''){
  row.append(td);return td;
 }
 async function displaySummary(){
+ const parameters=new URLSearchParams(location.hash.slice(1));
+ const reference=parameters.get('ref')||'';
+ const dateText=parameters.get('fecha')||'';
+ $('#summary-reference').textContent=/^POL-[0-9]{8}-[A-F0-9]{8}$/.test(reference)
+   ?'Referencia temporal: '+reference:'Resumen sin referencia registrada';
+ const date=new Date(dateText);
+ $('#summary-created').textContent=Number.isFinite(date.getTime())&&/^\d{4}-\d{2}-\d{2}T/.test(dateText)
+   ?'Preparado: '+new Intl.DateTimeFormat('es-VE',{timeZone:'America/Caracas',dateStyle:'medium',timeStyle:'short'}).format(date)
+   :'Fecha de preparación no disponible';
  const requested=parseSummaryFragment(location.hash);
  if(!requested.length){status.textContent='El enlace de solicitud está incompleto. Pide al cliente que lo genere nuevamente desde su carrito.';return;}
  try{
@@ -58,11 +67,11 @@ async function displaySummary(){
      ?formatVES(financials.totalVES)+' · calculado a tasa BCV'
      :data.pricingEnabled?'Equivalente en bolívares pendiente de confirmación':'Precios no publicados';
    $('#summary-rate').textContent=rate
-     ?'Tipo de cambio referencial: 1 USD = '+formatVES(rate.usd_ves)+
+     ?'Tipo de cambio referencial: 1 USD = Bs. '+formatBcvRate(rate.usd_ves)+
         ' · Fecha de vigencia '+rate.effective_date+' · Proveedor independiente (verificar en BCV).'
      :'Tasa BCV no validada. No se presenta conversión estimada en bolívares.';
    $('#summary-content').hidden=false;
-   status.textContent='Resumen actualizado con los productos y precios actualmente publicados en POLADENT.';
+   status.textContent='Resumen actualizado con los precios vigentes. La referencia es temporal: no constituye un pedido registrado ni una factura fiscal.';
  }catch(error){
    status.textContent='No pudimos abrir el resumen. Comprueba la conexión o solicita un enlace nuevo.';
    console.warn('No fue posible consultar solicitud:',error.message);

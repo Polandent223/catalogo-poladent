@@ -163,6 +163,10 @@
 <div id="cart-items" class="cart-items" aria-live="polite"></div>
 <p id="cart-totals" class="cart-totals"></p>
 <form id="cart-form" class="cart-form">
+<label for="cart-name">Nombre del cliente
+<input id="cart-name" name="name" type="text" autocomplete="name" minlength="2" maxlength="80" placeholder="Nombre y apellido" required></label>
+<label for="cart-phone">Teléfono de contacto
+<input id="cart-phone" name="phone" type="tel" autocomplete="tel" minlength="8" maxlength="24" pattern="[0-9+() -]{8,24}" placeholder="Ej. 0412 000 0000" required></label>
 <label for="cart-city">¿En qué ciudad te encuentras?
 <input id="cart-city" name="city" type="text" autocomplete="address-level2" minlength="2" maxlength="60" placeholder="Ej. Valencia" required></label>
 <label for="cart-timing">¿Cuándo piensas comprar?

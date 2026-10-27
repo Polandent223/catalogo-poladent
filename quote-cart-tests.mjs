@@ -56,6 +56,20 @@ assert.equal(onlyPriced.totalVES,3194.28);
 const summary=cartSummaryURL(lines,priced,'https://polandent223.github.io/catalogo-poladent/?catalogo=1');
 assert.ok(summary.startsWith('https://polandent223.github.io/catalogo-poladent/solicitud.html#pedido='));
 assert.deepEqual(parseSummaryFragment(new URL(summary).hash),lines);
+const ref={code:'POL-20261027-A1B2C3D4',createdAt:'2026-10-27T14:00:00.000Z'};
+const linkWithRef=cartSummaryURL(lines,priced,'https://polandent223.github.io/catalogo-poladent/',ref);
+assert.ok(linkWithRef.includes('ref=POL-20261027-A1B2C3D4'));
+assert.deepEqual(parseSummaryFragment(new URL(linkWithRef).hash),lines);
+const contactUrl=cartWhatsAppURL('584121234567',lines,priced,
+ {city:'Valencia',timing:'today',name:'Cliente Dental',phone:'0412 1234567'},
+ linkWithRef,finance);
+const contactText=new URL(contactUrl).searchParams.get('text');
+assert.ok(contactText.includes('Cliente: Cliente Dental'));
+assert.ok(contactText.includes('Teléfono de contacto: 0412 1234567'));
+assert.ok(contactText.includes('Referencia de consulta: POL-20261027-A1B2C3D4'));
+assert.ok(!linkWithRef.includes('Cliente Dental'),'No filtrar nombre en enlace público');
+assert.ok(!linkWithRef.includes('0412'),'No filtrar teléfono en enlace público');
+
 for(const tampered of ['#pedido=p1=2,p1=3','#pedido=hidden=0','#pedido=p1=10000',
  '#pedido=p1=1,p2=2,p3=3,p4=4,p5=5,p6=6,p7=7,p8=8,p9=9,p10=10,p11=11',
  '#pedido=<script>=1','#pedido=p1=3.2']){

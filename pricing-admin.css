@@ -21,3 +21,19 @@
 #pricing-more[hidden]{display:none}
 @media(max-width:880px){.pricing-layout{grid-template-columns:1fr}.pricing-filters{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.pricing-filters{grid-template-columns:1fr}.pricing-row{grid-template-columns:58px minmax(0,1fr);gap:10px}.pricing-row img{width:58px;height:58px}.pricing-row label,.pricing-row button{grid-column:2}.pricing-row button{justify-self:start}}
+
+.pricing-bulk{margin:14px 0 18px;background:#fff;border:1px solid #cddde9;border-radius:13px;padding:12px 17px}
+.pricing-bulk>details>summary{cursor:pointer;color:#155079;font-weight:850;font-size:17px;padding:10px 4px}
+.pricing-bulk p{color:#49687b;font-size:13px;line-height:1.55}
+.pricing-bulk-controls{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
+.pricing-bulk-controls label{display:grid;gap:5px;flex:1;min-width:160px;font-size:12px;font-weight:750}
+.pricing-bulk-controls input,.pricing-bulk-controls select{width:100%;padding:10px;border:1px solid #b7ccda;border-radius:8px;background:white}
+#bulk-csv-controls{width:100%}
+#bulk-percent-controls[hidden],#bulk-csv-controls[hidden],#bulk-review[hidden]{display:none!important}
+.bulk-review-rows{max-height:290px;overflow:auto;border:1px solid #d4e2eb;border-radius:10px}
+.bulk-review-row,.bulk-history-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px;border-bottom:1px solid #edf2f5;font-size:12px}
+.bulk-review-row strong{white-space:nowrap;color:#0a527e}
+.bulk-history-row button{min-height:36px;flex:none}
+.bulk-warning{color:#9d5e21!important}
+#bulk-apply{margin:12px 0;min-height:44px}
+@media(max-width:650px){.pricing-bulk{padding:9px}.bulk-review-row,.bulk-history-row{align-items:flex-start;flex-direction:column;gap:6px}.bulk-review-row strong{white-space:normal}}

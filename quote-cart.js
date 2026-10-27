@@ -72,7 +72,7 @@ export function cartFinancials(lines,products,pricingEnabled=false,usdVesRate=nu
 }
 // Un único enlace pequeño al resumen. NO incluye datos personales ni precios
 // manipulables. El vendedor comprobará productos, USD y tasa vigentes al abrir.
-export function cartSummaryURL(lines,products,baseUrl){
+export function cartSummaryURL(lines,products,baseUrl,reference=null){
   const selected=normalizeCartLines(lines,products);
   if(!selected.length||selected.length!==lines?.length)return '';
   let url;
@@ -86,7 +86,10 @@ export function cartSummaryURL(lines,products,baseUrl){
   }
   const compact=parts.join(',');
   if(compact.length>1650)return '';
-  url.hash='pedido='+compact;
+  const suffix=reference&&/^POL-[0-9]{8}-[A-F0-9]{8}$/.test(reference.code)&&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(reference.createdAt)
+    ?'&ref='+reference.code+'&fecha='+encodeURIComponent(reference.createdAt):'';
+  url.hash='pedido='+compact+suffix;
   return url.href;
 }
 export function parseSummaryFragment(fragment){
@@ -113,9 +116,16 @@ export function cartWhatsAppURL(phone,lines,products,details,summaryLink,financi
   try{singleLink=new URL(summaryLink);if(singleLink.protocol!=='https:'||!singleLink.hash.startsWith('#pedido='))return '';}
   catch{return '';}
   const totals=cartTotals(selected);
+  const params=new URLSearchParams(singleLink.hash.slice(1));
+  const ref=/^POL-[0-9]{8}-[A-F0-9]{8}$/.test(params.get('ref')||'')?params.get('ref'):'';
+  const clientName=String(details?.name||'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,80);
+  const clientPhone=String(details?.phone||'').replace(/[^0-9+() -]/g,'').trim().slice(0,24);
   const text=[
     'Hola, POLADENT Casa Dental. Solicito revisar estos productos:',
     '',
+    ...(ref?['Referencia de consulta: '+ref]:[]),
+    ...(clientName?['Cliente: '+clientName]:[]),
+    ...(clientPhone?['Teléfono de contacto: '+clientPhone]:[]),
     'Resumen de solicitud (un único enlace):',
     singleLink.href,
     '',

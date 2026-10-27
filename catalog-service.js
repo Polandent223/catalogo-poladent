@@ -110,3 +110,16 @@ export async function savePricingEnabled(enabled){
   if(!usingFirebase)throw Error('Los precios con tasa BCV requieren Firebase.');
   return client.savePricingEnabled(enabled);
 }
+
+export async function applyBulkPriceChanges(rows,meta){
+  if(!usingFirebase)throw Error('Los ajustes masivos de precios necesitan Firebase.');
+  return client.applyBulkPriceChanges(rows,meta);
+}
+export async function listBulkPriceOperations(){
+  if(!usingFirebase)throw Error('El historial de ajustes necesita Firebase.');
+  return client.listBulkPriceOperations();
+}
+export async function undoBulkPriceOperation(operationId){
+  if(!usingFirebase)throw Error('Deshacer ajustes requiere Firebase.');
+  return client.undoBulkPriceOperation(operationId);
+}
