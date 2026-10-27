@@ -4,6 +4,11 @@ on:
     branches: [main]
   push:
     branches: [main]
+    # Cambios de administrador, diseño y cuentas no requieren volver a leer
+    # todo Firestore. Las fotos de nuevos productos se regeneran por cron/manual.
+    paths:
+      - 'scripts/generate-product-share.mjs'
+      - 'scripts/product-preview-tests.mjs'
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
