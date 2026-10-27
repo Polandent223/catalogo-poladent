@@ -180,6 +180,23 @@ $('#bulk-preview').addEventListener('click',async()=>{
    $('#bulk-review').scrollIntoView({block:'nearest',behavior:'smooth'});
  }catch(error){bulkPlan=null;note('Vista previa: '+error.message,true);}
 });
+$('#bulk-export-preview').addEventListener('click',()=>{
+ if(!bulkPlan?.rows?.length)return;
+ const escapeCell=value=>{
+   let text=String(value??'');
+   // Evitar fórmulas al abrir los datos descargados en Excel/Sheets.
+   if(/^[\s]*[=+\-@]/.test(text))text="'"+text;
+   return '"'+text.replaceAll('"','""')+'"';
+ };
+ const rows=[['id','marca','producto','precio_anterior_usd','precio_nuevo_usd'],
+   ...bulkPlan.rows.map(p=>[p.id,p.brand,p.name,p.before.toFixed(2),p.after.toFixed(2)])];
+ const data='\uFEFF'+rows.map(line=>line.map(escapeCell).join(';')).join('\r\n');
+ const link=document.createElement('a');
+ const url=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8;'}));
+ link.href=url;link.download='POLADENT_previa_ajuste_precios.csv';
+ document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
+});
 $('#bulk-apply').addEventListener('click',async()=>{
  if(busy||!bulkPlan?.rows?.length)return;
  const snapshot=bulkPlan;
