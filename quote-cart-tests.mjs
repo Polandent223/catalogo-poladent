@@ -74,7 +74,7 @@ assert.match(message,/Compra prevista: Hoy/);
 assert.match(message,/Productos diferentes: 2/);
 assert.match(message,/Unidades solicitadas: 7/);
 assert.match(message,/Total referencial USD: 29.85/);
-assert.match(message,/Total referencial Bs: 26485.91/);
+assert.match(message,/Equivalente referencial Bs: 26485.91/);
 assert.match(message,/USDT/);
 assert.match(message,/no es factura fiscal/i);
 assert.ok(message.includes(summary),'El vendedor recibe UN solo enlace de resumen.');
