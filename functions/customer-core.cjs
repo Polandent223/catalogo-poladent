@@ -51,10 +51,10 @@ function calculateQuote(items,publicProducts,enabled,rate=null){
      unit_usd:cents===null?null:cents/100,subtotal_usd:cents===null?null:cents*item.quantity/100});
  }
  const complete=enabled&&pricedCount===lines.length;
- if(complete && (!Number.isFinite(rate)||rate<=0))throw Error('No se puede confirmar la tasa BCV para esta solicitud.');
+ const rateValid=Number.isFinite(rate)&&rate>0;
  return {lines,products:lines.length,units:lines.reduce((n,p)=>n+p.quantity,0),
    total_usd:complete?totalCents/100:null,
-   total_ves:complete?Math.round(totalCents*rate)/100:null,
+   total_ves:complete&&rateValid?Math.round(totalCents*rate)/100:null,
    complete};
 }
 function validBcvPayload(payload,now=new Date()){
