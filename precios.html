@@ -38,6 +38,36 @@
       <p><a href="https://www.bcv.org.ve/" target="_blank" rel="noopener noreferrer">Consultar la publicación original del BCV</a></p>
     </section>
   </div>
+
+  <section class="pricing-bulk">
+    <details id="bulk-pricing-panel">
+      <summary>Actualización masiva de precios · porcentajes / importar CSV</summary>
+      <p>La tasa BCV se actualiza automáticamente: no apliques porcentajes cuando cambie únicamente la tasa. Usa este módulo solo cuando cambie el <strong>precio base USD</strong> de la empresa.</p>
+      <div class="pricing-bulk-controls">
+        <label>Método<select id="bulk-method"><option value="percent">Aumentar o disminuir por porcentaje</option><option value="csv">Importar lista de precios CSV por código exacto</option></select></label>
+        <div id="bulk-percent-controls" class="pricing-bulk-controls">
+          <label>Operación<select id="bulk-direction"><option value="increase">Aumentar</option><option value="decrease">Disminuir</option></select></label>
+          <label>Porcentaje (%)<input id="bulk-percent" type="number" min="0.01" max="100" step="0.01" value="10"></label>
+          <label>Aplicar a<select id="bulk-scope"><option value="all">Todos los productos con precio</option><option value="filtered">Solo los filtrados en esta página</option></select></label>
+        </div>
+        <div id="bulk-csv-controls" hidden>
+          <label>Archivo CSV UTF-8<input id="bulk-csv-file" type="file" accept=".csv,text/csv"></label>
+          <p>Columnas aceptadas: <code>id,precio_usd</code> o <code>source_key,precio_usd</code>. No relacionamos artículos por nombre. Los códigos que no coinciden exactamente se omiten. Ningún archivo importa productos nuevos.</p>
+        </div>
+      </div>
+      <button id="bulk-preview" type="button">Calcular vista previa sin guardar</button>
+      <div id="bulk-review" hidden>
+        <p id="bulk-review-count" role="status"></p>
+        <div id="bulk-review-rows" class="bulk-review-rows"></div>
+        <p>Esta operación no modifica la tasa BCV, el inventario, las imágenes ni los estados de producto. Guardar requiere confirmación y registra un historial privado.</p>
+        <button id="bulk-apply" type="button" class="primary">Confirmar y aplicar los precios revisados</button>
+      </div>
+      <hr>
+      <h3>Historial y reversión</h3>
+      <p id="bulk-history-status">Consultando historial privado…</p>
+      <div id="bulk-history-list"></div>
+    </details>
+  </section>
   <section class="pricing-products">
     <h2>Precios por producto</h2>
     <p>El valor USD que guardes será la base. Si el producto no tiene precio, el catálogo no mostrará un monto para esa ficha. Los productos ocultos siguen ocultos.</p>
