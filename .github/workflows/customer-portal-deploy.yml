@@ -1,0 +1,59 @@
+name: Desplegar portal privado de clientes (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe DESPLEGAR-PORTAL para confirmar (NO activa cuentas)'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # JAMÁS se despliega en push o pull_request y jamás desde una rama distinta de main.
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirmation == 'DESPLEGAR-PORTAL' }}
+    environment: firebase-production
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar que no se despliegan reglas ni otros servicios
+        run: |
+          node --check functions/index.js
+          node --check functions/customer-core.cjs
+          node customer-portal-tests.mjs
+          node -e "const f=require('./firebase.json'); const c=f.functions.find(x=>x.codebase==='customer-portal'); if(!c||c.source!=='functions'||f.firestore||f.hosting||f.storage) process.exit(1)"
+      - name: Comprobar identidad de despliegue sin mostrar secretos
+        env:
+          IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          DEPLOYER_ACCOUNT: ${{ secrets.GCP_FIREBASE_DEPLOYER_SA }}
+        run: |
+          if [ -z "$IDENTITY_PROVIDER" ] || [ -z "$DEPLOYER_ACCOUNT" ]; then
+            echo "::error::No hay identidad federada y servicio de despliegue configurados. No se modificó Firebase."
+            exit 1
+          fi
+      - name: Autenticar a Google Cloud sin clave JSON almacenada
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_FIREBASE_DEPLOYER_SA }}
+          project_id: catalogo-poladent
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Instalar dependencias del backend
+        run: npm install --prefix functions --omit=dev --no-audit --no-fund
+      - name: Publicar SOLO las seis funciones del portal
+        run: |
+          npx --yes firebase-tools@15 deploy --project catalogo-poladent --non-interactive --only \
+            "functions:customer-portal:customerPortalStatus,functions:customer-portal:customerPortalAdminHealth,functions:customer-portal:customerPortalAdminSetEnabled,functions:customer-portal:customerRegister,functions:customer-portal:customerMyQuotes,functions:customer-portal:customerSaveQuote"
+      - name: Recordar que el registro permanece desactivado
+        run: |
+          echo "Solo se desplegó código de Cloud Functions, nunca las reglas ni bases de datos."
+          echo "Las cuentas siguen bloqueadas sin aprobación privada de lanzamiento y activación administrativa."

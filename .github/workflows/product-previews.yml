@@ -20,7 +20,10 @@ jobs:
           node-version: '22'
       - name: Validar HTML para redes sociales
         run: node scripts/product-preview-tests.mjs
+      # Los PR validan HTML sin consumir cuota de Firestore para cada commit.
+      # La regeneración real solo ocurre en main, tareas programadas o ejecución manual.
       - name: Generar páginas individuales con datos públicos de Firestore
+        if: github.event_name != 'pull_request'
         run: node scripts/generate-product-share.mjs
       - name: Actualizar vistas previas y solicitar publicación
         if: github.event_name != 'pull_request'

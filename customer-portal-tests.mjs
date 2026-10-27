@@ -41,6 +41,21 @@ assert.ok(functions.includes("store.collection('customerQuotes').where('uid','==
 assert.ok(functions.includes('await requireAdmin(request)'), 'El interruptor es solo para admins.');
 assert.ok(functions.includes('if(count>=20)'), 'Limitar abuso de guardado diario.');
 assert.ok(functions.includes('customerPortalAdminSetEnabled'));
+assert.ok(functions.includes("store.doc('customerPortalDeployment/production')"),
+ 'Gate privada para habilitar cuentas; no se debe confiar solo en el flag público.');
+assert.ok(functions.includes("snap.data()?.tested_two_accounts===true"),
+ 'Exigir prueba con dos usuarios distintos.');
+assert.ok(functions.includes("snap.data()?.backup_verified===true"),
+ 'Exigir verificación de respaldo.');
+assert.ok(functions.includes("snap.data()?.release_version==='customer-portal-v1'"),
+ 'Asegurar versión explícita aprobada.');
+assert.ok(functions.includes("if(!await launchApproved())return false;"),
+ 'Todo acceso al portal se bloquea hasta recibir la aprobación privada.');
+assert.ok(functions.includes("if(enabled&&!await launchApproved())"),
+ 'El administrador no puede activar el portal sin aprobación.');
+assert.ok(functions.includes("kind:'contact_settings',status:'available'"),
+ 'Preservar la configuración pública de Firestore.');
+
 assert.ok(functions.includes("request.data?.consent!==true"),'El backend requiere consentimiento para crear perfil.');
 assert.ok(functions.includes("privacy_consent_version:'2026-10'"),'Registrar versión de consentimiento.');
 assert.ok(functions.includes("status:'guardada'"),'Guardar borrador no implica cotización enviada al personal.');
@@ -57,6 +72,13 @@ assert.ok(index.includes('id="customer-account-link"')&&index.includes('hidden')
 assert.ok(index.includes('id="customer-account-note"')&&index.includes('hidden'));
 assert.ok(index.includes('id="customer-save-quote"')&&index.includes('hidden'));
 assert.ok(publicCode.includes('if(!customerPortalEnabled)return;'));
+assert.ok(publicCode.includes('const health=await customerAPI.customerFeatureStatus()'),
+ 'Consultar disponibilidad real del backend.');
+assert.ok(publicCode.includes("if(health?.enabled!==true)return;"),
+ 'Si falla el servidor, no mostrar creación de cuentas.');
+assert.ok(publicCode.includes('code:result.code,createdAt:new Date().toISOString()'),
+ 'Misma referencia guardada y WhatsApp.');
+
 assert.ok(publicCode.includes("import('./customer-client.js')"),'Carga autenticación solo si está habilitada.');
 assert.ok(publicCode.includes('Ya lo cotizaste'));
 assert.ok(publicCode.includes('customerAPI.saveCustomerQuote'));
@@ -76,4 +98,19 @@ assert.ok(adminCode.includes('getCustomerPortalAdminHealth'));
 assert.ok(adminCode.includes('customerPortalReady'));
 assert.ok(adminCode.includes('saveCustomerPortalEnabled(target)'));
 assert.ok(!read('functions/index.js').includes('allow read: if true'), 'No abrir historiales públicamente.');
-console.log('POLADENT: 35 verificaciones funcionales y de acceso del portal de clientes correctas. Código no desplegado.');
+
+const config=JSON.parse(read('firebase.json'));
+assert.ok(config.functions.some(entry=>entry.codebase==='customer-portal'),
+ 'Codebase de Firebase debe estar en minúsculas.');
+assert.ok(!config.firestore&&!config.storage&&!config.hosting,
+ 'No desplegar reglas ni Hosting con portal.');
+const manual=read('.github/workflows/customer-portal-deploy.yml');
+assert.ok(manual.includes('workflow_dispatch:'));
+assert.ok(!manual.includes('pull_request:')&&!manual.includes('push:'),
+ 'Ningún despliegue automático a Firebase.');
+assert.ok(manual.includes('environment: firebase-production'));
+assert.ok(manual.includes('functions:customer-portal:customerRegister'));
+assert.ok(!manual.includes('firebase deploy --only firestore'),
+ 'No desplegar reglas de Firebase.');
+console.log('POLADENT: portal opcional, autorización privada, cotizaciones y despliegue manual controlado correctos.');
+

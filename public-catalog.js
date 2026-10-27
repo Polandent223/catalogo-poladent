@@ -758,9 +758,13 @@ function getCartReference(){
 async function startOptionalCustomerPortal(){
  if(!customerPortalEnabled)return;
  const link=$('#customer-account-link'),note=$('#customer-account-note'),save=$('#customer-save-quote');
- link.hidden=false;note.hidden=false;
  try{
    customerAPI=await import('./customer-client.js');
+   // Segunda barrera: el servicio privado valida respaldo y autorización del
+   // lanzamiento. No mostramos cuentas si Functions no está disponible.
+   const health=await customerAPI.customerFeatureStatus();
+   if(health?.enabled!==true)return;
+   link.hidden=false;note.hidden=false;
    customerAPI.observeCustomerSession(async user=>{
      save.hidden=true;
      alreadyQuotedIds=new Set();
@@ -787,7 +791,14 @@ async function startOptionalCustomerPortal(){
    save.disabled=true;save.textContent='Guardando en mi cuenta…';
    try{
      const result=await customerAPI.saveCustomerQuote(cartLines.map(l=>({id:l.id,quantity:l.quantity})),key.nonce);
-     showCartMessage('Solicitud '+result.code+' guardada en tu cuenta. Puedes enviarla por WhatsApp normalmente.');
+     // La referencia WhatsApp debe coincidir con la cotización privada guardada,
+     // evitando códigos diferentes para el mismo carrito.
+     if(/^POL-[0-9]{8}-[A-F0-9]{8}$/.test(result.code)){
+       const preserved={fingerprint,code:result.code,createdAt:new Date().toISOString()};
+       try{sessionStorage.setItem(CART_REFERENCE_KEY,JSON.stringify(preserved))}catch{}
+       updateCartLink();
+     }
+     showCartMessage('Cotización '+result.code+' guardada en tu cuenta. Al enviarla por WhatsApp usarás esa misma referencia.');
      save.textContent='Cotización guardada ✓';
      const data=await customerAPI.getCustomerQuotes();
      alreadyQuotedIds=new Set((data.quotes||[]).flatMap(q=>(q.items||[]).map(p=>String(p.product_id))));

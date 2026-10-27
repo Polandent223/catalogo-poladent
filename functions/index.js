@@ -10,6 +10,16 @@ const store=admin.firestore();
 const pepper=defineSecret('POLADENT_CUSTOMER_PEPPER');
 const publicConfig=store.doc('catalogPublic/_catalog_contacts');
 const privateConfig=store.doc('catalogProducts/_catalog_contacts');
+const launchApproval=store.doc('customerPortalDeployment/production');
+// Documento de autorización del despliegue, NO editable desde el catálogo.
+// Las reglas Firestore actuales deniegan el acceso directo a esta colección.
+async function launchApproved(){
+ const snap=await launchApproval.get();
+ return snap.exists&&snap.data()?.approved===true&&
+   snap.data()?.tested_two_accounts===true&&
+   snap.data()?.backup_verified===true&&
+   snap.data()?.release_version==='customer-portal-v1';
+}
 const requireVerified=(request)=>{
  if(!request.auth?.uid||request.auth.token.email_verified!==true||
     !request.auth.token.email)throw new HttpsError('unauthenticated',
@@ -17,6 +27,9 @@ const requireVerified=(request)=>{
  return {uid:request.auth.uid,email:String(request.auth.token.email).toLowerCase()};
 };
 async function portalEnabled(){
+ // El interruptor público no es suficiente para habilitar cuentas. El servicio
+ // exige aprobación privada del despliegue y pruebas con dos cuentas.
+ if(!await launchApproved())return false;
  const snap=await publicConfig.get();
  return snap.exists&&snap.data()?.customer_portal?.enabled===true;
 }
@@ -44,9 +57,11 @@ exports.customerPortalAdminHealth=onCall({
  try{
    await requireAdmin(request);
    const raw=pepper.value();
-   return {ready:typeof raw==='string'&&Buffer.byteLength(raw)>=32,
-      enabled:await portalEnabled(),
-      note:'Se requiere verificar acceso real y flujo completo antes de habilitar.'};
+   const secretValid=typeof raw==='string'&&Buffer.byteLength(raw)>=32;
+   const approved=await launchApproved();
+   return {ready:secretValid&&approved,enabled:await portalEnabled(),
+      note:approved?'Despliegue autorizado tras pruebas privadas.':
+        'Pendiente respaldo, verificación con dos cuentas y aprobación privada de lanzamiento.'};
  }catch(e){throw toSafeError(e)}
 });
 exports.customerPortalAdminSetEnabled=onCall({
@@ -58,8 +73,12 @@ exports.customerPortalAdminSetEnabled=onCall({
    if(typeof enabled!=='boolean')throw new HttpsError('invalid-argument','Valor de activación inválido.');
    if(enabled&&(!pepper.value()||Buffer.byteLength(pepper.value())<32))
      throw new HttpsError('failed-precondition','Falta configurar la protección de identificaciones.');
+   if(enabled&&!await launchApproved())
+     throw new HttpsError('failed-precondition',
+       'El portal no tiene aprobación privada de lanzamiento tras pruebas y respaldo.');
    // Desactivado para todos por defecto: la administración debe aprobar el cambio.
-   const patch={customer_portal:{enabled,updated_at:admin.firestore.FieldValue.serverTimestamp()}};
+   const patch={kind:'contact_settings',status:'available',
+     customer_portal:{enabled,updated_at:admin.firestore.FieldValue.serverTimestamp()}};
    const batch=store.batch();
    batch.set(privateConfig,patch,{merge:true});
    batch.set(publicConfig,patch,{merge:true});
