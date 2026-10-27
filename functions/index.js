@@ -73,6 +73,8 @@ exports.customerRegister=onCall({
  try{
    await requirePortal();
    const {uid,email}=requireVerified(request);
+   if(request.data?.consent!==true)
+     throw new HttpsError('failed-precondition','Debes aceptar el uso limitado de tus datos para administrar las cotizaciones personales.');
    const cedula=normalizeCedula(request.data?.cedula),name=normalizeCustomerName(request.data?.name);
    const secret=pepper.value();
    if(!secret||Buffer.byteLength(secret)<32)
@@ -90,6 +92,7 @@ exports.customerRegister=onCall({
      if(!identity.exists)transaction.create(identityRef,{uid,created_at:admin.firestore.FieldValue.serverTimestamp()});
      if(!profile.exists)transaction.create(profileRef,{
        uid,name,email,cedula_masked:maskedCedula(cedula),identity_key:fingerprint,
+       privacy_consent_version:'2026-10',privacy_consent_at:admin.firestore.FieldValue.serverTimestamp(),
        created_at:admin.firestore.FieldValue.serverTimestamp()});
    });
    return {registered:true,cedula_masked:maskedCedula(cedula)};
@@ -155,7 +158,7 @@ exports.customerSaveQuote=onCall({
    const payload={uid,code,items:financials.lines,products:financials.products,
      units:financials.units,total_usd:financials.total_usd,total_ves:financials.total_ves,
      rate,rate_effective_date:rateDate,pricing_enabled:enabled,
-     status:'solicitada',created_at:admin.firestore.FieldValue.serverTimestamp()};
+     status:'guardada',created_at:admin.firestore.FieldValue.serverTimestamp()};
    await store.runTransaction(async transaction=>{
      const snapshots=await Promise.all([transaction.get(quoteRef),transaction.get(quotaRef)]);
      if(snapshots[0].exists)return;
