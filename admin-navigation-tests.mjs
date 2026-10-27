@@ -50,4 +50,13 @@ assert.ok(css.includes('.ux-preview-fold>summary'),
 for(const forbidden of ['saveProduct(','deleteProduct(','uploadImage(','saveStorefrontSettings(','fetch(','localStorage.']){
   assert.ok(!js.includes(forbidden),'La capa visual no debe guardar ni modificar datos: '+forbidden);
 }
+const page=readFileSync(new URL('./admin.html',import.meta.url),'utf8');
+const publicCatalog=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const nav=readFileSync(new URL('./admin-navigation.js',import.meta.url),'utf8');
+assert.ok(page.includes('id="customer-portal-future"'),'Solo el administrador ve la futura opción de cuentas.');
+assert.ok(page.includes('id="customer-portal-switch" type="checkbox" role="switch" disabled'),'Portal de clientes desactivado y sin posibilidad de activarlo prematuramente.');
+assert.ok(page.includes('La cédula podrá utilizarse como identificador'),'Identidad separada de acceso seguro.');
+assert.ok(nav.includes("manager.panels.get('herramientas').append(futurePortal)"),'El módulo no alarga el panel principal.');
+assert.ok(!publicCatalog.includes('id="customer-portal-switch"'),'No aparecerá registro de clientes al público.');
+assert.ok(!publicCatalog.includes('id="customer-signup"'),'No habilitar registro público sin backend seguro.');
 console.log('POLADENT: navegación, paneles existentes y edición intactos.');
