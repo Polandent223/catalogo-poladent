@@ -93,9 +93,9 @@
   <div class="quick-areas-header"><strong>Encuentra lo que necesitas</strong><span>Accesos rápidos según los nombres de los productos</span></div>
   <div id="quick-area-buttons" class="quick-area-buttons" role="group" aria-label="Filtrar por área"></div>
 </section>
-<section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
+<p id="bcv-rate-banner" class="bcv-rate-banner" role="status" hidden></p><section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
 <div class="cart-toolbar">
-<p><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
+<p id="catalog-cart-intro"><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
 <button id="cart-open" class="cart-open-button" type="button" aria-haspopup="dialog" aria-controls="cart-dialog" disabled>Mi cotización (<span id="cart-count">0</span>)</button>
 </div>
 <p id="cart-feedback" class="cart-feedback" role="status" aria-live="polite"></p>
@@ -123,7 +123,7 @@
 <img id="detail-image" alt="">
 <div class="product-dialog-copy">
 <p class="eyebrow" id="detail-brand"></p><h2 id="detail-name"></h2>
-<p id="detail-status"></p><p id="detail-description"></p>
+<p id="detail-status"></p><p id="detail-description"></p><div id="detail-price" class="catalog-product-price" hidden></div>
 <div id="product-inquiry" class="product-inquiry" hidden>
 <h3 id="quote-title">Solicita una cotización</h3>
 <a id="inquiry-quick" class="inquiry-quick" target="_blank" rel="noopener noreferrer" hidden>Consultar este producto por WhatsApp ↗</a>
