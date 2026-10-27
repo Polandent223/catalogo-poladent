@@ -1969,3 +1969,41 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
   .catalog-price-disclaimer{font-size:9px}
   .cart-totals .cart-total-usd{font-size:17px}
 }
+
+
+/* POLADENT · botón de bolsa premium y cotización sencilla */
+.cart-toolbar .cart-open-button.cart-open-premium{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:11px;padding:11px 15px 11px 14px;
+  min-height:49px;min-width:188px;
+  border:1px solid #176f98;border-radius:12px;
+  background:linear-gradient(135deg,#084267 0%,#07618c 100%);
+  color:#fff;box-shadow:0 5px 14px #073c6424;
+  font-size:14px;font-weight:800;letter-spacing:.01em;
+  white-space:nowrap;transition:filter .15s ease,transform .15s ease;
+}
+.cart-toolbar .cart-open-button.cart-open-premium:not(:disabled):hover{
+  filter:brightness(1.11);transform:translateY(-1px);
+}
+.cart-toolbar .cart-open-button.cart-open-premium:focus-visible{
+  outline:3px solid #5db6d9;outline-offset:3px;
+}
+.cart-bag-icon{flex:none;color:currentColor;display:block}
+.cart-open-label{flex:none}
+.cart-count-badge{
+  min-width:26px;height:26px;
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:0 7px;border-radius:999px;
+  background:#fff;color:#075581;
+  font-size:12px;font-weight:900;line-height:1.2;
+  font-variant-numeric:tabular-nums;
+}
+.cart-contact-privacy{
+  margin:0;color:#506e5d;font-size:11px;
+  line-height:1.55;
+}
+@media(max-width:700px){
+  .cart-toolbar .cart-open-button.cart-open-premium{
+    width:100%;min-width:0;min-height:49px;
+  }
+}
