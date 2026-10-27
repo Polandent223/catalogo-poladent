@@ -52,9 +52,18 @@ export function createPublicSnapshot(data,now=new Date()){
   // Copiamos sus propiedades visuales y sedes; nunca volcamos otros documentos.
   const safeStorefront={...storefront};
   delete safeStorefront.admin;delete safeStorefront.secret;delete safeStorefront.apiKey;
+  const welcome={
+    enabled:data.welcome?.enabled===true,
+    image_url:typeof data.welcome?.image_url==='string'&&data.welcome.image_url.startsWith('https://')
+      ?data.welcome.image_url:'',
+    mobile_image_url:typeof data.welcome?.mobile_image_url==='string'&&data.welcome.mobile_image_url.startsWith('https://')
+      ?data.welcome.mobile_image_url:''
+  };
+  if(welcome.enabled&&!welcome.image_url)
+    throw Error('Portada oficial sin imagen horizontal: no publicar copia incompleta.');
   return {schema:'poladent-public-snapshot-v1',captured_at:now.toISOString(),
     source:'catalogPublic (sólo documentos públicos de Firestore)',
-    hasCatalogState:true,products,profiles,contacts,storefront:safeStorefront,
+    hasCatalogState:true,products,profiles,contacts,storefront:safeStorefront,welcome,
     pricingEnabled:data.pricingEnabled===true,customerPortalEnabled:false};
 }
 export async function savePublicSnapshot({
@@ -70,6 +79,15 @@ export async function savePublicSnapshot({
   const target=resolve(root,'catalog-public-snapshot.json');
   const tmp=target+'.tmp';
   await writeFile(tmp,JSON.stringify(safe)+'\n','utf8');
+  // Una portada liviana permite abrir la landing sin 1 lectura Firebase por visitante.
+  const welcomeTarget=resolve(root,'catalog-welcome-snapshot.json');
+  const welcomeTmp=welcomeTarget+'.tmp';
+  const publicWelcome={schema:'poladent-welcome-snapshot-v1',
+    welcome:safe.welcome,
+    storefront:{enabled:safe.storefront.enabled,theme:safe.storefront.theme,
+      replace_welcome:safe.storefront.replace_welcome===true}};
+  await writeFile(welcomeTmp,JSON.stringify(publicWelcome)+'\n','utf8');
+  await rename(welcomeTmp,welcomeTarget);
   await rename(tmp,target);
   return {count:safe.products.length,brands:safe.profiles.length,
     banners:1+(safe.storefront.banner_extra_slides||[]).length,captured_at:safe.captured_at};
