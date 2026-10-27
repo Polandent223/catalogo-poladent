@@ -58,8 +58,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A share/ catalog-emergency-backup.json
-          if [ -f catalog-public-snapshot.json ]; then
-            git add catalog-public-snapshot.json
+          if [ -f catalog-public-snapshot.json ] && [ -f catalog-welcome-snapshot.json ]; then
+            git add catalog-public-snapshot.json catalog-welcome-snapshot.json
           fi
           if git diff --cached --quiet; then
             echo "Vistas previas al día, sin cambios."
