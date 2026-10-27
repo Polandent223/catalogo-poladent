@@ -5,7 +5,7 @@ import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-s
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
 import {fetchBcvRate,cleanUSD,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
-import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
+import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartFinancials,cartSummaryURL,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
 const $=selector=>document.querySelector(selector);
@@ -596,8 +596,14 @@ function createPriceBlock(p){
  box.append(element('strong',formatUSD(p.price_usd),'catalog-price-usd'));
  if(bcvRate){
    const ves=convertVES(p.price_usd,bcvRate.usd_ves);
-   if(ves!==null)box.append(element('span',formatVES(ves),'catalog-price-ves'));
+   if(ves!==null){
+     const row=element('div',null,'catalog-price-converted');
+     row.append(element('span',formatVES(ves),'catalog-price-ves'),
+       element('small','a tasa BCV','catalog-price-bcv-label'));
+     box.append(row);
+   }
  }else box.append(element('span','Bs. pendiente de tasa BCV','catalog-price-pending'));
+ box.append(element('small','USDT y otras divisas: consultar con un asesor.','catalog-price-disclaimer'));
  return box;
 }
 function drawDetailPrice(p){
@@ -619,7 +625,7 @@ async function refreshBcvRate(){
  if(!pricingEnabled)return;
  try{bcvRate=await fetchBcvRate();}
  catch(error){bcvRate=null;console.warn('Tasa BCV no validada:',error.message);}
- updateBcvBanner();renderProducts();if(selected)drawDetailPrice(selected);
+ updateBcvBanner();renderProducts();renderCart();if(selected)drawDetailPrice(selected);
 }
 function buildCard(p,index){
   const card=element('article',null,'product-card'),button=element('button',null,'image-button');
@@ -731,23 +737,27 @@ function cartContactOptions(){
 function updateCartLink(){
   if(!catalogLoaded)return;
   const details={city:$('#cart-city').value,timing:$('#cart-timing').value};
-  const url=cartWhatsAppURL($('#cart-contact').value,cartLines,products,details,shareProductUrl);
+  const summaryURL=cartSummaryURL(cartLines,products,location.href);
+  const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
+  const url=cartWhatsAppURL($('#cart-contact').value,cartLines,products,details,summaryURL,finance);
   if(url){
     cartWhatsApp.href=url;
     cartWhatsApp.setAttribute('aria-disabled','false');
-    cartWhatsApp.textContent='Enviar una sola cotización por WhatsApp ↗';
+    cartWhatsApp.textContent='Enviar resumen por WhatsApp ↗';
     if(cartMessage.classList.contains('error'))showCartMessage('WhatsApp abrirá el mensaje preparado; debes pulsar Enviar allí.');
   }else{
     cartWhatsApp.removeAttribute('href');
     cartWhatsApp.setAttribute('aria-disabled','true');
     cartWhatsApp.textContent='Completa los datos para cotizar ↗';
     if(cartLines.length && contacts.length && cartForm.checkValidity()){
-      showCartMessage('El mensaje sería demasiado largo para algunos teléfonos. Quita algunos productos y envía dos cotizaciones.',true);
+      showCartMessage('No pudimos preparar el enlace único del resumen. Revisa los productos del carrito.',true);
     }
   }
 }
 function renderCart(){
   const amounts=cartTotals(cartLines);
+  const finance=cartFinancials(cartLines,products,pricingEnabled,bcvRate?.usd_ves??null);
+  const financialRows=new Map(finance.rows.map(row=>[row.id,row]));
   $('#cart-count').textContent=String(amounts.products);
   cartOpen.disabled=!catalogLoaded;
   $('#cart-empty').hidden=amounts.products>0;
@@ -762,6 +772,15 @@ function renderCart(){
     const detail=element('div',null,'cart-item-details');
     detail.append(element('strong',p.name),element('span',p.brand));
     if(p.status==='sold_out')detail.append(element('span','Agotado · consultar disponibilidad','cart-sold-out'));
+    if(pricingEnabled){
+      const priced=financialRows.get(line.id);
+      if(priced?.subtotalUSD!==null&&priced?.subtotalUSD!==undefined){
+        detail.append(element('span','Unitario: '+formatUSD(priced.unitUSD),'cart-unit-price'));
+        detail.append(element('strong','Subtotal: '+formatUSD(priced.subtotalUSD),'cart-line-subtotal'));
+        if(priced.subtotalVES!==null)
+          detail.append(element('span',formatVES(priced.subtotalVES)+' · tasa BCV','cart-line-ves'));
+      }else detail.append(element('span','Precio pendiente de consultar','cart-no-price'));
+    }
     const controls=element('div',null,'cart-item-controls');
     const countLabel=element('label','Cantidad');
     const quantity=element('input');
@@ -788,9 +807,20 @@ function renderCart(){
     controls.append(countLabel,remove);
     item.append(img,detail,controls);cartItems.append(item);
   }
-  $('#cart-totals').textContent=amounts.products+' producto'+(amounts.products===1?' diferente':'s diferentes')+
-    ' · '+amounts.units+' unidad'+(amounts.units===1?'':'es')+
-      (pricingEnabled?' · Confirma el total por WhatsApp':' · Sin precios');
+  const totalsBox=$('#cart-totals');totalsBox.replaceChildren();
+  totalsBox.append(element('span',amounts.products+' producto'+(amounts.products===1?' diferente':'s diferentes')+
+    ' · '+amounts.units+' unidad'+(amounts.units===1?'':'es'),'cart-count-summary'));
+  if(pricingEnabled){
+    if(finance.complete){
+      totalsBox.append(element('strong','Total estimado: '+formatUSD(finance.totalUSD),'cart-total-usd'));
+      totalsBox.append(element('span',finance.totalVES!==null
+        ?formatVES(finance.totalVES)+' · tasa BCV vigente'
+        :'Total Bs pendiente de tasa BCV','cart-total-ves'));
+    }else totalsBox.append(element('span','Total por confirmar: '+(amounts.products-finance.pricedCount)+
+      ' producto(s) sin precio publicado.','cart-total-unpriced'));
+    totalsBox.append(element('small','El equivalente en Bs puede cambiar con la tasa BCV. '+
+      'USDT y otras divisas: consultar al asesor. No constituye factura fiscal.','cart-total-disclaimer'));
+  }else totalsBox.append(element('span','Precios a consultar por WhatsApp.','cart-total-unpriced'));
   cartContactOptions();
   if(!contacts.length&&cartLines.length)showCartMessage('Los contactos de WhatsApp no están configurados. Intenta de nuevo más tarde.',true);
   updateCartLink();
