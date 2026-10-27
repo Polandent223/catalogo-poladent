@@ -59,7 +59,19 @@ $('#copy-uid').onclick=async()=>{
   try { await navigator.clipboard.writeText(uid); $('#copy-uid').textContent='UID copiado'; }
   catch { $('#admin-diagnostic-detail').textContent='Selecciona y copia el UID mostrado arriba.'; }
 };
-function lock(value){busy=value;document.querySelectorAll('#workspace button,#workspace input,#workspace select,#workspace textarea').forEach(e=>e.disabled=value)}
+let customerPortalReady=false;
+function lock(value){
+ busy=value;
+ document.querySelectorAll('#workspace button,#workspace input,#workspace select,#workspace textarea')
+   .forEach(element=>{
+     if(value){element.dataset.preLockDisabled=String(element.disabled);element.disabled=true;}
+     else{
+       element.disabled=element.dataset.preLockDisabled==='true';
+       delete element.dataset.preLockDisabled;
+     }
+   });
+ $('#customer-portal-switch').disabled=value||!customerPortalReady;
+}
 async function refresh(){const overview=await listAdminOverview();products=overview.products;render();$('#brands').replaceChildren();for(const b of new Set(products.map(p=>p.brand))){const o=document.createElement('option');o.value=b;$('#brands').append(o)}const pending=overview.cleanups;$('#image-cleanup-tools').hidden=pending.length===0;$('#pending-image-count').textContent=String(pending.length)}
 function el(tag,text){const e=document.createElement(tag);if(text)e.textContent=text;return e}
 function render(){
@@ -104,12 +116,14 @@ async function loadCustomerPortalSettings(){
  const status=$('#customer-portal-status');
  const explanation=$('#customer-portal-explanation');
  toggle.disabled=true;
+ customerPortalReady=false;
  status.textContent='Comprobando';
  try{
    const state=await getCustomerPortalAdminHealth();
    toggle.checked=state.enabled===true;
    status.textContent=state.enabled?'Activado':'Desactivado';
    if(state.ready){
+     customerPortalReady=true;
      toggle.disabled=false;
      explanation.textContent='Puedes activar o desactivar las cuentas sin bloquear el catálogo libre. '+
        'La cédula identifica la cuenta; el acceso exige un correo verificado.';
