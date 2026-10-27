@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Resumen de solicitud | POLADENT Casa Dental</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="solicitud.css">
+</head>
+<body>
+<header class="summary-header"><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="./?catalogo=1">Volver al catálogo</a></header>
+<main class="summary-page">
+<div class="summary-heading"><span>POLADENT CASA DENTAL · CONSULTA DE PRODUCTOS</span><h1>Resumen de solicitud</h1>
+<p>Información de productos y cantidades para revisar con el asesor. <strong>No es una factura fiscal ni un comprobante de pago.</strong></p></div>
+<div class="summary-actions">
+<button type="button" id="summary-print">Imprimir resumen</button>
+<button type="button" id="summary-copy">Copiar enlace único</button>
+</div>
+<p id="summary-status" role="status" aria-live="polite">Consultando los productos del catálogo…</p>
+<div id="summary-content" hidden>
+<p id="summary-rate" class="summary-rate" role="status"></p>
+<div class="summary-table-scroller">
+<table class="summary-table">
+<thead><tr><th>Producto</th><th>Cant.</th><th>Precio unitario</th><th>Subtotal</th></tr></thead>
+<tbody id="summary-rows"></tbody>
+</table>
+</div>
+<section class="summary-totals">
+<h2>Total de referencia</h2>
+<p id="summary-count"></p>
+<strong id="summary-total-usd"></strong>
+<span id="summary-total-ves"></span>
+</section>
+<p class="summary-terms">Importes indicativos del catálogo al momento de abrir este enlace. La tasa BCV y los precios pueden haberse actualizado desde que el cliente preparó su solicitud. La disponibilidad y el monto definitivo se confirman con un vendedor antes del pago. Para pagos en USDT u otras divisas, consulta directamente con un asesor. Este enlace no registra, reserva ni factura mercancía.</p>
+</div>
+</main>
+<footer class="summary-footer">Distribuido por <strong>POLADENT Casa Dental</strong> · Valencia y Maracay</footer>
+<script src="config.js"></script>
+<script type="module" src="solicitud.js"></script>
+</body>
+</html>
