@@ -15,33 +15,34 @@ assert.ok(message.includes('Producto: Horno Lótus'));
 assert.ok(message.includes('Marca: VRC'));
 assert.ok(message.includes('Cantidad solicitada: 3 unidades'));
 assert.ok(message.includes('Ciudad: Valencia'));
-assert.ok(message.includes('Compra prevista: Esta semana'));
+assert.ok(!message.includes('Compra prevista'), 'No preguntar ni anticipar fecha de compra.');
 assert.ok(message.includes('¿Podrían confirmarme precio y disponibilidad?'));
 assert.ok(message.includes(link));
 assert.ok(!message.includes('null'));
 assert.ok(!message.includes('undefined'));
 
-const today=whatsappInquiryURL('584121234567',product,link,{...details,timing:'today'});
-assert.ok(new URL(today).searchParams.get('text').includes('Compra prevista: Hoy'));
+const noTiming=whatsappInquiryURL('584121234567',product,link,{quantity:2,city:'Valencia'});
+assert.ok(noTiming.startsWith('https://wa.me/'));
 const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.ok(html.includes('<option value="today">Hoy</option>'));
-assert.ok(html.indexOf('<option value="today">Hoy</option>')<html.indexOf('<option value="this_week">Esta semana</option>'));
+assert.ok(!html.includes('id="quote-timing"'));
+assert.ok(!html.includes('id="cart-timing"'));
+assert.ok(!html.includes('¿Cuándo piensas comprar?'));
 const one=whatsappInquiryURL('584121234567',product,link,{...details,quantity:'1'});
 assert.ok(new URL(one).searchParams.get('text').includes('1 unidad\n'));
 const unavailable=whatsappInquiryURL('584121234567',{...product,status:'sold_out'},link,details);
 assert.ok(new URL(unavailable).searchParams.get('text').includes('cuándo estará disponible'));
-for(const [key,text] of Object.entries(PURCHASE_TIMINGS)){
-  assert.ok(new URL(whatsappInquiryURL('584121234567',product,link,{...details,timing:key}))
-    .searchParams.get('text').includes('Compra prevista: '+text));
+for(const key of Object.keys(PURCHASE_TIMINGS)){
+  assert.ok(!new URL(whatsappInquiryURL('584121234567',product,link,{...details,timing:key}))
+    .searchParams.get('text').includes('Compra prevista'));
 }
 assert.deepEqual(normalizeQuoteDetails({quantity:2,city:' San  Cristóbal ',timing:'this_month'}),
-  {quantity:2,city:'San Cristóbal',timing:'this_month'});
+  {quantity:2,city:'San Cristóbal'});
 assert.deepEqual(normalizeQuoteDetails({quantity:2,city:'Caracas\nUn campo: malicioso',timing:'later'}),
-  {quantity:2,city:'Caracas Un campo: malicioso',timing:'later'});
+  {quantity:2,city:'Caracas Un campo: malicioso'});
 for(const bad of [{quantity:0},{quantity:-1},{quantity:10000},{quantity:1.5},
    {quantity:'no'},{quantity:'1e8'},{quantity:2,city:'A'},
    {quantity:2,city:'A'.repeat(61)},{quantity:2,city:'',timing:'later'},
-   {quantity:2,city:'Valencia',timing:'undefined'}]){
+   {quantity:2,city:''}]){
   assert.equal(whatsappInquiryURL('584121234567',product,link,{...details,...bad}), '',
     'Se debe rechazar formulario incompleto o incorrecto');
 }
@@ -61,10 +62,10 @@ assert.ok(publicScript.includes('quoteForm.reset()'), 'No reutilizar los datos d
 assert.ok(publicScript.includes('quoteForm.reportValidity()'));
 assert.ok(publicScript.includes('quoteLink.removeAttribute(\'href\')'));
 assert.ok(publicScript.includes('whatsappInquiryURL(\'')===false,'La URL de WhatsApp utiliza el contacto seleccionado');
-for(const id of ['quote-form','quote-quantity','quote-city','quote-timing','inquiry-contact','inquiry-whatsapp']){
+for(const id of ['quote-form','quote-quantity','quote-city','inquiry-contact','inquiry-whatsapp']){
   assert.ok(html.includes('id="'+id+'"'));
 }
-assert.ok(html.includes('value="comparing"'), 'Filtrar consultas de quienes comparan opciones');
+assert.ok(!html.includes('value="comparing"'), 'Cotizar sin obligar a declarar cuándo comprará.');
 assert.ok(!html.includes('Precio: $'));
 assert.ok(html.includes('id="quote-quantity" name="quantity"'));
 const collector=readFileSync(new URL('./catalog-analytics.js',import.meta.url),'utf8');
