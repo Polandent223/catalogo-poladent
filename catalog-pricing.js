@@ -25,7 +25,9 @@ export function formatVES(value){
 }
 function venezuelaDate(now){
   // ISO calendario estable en Venezuela, no el huso horario del dispositivo del cliente.
-  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Caracas',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Caracas',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+  const values=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+  return values.year+'-'+values.month+'-'+values.day;
 }
 export function validateBcvRate(payload,now=new Date()){
   const rate=Number(payload?.USD);
