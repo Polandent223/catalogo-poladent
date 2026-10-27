@@ -1,4 +1,4 @@
-import{configured,login,logout,listProducts,getStorefrontSettings,listAdminOverview,uploadImage,validImage,saveProduct,deleteProduct,importProducts,removeImage,adminCheck,restoreSession,retryImageCleanups}from'./catalog-service.js';
+import{configured,login,logout,listProducts,getStorefrontSettings,listAdminOverview,uploadImage,validImage,saveProduct,deleteProduct,importProducts,removeImage,adminCheck,restoreSession,retryImageCleanups,getCustomerPortalAdminHealth,saveCustomerPortalEnabled}from'./catalog-service.js';
 import{initBulkImport}from'./bulk-import.js';
 import{filterAdminProducts}from'./admin-product-filters.js';
 const $=s=>document.querySelector(s),message=$('#admin-message'),form=$('#product-form');let products=[],editing=null,busy=false,visibleLimit=24,productAreas=[];
@@ -92,7 +92,55 @@ function render(){
 }
 function clear(){editing=null;form.reset();$('#product-id').value='';$('#editor-title').textContent='Nuevo producto'}
 function editProduct(p){editing=p;fillAreaOptions();if(p.area_id&&!productAreas.some(a=>a.id===p.area_id)){const option=document.createElement('option');option.value=p.area_id;option.textContent='Área anterior: '+p.area_id;$('#product-area').append(option);}$('#product-area').value=p.area_id||'';$('#product-id').value=p.id;for(const key of ['name','brand','description','status'])$('#'+key).value=p[key]||'';$('#sort-order').value=p.sort_order;$('#price-usd').value=p.price_usd??'';$('#image-file').value='';$('#image-url').value=p.image_path?'':p.image_url;$('#editor-title').textContent='Editar producto';form.scrollIntoView({behavior:'smooth'})}
-async function showWorkspace(){await adminCheck();await Promise.all([refresh(),fetchAreas()]);$('#login-form').hidden=true;$('#workspace').hidden=false;tell('Sesión iniciada. Los cambios guardados se publican en el catálogo.')}
+async function showWorkspace(){
+ await adminCheck();
+ await Promise.all([refresh(),fetchAreas()]);
+ $('#login-form').hidden=true;$('#workspace').hidden=false;
+ tell('Sesión iniciada. Los cambios guardados se publican en el catálogo.');
+ void loadCustomerPortalSettings();
+}
+async function loadCustomerPortalSettings(){
+ const toggle=$('#customer-portal-switch');
+ const status=$('#customer-portal-status');
+ const explanation=$('#customer-portal-explanation');
+ toggle.disabled=true;
+ status.textContent='Comprobando';
+ try{
+   const state=await getCustomerPortalAdminHealth();
+   toggle.checked=state.enabled===true;
+   status.textContent=state.enabled?'Activado':'Desactivado';
+   if(state.ready){
+     toggle.disabled=false;
+     explanation.textContent='Puedes activar o desactivar las cuentas sin bloquear el catálogo libre. '+
+       'La cédula identifica la cuenta; el acceso exige un correo verificado.';
+   }else{
+     explanation.textContent='El servicio está desplegado, pero falta la clave de protección de cédulas. No puede activarse.';
+   }
+ }catch(error){
+   status.textContent='Desactivado';
+   toggle.checked=false;
+   explanation.textContent='El registro permanece bloqueado hasta desplegar y verificar el servicio seguro. '+
+     'No se modifican datos ni el catálogo público.';
+ }
+}
+$('#customer-portal-switch').addEventListener('change',async event=>{
+ const toggle=event.currentTarget,target=toggle.checked;
+ toggle.disabled=true;
+ if(!confirm(target?'¿Activar registro opcional y Mi cuenta para todos los visitantes?':
+   '¿Ocultar Mi cuenta y desactivar nuevas solicitudes guardadas? Las anteriores se conservarán.')){
+   toggle.checked=!target;toggle.disabled=false;return;
+ }
+ try{
+   const response=await saveCustomerPortalEnabled(target);
+   toggle.checked=response.enabled;
+   $('#customer-portal-status').textContent=response.enabled?'Activado':'Desactivado';
+   tell(response.enabled?'Portal activado. El catálogo sigue disponible sin registro.':
+     'Portal desactivado. Los registros privados anteriores se conservaron.');
+ }catch(error){
+   toggle.checked=!target;tell('No se cambió el portal: '+error.message,true);
+ }
+ finally{await loadCustomerPortalSettings();}
+});
 $('#login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;tell('Entrando…');showDiagnostic(null);try{await login($('#email').value.trim(),$('#password').value);$('#password').value='';await showWorkspace()}catch(err){tell(readableLoginError(err),true);showDiagnostic(err)}finally{button.disabled=false}};
 $('#logout').onclick=async()=>{try{await logout()}finally{location.reload()}};$('#new-product').onclick=clear;$('#cancel-edit').onclick=clear;$('#admin-search').oninput=()=>{visibleLimit=24;render()};$('#admin-status-filter').onchange=()=>{visibleLimit=24;render()};$('#admin-more').onclick=()=>{visibleLimit+=24;render()};
 form.onsubmit=async e=>{e.preventDefault();if(busy)return;const name=$('#name').value.trim(),brand=$('#brand').value.trim();if(!name||!brand){tell('Escribe el nombre y la marca.',true);return}const file=$('#image-file').files[0],imageUrl=$('#image-url').value.trim();if(imageUrl&&!validImage(imageUrl)){tell('Indica una dirección HTTPS válida para la foto.',true);return}if(!editing&&!file&&!imageUrl){tell('Selecciona una imagen o pega su enlace.',true);return}lock(true);let uploaded=null,saved=false;try{tell('Guardando producto…');if(file)uploaded=await uploadImage(file);const body={name,brand,description:$('#description').value.trim(),area_id:$('#product-area').value,status:$('#status').value,price_usd:$('#price-usd').value.trim()||null,sort_order:Number($('#sort-order').value)||0,image_url:uploaded?.url||imageUrl||editing?.image_url||'',image_path:uploaded?.path||(imageUrl&&imageUrl!==editing?.image_url?null:editing?.image_path)||null,source_key:editing?.source_key||null};const id=editing?.id;await saveProduct(id,body);saved=true;clear();await refresh();tell('Producto guardado. Ya está actualizado para tus clientes.')}catch(err){tell(saved?'El producto se guardó, pero no pudimos actualizar la lista. Recarga la página.':err.message,true);if(uploaded&&!saved){try{await removeImage(uploaded.path)}catch(cleanupError){tell('No se guardó el producto y también falló la limpieza de su imagen. Revisa Cloudinary. Detalle: '+cleanupError.message,true)}}}finally{lock(false)}};
