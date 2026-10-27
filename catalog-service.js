@@ -123,3 +123,12 @@ export async function undoBulkPriceOperation(operationId){
   if(!usingFirebase)throw Error('Deshacer ajustes requiere Firebase.');
   return client.undoBulkPriceOperation(operationId);
 }
+
+export async function getCustomerPortalAdminHealth(){
+  if(!usingFirebase)throw Error('El portal de clientes requiere Firebase.');
+  return client.getCustomerPortalAdminHealth();
+}
+export async function saveCustomerPortalEnabled(enabled){
+  if(!usingFirebase)throw Error('El portal de clientes requiere Firebase.');
+  return client.saveCustomerPortalEnabled(enabled);
+}
