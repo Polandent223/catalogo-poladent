@@ -41,6 +41,13 @@ assert.ok(functions.includes("store.collection('customerQuotes').where('uid','==
 assert.ok(functions.includes('await requireAdmin(request)'), 'El interruptor es solo para admins.');
 assert.ok(functions.includes('if(count>=20)'), 'Limitar abuso de guardado diario.');
 assert.ok(functions.includes('customerPortalAdminSetEnabled'));
+assert.ok(functions.includes("request.data?.consent!==true"),'El backend requiere consentimiento para crear perfil.');
+assert.ok(functions.includes("privacy_consent_version:'2026-10'"),'Registrar versión de consentimiento.');
+assert.ok(functions.includes("status:'guardada'"),'Guardar borrador no implica cotización enviada al personal.');
+assert.ok(!functions.includes("cedula:cedula"),'No persistir cédula completa en documentos.');
+assert.ok(read('cuenta.html').includes('privacidad-clientes.html'));
+assert.ok(read('cuenta.js').includes('form.elements.consent.checked'));
+
 assert.ok(functions.includes("await requirePortal()"),'Cada operación de cliente comprueba estado público.');
 const parser=read('catalog-public-data.js');
 assert.ok(parser.includes('customerPortalEnabled=false'));
