@@ -4,6 +4,7 @@ import {whatsappInquiryURL} from './contact-links.js';
 import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
+import {fetchBcvRate,formatUSD,formatVES,convertVES} from './catalog-pricing.js';
 import {CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL} from './quote-cart.js';
 
 // El catálogo público lee únicamente catalogPublic, sin los SDK de Auth y Storage.
@@ -14,6 +15,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
+let pricingEnabled=false,bcvRate=null;
 let brandsExpanded=false;
 const previewStorefront=new URLSearchParams(location.search).get('vista')==='1';
 const requestedPreviewTheme=previewStorefront ? new URLSearchParams(location.search).get('tema') : null;
@@ -586,6 +588,37 @@ $('#storefront-secondary').addEventListener('click',()=>setTimeout(()=>{
   $('#product-search')?.focus({preventScroll:true});
 },0));
 
+function createPriceBlock(p){
+ if(!pricingEnabled||!Number.isFinite(Number(p.price_usd))||Number(p.price_usd)<=0)return null;
+ const box=element('div',null,'catalog-product-price');
+ box.append(element('strong',formatUSD(p.price_usd),'catalog-price-usd'));
+ if(bcvRate){
+   const ves=convertVES(p.price_usd,bcvRate.usd_ves);
+   if(ves!==null)box.append(element('span',formatVES(ves),'catalog-price-ves'));
+ }else box.append(element('span','Bs. pendiente de tasa BCV','catalog-price-pending'));
+ return box;
+}
+function drawDetailPrice(p){
+ const panel=$('#detail-price');panel.replaceChildren();
+ const block=createPriceBlock(p);
+ panel.hidden=!block;
+ if(block)panel.append(...block.childNodes);
+}
+function updateBcvBanner(){
+ const banner=$('#bcv-rate-banner');banner.hidden=!pricingEnabled;
+ if(!pricingEnabled)return;
+ banner.textContent=bcvRate
+   ?'Tasa referencial BCV: 1 USD = '+formatVES(bcvRate.usd_ves)+
+     ' · Vigente desde '+bcvRate.effective_date+
+     ' · Datos a través de proveedor independiente, verificar en BCV.'
+   :'Tasa BCV temporalmente no disponible: mostramos USD, sin calcular bolívares.';
+}
+async function refreshBcvRate(){
+ if(!pricingEnabled)return;
+ try{bcvRate=await fetchBcvRate();}
+ catch(error){bcvRate=null;console.warn('Tasa BCV no validada:',error.message);}
+ updateBcvBanner();renderProducts();if(selected)drawDetailPrice(selected);
+}
 function buildCard(p,index){
   const card=element('article',null,'product-card'),button=element('button',null,'image-button');
   button.type='button';button.setAttribute('aria-label','Ver '+p.name);
@@ -594,6 +627,7 @@ function buildCard(p,index){
   button.append(img);button.addEventListener('click',()=>open(p));
   card.append(button,element('p',p.brand,'eyebrow'),element('h2',p.name),
     element('span',labels[p.status]||'Disponible','badge '+p.status));
+   const prices=createPriceBlock(p);if(prices)card.append(prices);
   const view=element('button','Ver producto');view.type='button';
   view.addEventListener('click',()=>open(p));
   const add=element('button','+ Agregar a cotización','card-cart-add');
@@ -753,7 +787,8 @@ function renderCart(){
     item.append(img,detail,controls);cartItems.append(item);
   }
   $('#cart-totals').textContent=amounts.products+' producto'+(amounts.products===1?' diferente':'s diferentes')+
-    ' · '+amounts.units+' unidad'+(amounts.units===1?'':'es')+' · Sin precios';
+    ' · '+amounts.units+' unidad'+(amounts.units===1?'':'es')+
+      (pricingEnabled?' · Confirma el total por WhatsApp':' · Sin precios');
   cartContactOptions();
   if(!contacts.length&&cartLines.length)showCartMessage('Los contactos de WhatsApp no están configurados. Intenta de nuevo más tarde.',true);
   updateCartLink();
@@ -884,6 +919,7 @@ function open(p){
     document.getElementById(id).textContent=value||'';
   }
   history.replaceState(null,'',productUrl(p));
+  drawDetailPrice(p);
   renderInquiry();
   if(!dialog.open)dialog.showModal();
   document.dispatchEvent(new CustomEvent('catalog:product-open',{detail:{id:String(p.id),brand:String(p.brand)}}));
@@ -937,7 +973,14 @@ async function load(){
       profiles=data.profiles;
       contacts=data.contacts;
       storefrontSettings=data.storefront;
+      pricingEnabled=data.pricingEnabled===true;
     }else products=legacy();
+    if(pricingEnabled){
+      $('#catalog-cart-intro').textContent='¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.';
+      updateBcvBanner();
+      refreshBcvRate();
+      setInterval(refreshBcvRate,30*60*1000);
+    }
     cartLines=restoreCart();
     catalogLoaded=true;
     renderCart();
