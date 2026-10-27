@@ -96,7 +96,7 @@
 <p id="bcv-rate-banner" class="bcv-rate-banner" role="status" hidden></p><section class="filters" aria-label="Filtrar catálogo"><label>Buscar producto<input id="product-search" type="search" placeholder="Nombre del producto…"></label><label>Marca<select id="brand-filter"><option value="">Todas las marcas</option></select></label><label class="check"><input id="available" type="checkbox"> Solo disponibles</label></section>
 <div class="cart-toolbar">
 <p id="catalog-cart-intro"><strong>¿Necesitas varios productos?</strong> Agrégalos y solicita una sola cotización, sin precios.</p>
-<button id="cart-open" class="cart-open-button" type="button" aria-haspopup="dialog" aria-controls="cart-dialog" disabled>Mi cotización (<span id="cart-count">0</span>)</button>
+<button id="cart-open" class="cart-open-button cart-open-premium" type="button" aria-haspopup="dialog" aria-controls="cart-dialog" aria-label="Mi cotización, 0 productos" disabled><svg class="cart-bag-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg><span class="cart-open-label">Mi cotización</span><span id="cart-count" class="cart-count-badge" aria-hidden="true">0</span></button>
 </div>
 <p id="cart-feedback" class="cart-feedback" role="status" aria-live="polite"></p>
 <p id="catalog-status" role="status">Cargando productos…</p><section id="products" class="product-grid" aria-label="Productos"></section><button id="more" hidden>Ver más productos</button><section id="brand-back-cover" class="brand-back-cover" hidden></section></main>
@@ -134,19 +134,11 @@
 <input id="quote-quantity" name="quantity" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="Ej. 2" required></label>
 <label for="quote-city">¿En qué ciudad te encuentras?
 <input id="quote-city" name="city" type="text" autocomplete="address-level2" minlength="2" maxlength="60" placeholder="Ej. Valencia" required></label>
-<label for="quote-timing">¿Cuándo piensas comprar?
-<select id="quote-timing" name="timing" required>
-<option value="">Selecciona una opción</option>
-<option value="today">Hoy</option>
-<option value="this_week">Esta semana</option>
-<option value="this_month">Este mes</option>
-<option value="later">Más adelante</option>
-<option value="comparing">Solo estoy comparando opciones</option>
-</select></label>
+
 <label id="inquiry-contact-label" for="inquiry-contact">Enviar cotización a
 <select id="inquiry-contact" name="contact"></select></label>
 <a id="inquiry-whatsapp" class="whatsapp-contact" role="button" tabindex="0" aria-disabled="true" target="_blank" rel="noopener noreferrer">Completa los datos para solicitar cotización ↗</a>
-<p id="quote-help">Al continuar, se abrirá WhatsApp con el producto, la cantidad, la ciudad y el plazo elegido. No se enviará ningún mensaje automáticamente.</p>
+<p id="quote-help">Al continuar, se abrirá WhatsApp con el producto, la cantidad y la ciudad. No se enviará ningún mensaje automáticamente.</p>
 </form>
 </div>
 <button id="detail-cart-add" class="detail-cart-add" type="button">+ Agregar a mi cotización</button>
@@ -169,19 +161,12 @@
 <input id="cart-phone" name="phone" type="tel" autocomplete="tel" minlength="8" maxlength="24" pattern="[0-9+() -]{8,24}" placeholder="Ej. 0412 000 0000" required></label>
 <label for="cart-city">¿En qué ciudad te encuentras?
 <input id="cart-city" name="city" type="text" autocomplete="address-level2" minlength="2" maxlength="60" placeholder="Ej. Valencia" required></label>
-<label for="cart-timing">¿Cuándo piensas comprar?
-<select id="cart-timing" name="timing" required>
-<option value="">Selecciona una opción</option>
-<option value="today">Hoy</option>
-<option value="this_week">Esta semana</option>
-<option value="this_month">Este mes</option>
-<option value="later">Más adelante</option>
-<option value="comparing">Solo estoy comparando opciones</option>
-</select></label>
+
 <label for="cart-contact">Enviar cotización a
 <select id="cart-contact" name="contact" required></select></label>
 <a id="cart-whatsapp" class="whatsapp-contact" role="button" tabindex="0" aria-disabled="true" target="_blank" rel="noopener noreferrer">Completa los datos para solicitar cotización ↗</a>
 <p id="cart-message" role="status" aria-live="polite">WhatsApp abrirá el mensaje preparado. No se enviará automáticamente.</p>
+<p class="cart-contact-privacy">Tu nombre y teléfono se incluyen únicamente en el mensaje preparado de WhatsApp. Este formulario no crea una cuenta ni un historial de cliente en POLADENT.</p>
 <p class="cart-public-notice">Los montos en Bs se calculan a la tasa BCV vigente y pueden cambiar si la tasa se actualiza. Para USDT u otras divisas, consulta las condiciones con un vendedor. El resumen no constituye factura fiscal ni reserva de mercancía.</p>
 </form>
 </dialog>
