@@ -55,7 +55,7 @@ assert.ok(backend.includes('for(let index=0;index<changes.length;index+=100)'));
 assert.ok(!read('firestore.rules').includes('catalogOrders'),'Sin cambiar reglas públicas');
 const admin=read('pricing-admin.js');
 const html=read('precios.html');
-for(const id of ['bulk-method','bulk-direction','bulk-percent','bulk-csv-file','bulk-preview','bulk-apply','bulk-history-list'])
+for(const id of ['bulk-method','bulk-direction','bulk-percent','bulk-csv-file','bulk-preview','bulk-export-preview','bulk-apply','bulk-history-list'])
  assert.ok(html.includes('id="'+id+'"'));
 assert.ok(admin.includes('confirm(\'¿Confirmas que deseas actualizar'));
 assert.ok(admin.includes('cancelBulkPreview'));
