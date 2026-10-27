@@ -2043,3 +2043,35 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
   .customer-portal-future{padding:13px}
   .customer-portal-heading h2{font-size:16px}
 }
+
+
+/* Portal de clientes solo si el administrador lo activa; catálogo anónimo intacto. */
+.cart-toolbar .customer-account-link{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:41px;padding:9px 12px;border-radius:10px;
+  border:1px solid #a3ccdd;background:#f9fcff;color:#0d5074;
+  font-size:12px;font-weight:750;text-decoration:none;white-space:nowrap;
+}
+.customer-account-note{
+  max-width:1104px;margin:0 auto 12px;background:#f3fafb;
+  border-left:3px solid #8fc8d6;border-radius:8px;padding:10px 13px;
+  font-size:12px;line-height:1.6;color:#27506b;
+}
+.customer-account-note a{color:#086c98;font-weight:750}
+.customer-save-quote{
+  min-height:43px;padding:10px 16px;border:1px solid #a4ccdc;
+  background:#f4fbfd;color:#0e6084;border-radius:10px;
+  font-size:12px;font-weight:750;
+}
+.customer-save-quote:disabled{opacity:.65}
+.customer-quoted-label{
+  display:inline-block;margin:8px 14px 0;
+  background:#edf9ef;border:1px solid #c6e8d0;
+  color:#226b44;border-radius:8px;padding:6px 8px;
+  font-size:10px;line-height:1.45;font-weight:800;
+}
+#customer-account-link[hidden],#customer-account-note[hidden],
+#customer-save-quote[hidden]{display:none!important}
+@media(max-width:700px){
+  .cart-toolbar .customer-account-link{width:100%}
+}
