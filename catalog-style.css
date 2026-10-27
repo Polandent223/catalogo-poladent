@@ -2007,3 +2007,39 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
     width:100%;min-width:0;min-height:49px;
   }
 }
+
+
+/* POLADENT · portal de clientes futuro, sin activación ni nuevos datos */
+.customer-portal-future{
+  display:grid;gap:10px;min-width:0;max-width:900px;
+  background:#f8fbfe;border:1px solid #cfdfeb;border-radius:13px;
+  padding:17px 18px;margin:10px 0;
+}
+.customer-portal-heading{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+}
+.customer-portal-heading h2{font-size:18px;color:#153f5e;margin:3px 0 0}
+.customer-portal-kicker{font-size:10px;font-weight:800;letter-spacing:.09em;color:#557a92;margin:0}
+.customer-portal-status{
+  font-size:11px;font-weight:800;white-space:nowrap;color:#5b6875;
+  border:1px solid #d4dbe1;border-radius:999px;background:#edf1f4;padding:6px 10px;
+}
+.customer-portal-future>p{
+  margin:0;font-size:12px;line-height:1.6;color:#4d6577;
+}
+.customer-portal-toggle{
+  display:flex;align-items:center;gap:11px;
+  padding:13px;background:#edf2f6;border:1px solid #dce3e9;
+  border-radius:10px;color:#617181;font-size:12px;font-weight:750;
+  cursor:not-allowed;
+}
+.customer-portal-toggle input{
+  flex:none;width:18px;height:18px;accent-color:#0c688f;
+  cursor:not-allowed;
+}
+.customer-portal-future .customer-portal-footnote{font-size:11px;color:#6c8192}
+@media(max-width:700px){
+  .customer-portal-future{padding:13px}
+  .customer-portal-heading h2{font-size:16px}
+}
