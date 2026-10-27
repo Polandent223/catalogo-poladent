@@ -33,7 +33,7 @@ assert.ok(publicParser.includes('pricingEnabled=false'));
 const page=read('index.html'),catalog=read('public-catalog.js');
 assert.ok(page.includes('id="detail-price"'));
 assert.ok(page.includes('id="bcv-rate-banner"'));
-assert.ok(catalog.includes('if(!pricingEnabled||'), 'Nunca presentar precios cuando no estén activados.');
+assert.ok(catalog.includes('if(!pricingEnabled)return null;'), 'Nunca presentar precios cuando no estén activados.');
 assert.ok(catalog.includes('if(pricingEnabled){'), 'Consultar la tasa solo al publicar precios.');
 assert.ok(catalog.includes('setInterval(refreshBcvRate,30*60*1000)'), 'Actualizar la tasa periódicamente.');
 assert.ok(catalog.includes("if(bcvRate){"), 'No inventar conversiones sin tasa válida.');
