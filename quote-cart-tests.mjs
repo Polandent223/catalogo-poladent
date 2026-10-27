@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
   CART_LIMIT,CART_STORAGE_KEY,cartQuantity,normalizeCartLines,addCartLine,
-  updateCartLine,removeCartLine,cartTotals,cartWhatsAppURL
+  updateCartLine,removeCartLine,cartTotals,cartFinancials,cartSummaryURL,parseSummaryFragment,cartWhatsAppURL
 } from './quote-cart.js';
 
 const products=[
@@ -35,28 +35,60 @@ assert.throws(()=>addCartLine(lines,'missing',products),/no se encuentra/);
 lines=updateCartLine(lines,'p2',5,products);
 assert.equal(lines[1].quantity,5);
 assert.throws(()=>updateCartLine(lines,'p1',10000,products),/1 y 9.999/);
-const msgUrl=cartWhatsAppURL('584121234567',lines,products,
-  {city:'Valencia',timing:'today'},share);
+
+const priced=[
+  {...products[0],price_usd:1.8},{...products[1],price_usd:5.25},products[2],products[3]
+];
+const finance=cartFinancials(lines,priced,true,887.3);
+assert.equal(finance.complete,true);
+assert.equal(finance.pricedCount,2);
+assert.equal(finance.rows[0].unitUSD,1.8);
+assert.equal(finance.rows[0].subtotalUSD,3.6);
+assert.equal(finance.rows[1].subtotalUSD,26.25);
+assert.equal(finance.totalUSD,29.85);
+assert.equal(finance.totalVES,26486.91);
+assert.equal(cartFinancials(lines,priced,true,null).totalVES,null);
+assert.equal(cartFinancials(lines,priced,false,887.3).complete,false);
+assert.equal(cartFinancials(lines,products,true,887.3).complete,false);
+const onlyPriced=cartFinancials([{id:'p1',quantity:2}],[{...products[0],price_usd:1.80}],true,887.3);
+assert.equal(onlyPriced.totalUSD,3.60);
+assert.equal(onlyPriced.totalVES,3194.28);
+const summary=cartSummaryURL(lines,priced,'https://polandent223.github.io/catalogo-poladent/?catalogo=1');
+assert.ok(summary.startsWith('https://polandent223.github.io/catalogo-poladent/solicitud.html#pedido='));
+assert.deepEqual(parseSummaryFragment(new URL(summary).hash),lines);
+for(const tampered of ['#pedido=p1=2,p1=3','#pedido=hidden=0','#pedido=p1=10000',
+ '#pedido=p1=1,p2=2,p3=3,p4=4,p5=5,p6=6,p7=7,p8=8,p9=9,p10=10,p11=11',
+ '#pedido=<script>=1','#pedido=p1=3.2']){
+ assert.deepEqual(parseSummaryFragment(tampered),[]);
+}
+assert.equal(cartSummaryURL([{id:'hidden',quantity:1}],products,
+ 'https://polandent223.github.io/catalogo-poladent/'),'');
+assert.equal(cartSummaryURL(lines,priced,'http://insecure.example.com/'),'');
+const msgUrl=cartWhatsAppURL('584121234567',lines,priced,
+  {city:'Valencia',timing:'today'},summary,finance);
 assert.ok(msgUrl.startsWith('https://wa.me/584121234567?text='));
 const message=new URL(msgUrl).searchParams.get('text');
-assert.match(message,/Lámpara de fotocurado \| EASYINSMILE/);
-assert.match(message,/Horno Lótus \| VRC \(AGOTADO: consultar disponibilidad\)/);
-assert.match(message,/Cantidad: 2 unidades/);
-assert.match(message,/Cantidad: 5 unidades/);
+assert.match(message,/Resumen de solicitud/);
 assert.match(message,/Ciudad: Valencia/);
 assert.match(message,/Compra prevista: Hoy/);
 assert.match(message,/Productos diferentes: 2/);
 assert.match(message,/Unidades solicitadas: 7/);
-assert.ok(message.includes(share(products[0])));
-assert.ok(message.includes(share(products[1])));
-assert.ok(!message.includes('$'));
-assert.equal(cartWhatsAppURL('584121234567',[],products,{city:'Valencia',timing:'today'},share),'');
-assert.equal(cartWhatsAppURL('584121234567',lines,products,{city:'',timing:'today'},share),'');
-assert.equal(cartWhatsAppURL('584121234567',lines,products,{city:'Valencia',timing:''},share),'');
-assert.equal(cartWhatsAppURL('invalid',lines,products,{city:'Valencia',timing:'today'},share),'');
-assert.equal(cartWhatsAppURL('584121234567',lines,products,{city:'Valencia',timing:'today'},()=> 'http://unsafe.test/'),'');
-assert.equal(cartWhatsAppURL('584121234567',[...lines,{id:'hidden',quantity:1}],products,
-  {city:'Valencia',timing:'today'},share),'');
+assert.match(message,/Total referencial USD: 29.85/);
+assert.match(message,/Total referencial Bs: 26486.91/);
+assert.match(message,/USDT/);
+assert.match(message,/no es factura fiscal/i);
+assert.ok(message.includes(summary),'El vendedor recibe UN solo enlace de resumen.');
+assert.ok(!message.includes(share(products[0])),'No repetir URL de fichas de producto.');
+assert.ok(!message.includes(share(products[1])),'No repetir URL de fichas de producto.');
+assert.equal((message.match(/https:\/\//g)||[]).length,1,'Solo un enlace dentro del mensaje.');
+assert.equal(cartWhatsAppURL('584121234567',[],priced,{city:'Valencia',timing:'today'},summary),'');
+assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'',timing:'today'},summary),'');
+assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'Valencia',timing:''},summary),'');
+assert.equal(cartWhatsAppURL('invalid',lines,priced,{city:'Valencia',timing:'today'},summary),'');
+assert.equal(cartWhatsAppURL('584121234567',lines,priced,{city:'Valencia',timing:'today'},
+  'http://unsafe.test/'),'');
+assert.equal(cartWhatsAppURL('584121234567',[...lines,{id:'hidden',quantity:1}],priced,
+  {city:'Valencia',timing:'today'},summary),'');
 assert.deepEqual(removeCartLine(lines,'p1',products),[{id:'p2',quantity:5}]);
 let full=Array.from({length:CART_LIMIT},(_,i)=>({
   id:'test-'+i,name:'Producto '+i,brand:'ICE',status:'available'
@@ -65,8 +97,8 @@ let lot=full.map(p=>({id:p.id,quantity:1}));
 const eleven={id:'eleven',name:'Extra',brand:'ICE',status:'available'};
 assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 10/);
 const long=[{id:'long',name:'X'.repeat(8000),brand:'VRC',status:'available'}];
-assert.equal(cartWhatsAppURL('584121234567',[{id:'long',quantity:1}],long,
-  {city:'Valencia',timing:'today'},share),'');
+assert.ok(cartSummaryURL([{id:'long',quantity:1}],long,
+  'https://polandent223.github.io/catalogo-poladent/').includes('solicitud.html'));
 const publicCode=readFileSync('public-catalog.js','utf8');
 const html=readFileSync('index.html','utf8');
 const analytics=readFileSync('catalog-analytics.js','utf8');
@@ -85,6 +117,16 @@ assert.ok(publicCode.includes('cartLines=updateCartLine'));
 assert.ok(publicCode.includes('quoteForm.reset()'), 'Conservar la cotización individual');
 assert.ok(publicCode.includes('whatsappInquiryURL('));
 assert.ok(publicCode.includes('loadPublicCatalog(cfg)'), 'Conservar catálogo público');
+assert.ok(publicCode.includes('cartFinancials(cartLines,products'), 'Mostrar subtotales y totales en carrito.');
+assert.ok(publicCode.includes('cartSummaryURL(cartLines,products'), 'Enviar resumen compartible en lugar de enlaces individuales.');
+assert.ok(html.includes('Mi solicitud de productos'));
+const summaryHtml=readFileSync('solicitud.html','utf8');
+const summaryJs=readFileSync('solicitud.js','utf8');
+assert.ok(summaryHtml.includes('No es una factura fiscal'));
+assert.ok(summaryJs.includes('loadPublicCatalog(cfg)'), 'Resumen obtiene el precio vigente de la fuente pública.');
+assert.ok(summaryJs.includes('parseSummaryFragment(location.hash)'));
+assert.ok(!summaryJs.includes('saveProduct('));
+
 assert.ok(!publicCode.includes("from './catalog-service.js'"));
 assert.ok(analytics.includes("a#inquiry-whatsapp, a#inquiry-quick, a#cart-whatsapp"));
 assert.ok(analytics.includes("record('whatsapp',0,'Cotización múltiple','')"));
