@@ -15,6 +15,9 @@ export function startCatalogAnalytics() {
   if(navigator.globalPrivacyControl===true || navigator.doNotTrack==='1')return;
 
   let warned=false;
+  // Las estadísticas son secundarias: si Firebase rechaza una escritura,
+  // no insistir en cada clic o minuto durante la misma visita.
+  let telemetryDisabled=false;
   const allowEvent=createEventGate();
   const firestore=Promise.all([
     import('https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js'),
@@ -24,15 +27,16 @@ export function startCatalogAnalytics() {
     return {db:fs.getFirestore(application),fs};
   });
   function record(type,seconds=0,brand='',product_id=''){
-    if(!TYPES.has(type)||!allowEvent(type,brand,product_id))return;
+    if(telemetryDisabled||!TYPES.has(type)||!allowEvent(type,brand,product_id))return;
     // No impedir navegación ni apertura de WhatsApp por motivos de estadísticas.
     firestore.then(({db,fs})=>fs.addDoc(fs.collection(db,'catalogAnalyticsEvents'),{
       type,seconds,brand:String(brand).slice(0,80),product_id:String(product_id).slice(0,140),
       created_at:fs.serverTimestamp()
     })).catch(error=>{
+      telemetryDisabled=true;
       if(!warned){
         warned=true;
-        console.warn('Estadísticas desactivadas: revisa las reglas de Firestore.',error?.code||error?.message);
+        console.warn('Estadísticas pausadas para esta visita; el catálogo y WhatsApp siguen funcionando.',error?.code||error?.message);
       }
     });
   }
@@ -45,7 +49,7 @@ export function startCatalogAnalytics() {
     const elapsed=Math.max(0,Math.min(60,(now-last)/1000));
     last=now;
     if(document.visibilityState==='visible')pending+=elapsed;
-    if(pending>=15 || (force&&pending>=5)){
+    if(pending>=60 || (force&&pending>=5)){
       const whole=Math.min(60,Math.floor(pending));
       pending-=whole;
       record('engagement',whole);
