@@ -20,6 +20,8 @@ jobs:
         run: node scripts/create-public-snapshot-tests.mjs
       - name: Probar sincronización ligera al guardar cambios en administración
         run: node scripts/sync-public-catalog-tests.mjs
+      - name: Verificar alertas de precios vencidos y cotización sin cambios privados
+        run: node scripts/check-public-snapshot-health-tests.mjs
       - name: Probar catálogo y solicitudes en contingencia sin Firebase
         run: node catalog-emergency-tests.mjs
       - name: Comprobar sintaxis de Cloud Functions privadas

@@ -1,12 +1,12 @@
 // Sincronización por GitHub Actions sin claves privadas ni Firebase Admin.
 // Sondeo 1 documento público; descargar el catálogo entero solo cuando cambie
-// su revisión o cuando toque renovar la captura, como máximo cada 3 horas.
+// su revisión o cuando toque renovar la captura, al menos cada hora.
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {readPublicRevision,savePublicSnapshot} from './create-public-snapshot.mjs';
 
-export const REFRESH_INTERVAL_MS=3*60*60*1000;
+export const REFRESH_INTERVAL_MS=60*60*1000;
 export function shouldRefreshPublicSnapshot(snapshot,revision,now=Date.now()){
  if(!snapshot||snapshot.schema!=='poladent-public-snapshot-v1')return true;
  const saved=Date.parse(snapshot.captured_at);
