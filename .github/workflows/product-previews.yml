@@ -86,3 +86,6 @@ jobs:
             echo "Actualizados los HTML públicos; solicitando nueva publicación de GitHub Pages"
             gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" || echo "::warning::No se pudo forzar Pages. Revisar configuración de GitHub Pages."
           fi
+      - name: Detectar precios vencidos y alertar sin alterar el catálogo
+        if: github.event_name != 'pull_request'
+        run: node scripts/check-public-snapshot-health.mjs
