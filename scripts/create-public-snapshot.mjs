@@ -43,6 +43,7 @@ export function createPublicSnapshot(data,now=new Date()){
     ids.add(id);
     const value={id,name,brand,image_url:p.image_url,status:p.status};
     if(typeof p.description==='string')value.description=p.description.slice(0,4000);
+    if(typeof p.area_id==='string'&&/^[a-z0-9-]{1,55}$/.test(p.area_id))value.area_id=p.area_id;
     if(Number.isFinite(Number(p.sort_order)))value.sort_order=Number(p.sort_order);
     if(data.pricingEnabled===true&&p.price_usd!==null&&p.price_usd!==undefined&&p.price_usd!==''){
       const price=Number(p.price_usd);
