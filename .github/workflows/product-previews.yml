@@ -16,6 +16,7 @@ on:
       - 'scripts/sync-public-catalog.mjs'
       - 'scripts/sync-public-catalog-tests.mjs'
       - 'firebase-client.js'
+      - '.github/workflows/product-previews.yml'
   schedule:
     - cron: '7,17,27,37,47,57 * * * *'
   workflow_dispatch:
@@ -30,6 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Las ejecuciones programadas repetidas pueden apuntar a un commit antiguo:
+          # leer SIEMPRE la última main antes de generar y publicar el respaldo.
+          # Los PR siguen validando exclusivamente su propio código.
+          ref: ${{ github.event_name == 'pull_request' && github.sha || 'main' }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
