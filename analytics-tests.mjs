@@ -40,6 +40,19 @@ assert.match(listener,/catalog:product-open/);
 assert.match(listener,/inquiry-whatsapp/);
 assert.match(listener,/doNotTrack/);
 assert.ok(!/\\b(?:localStorage|sessionStorage)\\s*[.\\[]/.test(listener));
+
+assert.ok(listener.includes('let telemetryDisabled=false;'),
+  'Las métricas se deben pausar si Firebase no permite más escrituras.');
+assert.ok(listener.includes('telemetryDisabled=true;'),
+  'No seguir consumiendo cuota tras el primer error.');
+assert.ok(listener.includes('if(telemetryDisabled||!TYPES.has(type)'),
+  'Los próximos clics no deben enviar estadísticas durante el fallo.');
+assert.ok(listener.includes('if(pending>=60 || (force&&pending>=5))'),
+  'Reducir registro de permanencia de 4 por minuto a 1.');
+assert.ok(listener.includes("record('visit')"),
+  'Conservar las métricas básicas de visita.');
+assert.ok(listener.includes("record('whatsapp'"),
+  'Conservar la medición de consultas reales por WhatsApp.');
 const app=readFileSync('welcome.js','utf8');
 assert.ok(app.includes("import('./catalog-analytics.js')"));
 const publicCatalog=readFileSync('public-catalog.js','utf8');
