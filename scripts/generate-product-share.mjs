@@ -70,6 +70,15 @@ img{display:block;width:100%;max-height:380px;object-fit:contain}a{display:inlin
 `;
 }
 async function readPublicProducts(){
+  if(process.argv.includes('--from-snapshot-only')){
+    const saved=JSON.parse(await readFile('catalog-public-snapshot.json','utf8'));
+    const age=Date.now()-Date.parse(saved.captured_at);
+    if(saved.schema!=='poladent-public-snapshot-v1'||!Array.isArray(saved.products)||
+      saved.products.length<200||!Number.isFinite(age)||age<0||age>4*60*60*1000)
+      throw Error('La última copia íntegra está ausente o desactualizada. Conservamos las vistas previas anteriores.');
+    return saved.products.map(p=>({id:p.id,name:p.name,brand:p.brand,
+      image_url:p.image_url,description:p.description||''}));
+  }
   const config=await readFile('config.js','utf8');
   const apiKey=config.match(/apiKey:\s*['"]([^'"]+)['"]/)?.[1];
   if(!apiKey||apiKey.length<15)throw Error('No encontramos la API Key pública en config.js');
@@ -106,11 +115,7 @@ if(main){
   if(!products.length)throw Error('El catálogo devolvió 0 productos. No se publica un manifiesto vacío.');
   await mkdir(output,{recursive:true});
   const ids=new Set(products.map(p=>p.id));
-  for(const name of await readdir(output,{withFileTypes:true})){
-    if(name.isDirectory()&&/^[A-Za-z0-9_-]{1,140}$/.test(name.name)&&!ids.has(name.name)){
-      await rm(join(output,name.name),{recursive:true,force:true});
-    }
-  }
+  // Preservar fichas históricas: nunca borrar páginas originales durante una sincronización automática.
   for(const p of products){
     const folder=join(output,p.id);
     await mkdir(folder,{recursive:true});

@@ -142,6 +142,7 @@ export async function saveWelcomeSettings(settings) {
   const batch=writeBatch(db);
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return {
     enabled:data.welcome_enabled,
@@ -187,6 +188,7 @@ export async function saveWhatsAppContacts(contacts) {
   const batch = writeBatch(db);
   batch.set(doc(db, 'catalogProducts', CONTACTS_DOC), data, {merge:true});
   batch.set(doc(db, 'catalogPublic', CONTACTS_DOC), data, {merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return cleaned;
 }
@@ -252,6 +254,7 @@ export async function saveBrand(id, entry, sourceName = '') {
     if (product.status === 'available' || product.status === 'sold_out')
       batch.update(doc(db, 'catalogPublic', product.id), { brand:name });
   }
+  markCatalogActive(batch);
   await batch.commit();
   return {id:key,renamedProducts:changes.length};
 }
@@ -492,6 +495,7 @@ export async function saveStorefrontSettings(settings){
   const batch=writeBatch(db);
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return normalized;
 }
@@ -523,6 +527,7 @@ export async function saveProductPrice(productId,value){
       price_usd:price===null?deleteField():price
     });
   }
+  if(pricing.enabled&&product.status!=='hidden')markCatalogActive(batch);
   await batch.commit();
   return price;
 }
@@ -553,6 +558,7 @@ export async function savePricingEnabled(enabled){
     batch.update(current.ref,patchPricing(current));
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
   batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  markCatalogActive(batch);
   await batch.commit();
   return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
 }
@@ -612,6 +618,7 @@ export async function applyBulkPriceChanges(rows,meta={}){
          direction:method==='percent'?meta.direction:'',
          percent:method==='percent'?Number(meta.percent):null,
          created_at:now,created_by:auth.currentUser.uid,records:chunk,undone_at:null});
+       if(pricing.enabled)markCatalogActive(transaction);
      });
      completed+=chunk.length;
    }
@@ -680,6 +687,7 @@ export async function undoBulkPriceOperation(operationId){
              price_usd:row.before===null?deleteField():row.before});
        }
        transaction.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
+       if(pricing.enabled)markCatalogActive(transaction);
      });
      completed+=rows.length;
    }

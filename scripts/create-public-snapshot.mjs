@@ -5,6 +5,19 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadPublicCatalog} from '../catalog-public-data.js';
 
+export async function readPublicRevision({projectId,apiKey},request=fetch){
+  const url=new URL('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(projectId)+
+    '/databases/(default)/documents/catalogPublic/_catalog_state');
+  url.searchParams.set('key',apiKey);
+  const response=await request(url.href,{
+    headers:{Accept:'application/json'},signal:AbortSignal.timeout(14000),cache:'no-store'
+  });
+  if(response.status===404)return null;
+  if(!response.ok)throw Error('Firestore no permite comprobar cambios ('+response.status+').');
+  const doc=await response.json();
+  return doc?.fields?.updated_at?.stringValue||null;
+}
+
 export function createPublicSnapshot(data,now=new Date()){
   if(!data || !Array.isArray(data.products) || data.products.length<200 ||
     data.products.length>10000 || !data.hasCatalogState)
@@ -63,6 +76,7 @@ export function createPublicSnapshot(data,now=new Date()){
     throw Error('Portada oficial sin imagen horizontal: no publicar copia incompleta.');
   return {schema:'poladent-public-snapshot-v1',captured_at:now.toISOString(),
     source:'catalogPublic (sólo documentos públicos de Firestore)',
+    source_revision:typeof data.catalogRevision==='string'?data.catalogRevision:null,
     hasCatalogState:true,products,profiles,contacts,storefront:safeStorefront,welcome,
     pricingEnabled:data.pricingEnabled===true,customerPortalEnabled:false};
 }
@@ -74,7 +88,12 @@ export async function savePublicSnapshot({
   const projectId=source.match(/projectId:\s*['"]([^'"]+)['"]/)?.[1];
   if(!apiKey||!projectId||projectId!=='catalogo-poladent')
     throw Error('La configuración pública no corresponde al catálogo de POLADENT.');
+  const revisionBefore=await readPublicRevision({projectId,apiKey},request);
   const data=await loadPublicCatalog({projectId,apiKey},request);
+  const revisionAfter=await readPublicRevision({projectId,apiKey},request);
+  if(revisionBefore!==revisionAfter||
+    (revisionAfter&&data.catalogRevision&&revisionAfter!==data.catalogRevision))
+    throw Error('Cambios simultáneos en el administrador. No se publica una captura mezclada.');
   const safe=createPublicSnapshot(data,now);
   const target=resolve(root,'catalog-public-snapshot.json');
   const tmp=target+'.tmp';
