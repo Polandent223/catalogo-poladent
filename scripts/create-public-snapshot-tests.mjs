@@ -5,7 +5,7 @@ import {validatePublicSnapshot,loadPublicSnapshot} from '../catalog-public-snaps
 
 const fakeData={
  products:Array.from({length:255},(_,i)=>({
-  id:'item_'+i,name:'Producto '+i,brand:'ADALTA',
+  id:'item_'+i,name:'Producto '+i,brand:'ADALTA',area_id:i%2?'endodoncia':'laboratorio',
   status:i%2?'available':'sold_out',
   image_url:'https://res.cloudinary.com/poladent/image/upload/ejemplo_'+i+'.webp',
   price_usd:i+1.5,description:'Descripción pública',sort_order:i
@@ -44,6 +44,7 @@ assert.equal(copy.storefront.banner_extra_slides.length,1);
 assert.equal(copy.pricingEnabled,true);
 assert.equal(copy.customerPortalEnabled,false);
 assert.equal(copy.products[1].price_usd,2.5);
+assert.equal(copy.products[1].area_id,'endodoncia','Categorías guardadas se conservan en GitHub.');
 const fresh=validatePublicSnapshot(copy,Date.parse('2026-10-27T21:00:00Z'));
 assert.equal(fresh.publicSnapshot,true);
 assert.equal(fresh.emergencyFallback,false);
