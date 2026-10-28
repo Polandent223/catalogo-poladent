@@ -9,7 +9,7 @@ const date=Date.parse('2026-10-27T21:00:00Z');
 const revision='2026-10-27T18:00:00.000Z';
 assert.equal(REFRESH_INTERVAL_MS,60*60*1000,'Renovar la copia completa cada hora si no cambió nada.');
 const current={schema:'poladent-public-snapshot-v1',
-  captured_at:new Date(date-60*60*1000).toISOString(),source_revision:revision};
+  captured_at:new Date(date-30*60*1000).toISOString(),source_revision:revision};
 assert.equal(shouldRefreshPublicSnapshot(null,revision,date),true,'Primera publicación exige copia completa.');
 assert.equal(shouldRefreshPublicSnapshot(current,revision,date),false,'No releer 255 documentos si nada cambió.');
 assert.equal(shouldRefreshPublicSnapshot(current,'2026-10-27T21:00:00.000Z',date),true,
