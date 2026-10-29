@@ -83,7 +83,11 @@ async function displaySummary(){
    $('#summary-content').hidden=false;
    status.textContent=data.emergencyFallback
      ?'Resumen temporal: productos encontrados en respaldo. Precios, existencias y tasa a confirmar directamente con POLADENT; este enlace no confirma venta ni disponibilidad.'
-     :'Resumen actualizado con los precios vigentes. La referencia es temporal: no constituye un pedido registrado ni una factura fiscal.';
+     :data.snapshotPriceWarning
+       ?'Resumen con precios USD referenciales de la última publicación ('+
+         new Date(data.snapshotCapturedAt).toLocaleString('es-VE',{timeZone:'America/Caracas',dateStyle:'short',timeStyle:'short'})+
+         '). Confirma el monto y la existencia con POLADENT antes de pagar. No es factura fiscal.'
+       :'Resumen referencial con precios de la última publicación. Confirma disponibilidad y monto final con POLADENT; no constituye una venta ni factura fiscal.';
  }catch(error){
    status.textContent='No pudimos abrir el resumen. Comprueba la conexión o solicita un enlace nuevo.';
    console.warn('No fue posible consultar solicitud:',error.message);
