@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createPublicSnapshot} from './create-public-snapshot.mjs';
-import {validatePublicSnapshot,loadPublicSnapshot} from '../catalog-public-snapshot.js';
+import {validatePublicSnapshot,loadPublicSnapshot,PRICE_WARNING_AGE_MS,PRICE_MAX_AGE_MS} from '../catalog-public-snapshot.js';
+assert.equal(PRICE_WARNING_AGE_MS,4*60*60*1000);
+assert.equal(PRICE_MAX_AGE_MS,12*60*60*1000);
 
 const fakeData={
  products:Array.from({length:255},(_,i)=>({
@@ -49,10 +51,16 @@ const fresh=validatePublicSnapshot(copy,Date.parse('2026-10-27T21:00:00Z'));
 assert.equal(fresh.publicSnapshot,true);
 assert.equal(fresh.emergencyFallback,false);
 assert.equal(fresh.pricingEnabled,true);
+assert.equal(fresh.snapshotPriceWarning,false);
 assert.equal(fresh.products[0].status,'sold_out');
 assert.equal(fresh.profiles[0].logo_url,fakeData.profiles[0].logo_url);
 assert.equal(fresh.storefront.banner_desktop_url,fakeData.storefront.banner_desktop_url);
-const stale=validatePublicSnapshot(copy,Date.parse('2026-10-28T03:00:00Z'));
+const delayed=validatePublicSnapshot(copy,Date.parse('2026-10-28T03:00:00Z'));
+assert.equal(delayed.emergencyFallback,false,'Retraso de siete horas no debe borrar precios publicados.');
+assert.equal(delayed.pricingEnabled,true);
+assert.equal(delayed.snapshotPriceWarning,true);
+assert.equal(delayed.products[1].price_usd,2.5);
+const stale=validatePublicSnapshot(copy,Date.parse('2026-10-28T09:00:00Z'));
 assert.equal(stale.emergencyFallback,true);
 assert.equal(stale.pricingEnabled,false);
 assert.equal(stale.customerPortalEnabled,false);
@@ -86,6 +94,10 @@ assert.ok(index.includes('restoreLocallyVerifiedCatalog()||await loadEmergencyCa
  'Conservar contingencia si fallan snapshot y Firestore.');
 assert.ok(index.includes('storefrontSettings=data.storefront'),
  'Recuperar banners, marcas y sedes del diseño original.');
+assert.ok(index.includes('snapshotPriceWarning')&&index.includes('Confirma el monto y la existencia por WhatsApp'),
+ 'Avisar al cliente sobre precios referenciales de copias retrasadas.');
+assert.ok(quote.includes('data.snapshotPriceWarning')&&quote.includes('No es factura fiscal.'),
+ 'El resumen de cotización informa la antigüedad de los precios.');
 assert.ok(quote.includes('data=await loadPublicSnapshot()'),
  'Los vendedores no deben agotar cuota por consultar un resumen.');
 assert.ok(!readFileSync('firestore.rules','utf8').includes('catalogSnapshots'));

@@ -1,8 +1,10 @@
 // La copia pública validada evita una lectura de 255+ documentos Firestore por visitante.
-// Si es antigua, conserva banners y logotipos pero NO ofrece precios ni stock actuales.
+// Resguarda precios de la última publicación durante retrasos de GitHub Actions.
+// Pasadas cuatro horas se identifican como referenciales; a las doce se ocultan.
 export const STATIC_SNAPSHOT_NAME='catalog-public-snapshot.json';
 const SCHEMA='poladent-public-snapshot-v1';
-const PRICE_MAX_AGE_MS=4*60*60*1000;
+export const PRICE_WARNING_AGE_MS=4*60*60*1000;
+export const PRICE_MAX_AGE_MS=12*60*60*1000;
 export function validatePublicSnapshot(value,now=Date.now()){
  if(!value||value.schema!==SCHEMA||!Array.isArray(value.products)||
    value.products.length<200||value.products.length>10000||
@@ -28,7 +30,9 @@ export function validatePublicSnapshot(value,now=Date.now()){
     s?.desktop_url,s?.mobile_url]):[])];
  if(!banners.some(url=>typeof url==='string'&&url.startsWith('https://')))
    throw Error('La copia no contiene banners de la presentación original.');
- const fresh=now-captured>=0&&now-captured<=PRICE_MAX_AGE_MS;
+ const age=now-captured;
+ const fresh=age>=0&&age<=PRICE_MAX_AGE_MS;
+ const priceWarning=fresh&&age>=PRICE_WARNING_AGE_MS;
  return {
    products:value.products.map(p=>fresh?{...p}:{...p,emergency_fallback:true,status:'available',price_usd:null}),
    profiles:value.profiles,contacts:value.contacts,storefront:value.storefront,
@@ -36,6 +40,7 @@ export function validatePublicSnapshot(value,now=Date.now()){
    pricingEnabled:fresh&&value.pricingEnabled===true,
    customerPortalEnabled:false,
    emergencyFallback:!fresh,publicSnapshot:true,
+   snapshotPriceWarning:priceWarning&&value.pricingEnabled===true,
    snapshotCapturedAt:value.captured_at
  };
 }

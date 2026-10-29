@@ -18,6 +18,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
 const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
 let pricingEnabled=false,bcvRate=null,emergencyFallback=false;
+let snapshotPriceWarning=false,snapshotCapturedAt='';
 let customerPortalEnabled=false,customerAPI=null;
 let alreadyQuotedIds=new Set();
 let brandsExpanded=false;
@@ -619,11 +620,16 @@ function drawDetailPrice(p){
 function updateBcvBanner(){
  const banner=$('#bcv-rate-banner');banner.hidden=!pricingEnabled;
  if(!pricingEnabled)return;
- banner.textContent=bcvRate
+ const warning=snapshotPriceWarning
+   ?'Precios USD referenciales de la última publicación ('+
+     new Date(snapshotCapturedAt).toLocaleString('es-VE',{timeZone:'America/Caracas',dateStyle:'short',timeStyle:'short'})+
+     '). Confirma el monto y la existencia por WhatsApp. · '
+   :'';
+ banner.textContent=warning+(bcvRate
    ?'Tasa referencial BCV: 1 USD = Bs. '+formatBcvRate(bcvRate.usd_ves)+
      ' · Vigente desde '+bcvRate.effective_date+
      ' · Datos a través de proveedor independiente, verificar en BCV.'
-   :'Tasa BCV temporalmente no disponible: mostramos USD, sin calcular bolívares.';
+   :'Tasa BCV temporalmente no disponible: mostramos USD, sin calcular bolívares.');
 }
 async function refreshBcvRate(){
  if(!pricingEnabled)return;
@@ -1106,6 +1112,8 @@ async function load(){
             {timeZone:'America/Caracas',dateStyle:'short',timeStyle:'short'});
       }
       emergencyFallback=data.emergencyFallback===true;
+      snapshotPriceWarning=data.snapshotPriceWarning===true;
+      snapshotCapturedAt=data.snapshotCapturedAt||'';
       products=data.hasCatalogState||data.products.length?data.products:legacy();
       profiles=data.profiles;
       contacts=data.contacts;
@@ -1115,7 +1123,9 @@ async function load(){
      }else{
        try{
          const data=await loadPublicSnapshot();
-         emergencyFallback=data.emergencyFallback===true;products=data.products;
+         emergencyFallback=data.emergencyFallback===true;
+         snapshotPriceWarning=data.snapshotPriceWarning===true;
+         snapshotCapturedAt=data.snapshotCapturedAt||'';products=data.products;
          profiles=data.profiles;contacts=data.contacts;
          storefrontSettings=data.storefront;pricingEnabled=data.pricingEnabled===true;
          customerPortalEnabled=false;
