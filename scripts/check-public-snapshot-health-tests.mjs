@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createPublicSnapshot} from './create-public-snapshot.mjs';
 import {inspectPublicSnapshotHealth,ALERT_AGE_MS} from './check-public-snapshot-health.mjs';
-assert.equal(ALERT_AGE_MS,3*60*60*1000);
+assert.equal(ALERT_AGE_MS,9*60*60*1000);
 const now=new Date('2026-10-28T12:00:00.000Z');
 const base={
  products:Array.from({length:255},(_,i)=>({
