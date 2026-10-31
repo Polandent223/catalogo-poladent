@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const load=async name=>import('data:text/javascript;base64,'+
-  Buffer.from(readFileSync(new URL('./'+name,import.meta.url),'utf8')).toString('base64'));
+const load=async name=>{
+ let source=readFileSync(new URL('./'+name,import.meta.url),'utf8');
+ if(name==='catalog-public-data.js')
+   source=source.replace("import {normalizeInstagramProfiles} from './instagram-links.js';",
+     readFileSync(new URL('./instagram-links.js',import.meta.url),'utf8').replaceAll('export ',''));
+ return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+};
 const {parseCatalogDocuments,loadPublicCatalog,decodeFirestoreValue}=await load('catalog-public-data.js');
 const {cloudinaryImage,setCardImage}=await load('catalog-images.js');
 const str=x=>({stringValue:x}), integer=x=>({integerValue:String(x)});
