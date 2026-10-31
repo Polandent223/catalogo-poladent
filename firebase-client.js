@@ -6,6 +6,7 @@ import { getFirestore, collection, doc, getDoc, getDocs, query, where, Timestamp
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js';
 import {normalizeStorefront} from './storefront-settings.js';
+import {normalizeInstagramProfiles} from './instagram-links.js';
 import {cleanUSD} from './catalog-pricing.js';
 import {adjustedPriceUSD} from './price-bulk.js';
 import {brandKey,planBrandRename} from './brand-management.js';
@@ -191,6 +192,24 @@ export async function saveWhatsAppContacts(contacts) {
   markCatalogActive(batch);
   await batch.commit();
   return cleaned;
+}
+// Instagram usa el documento público de contactos; merge protege WhatsApp, precios y banners.
+export async function getInstagramProfiles(){
+ await adminCheck();
+ const docSnap=await getDoc(doc(db,'catalogProducts',CONTACTS_DOC));
+ return normalizeInstagramProfiles(docSnap.exists()?docSnap.data().instagram_profiles:[]);
+}
+export async function saveInstagramProfiles(items){
+ await adminCheck();
+ const cleaned=normalizeInstagramProfiles(items,true);
+ const data={kind:'contact_settings',status:'available',instagram_profiles:cleaned,
+  instagram_updated_at:new Date().toISOString()};
+ const batch=writeBatch(db);
+ batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
+ batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+ markCatalogActive(batch);
+ await batch.commit();
+ return cleaned;
 }
 export async function saveBrand(id, entry, sourceName = '') {
   await adminCheck();
