@@ -6,6 +6,7 @@ const pages=[
   ['admin.html','workspace','product-form','bulk-import','admin-list','image-cleanup-tools'],
   ['marcas.html','brand-workspace','brand-form','brand-admin-list','logo-preview','cover-preview','back-cover-preview'],
   ['contacto.html','contact-workspace','contact-form','contact-save'],
+  ['instagram.html','instagram-workspace','instagram-form','instagram-save','instagram-add'],
   ['portada.html','welcome-admin-workspace','welcome-form','welcome-save','welcome-mobile-file'],
   ['diseno.html','design-workspace','design-form','design-save','design-frame','design-brands','design-areas-list','design-banner-slides'],
   ['estadisticas.html','analytics-workspace','analytics-chart','analytics-brands','analytics-products','analytics-areas'],
@@ -22,6 +23,7 @@ assert.ok(js.includes("['marcas.html','Marcas'"));
 assert.ok(js.includes("['portada.html','Portada'"));
 assert.ok(js.includes("['diseno.html','Diseño'"));
 assert.ok(js.includes("['contacto.html','WhatsApp'"));
+assert.ok(js.includes("['instagram.html','Instagram'"));
 assert.ok(js.includes("['estadisticas.html','Estadísticas'"));
 assert.ok(js.includes("['respaldo.html','Respaldos'"));
 assert.ok(js.includes("['banners','Banners']"));
