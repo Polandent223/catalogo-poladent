@@ -1,3 +1,4 @@
+import {normalizeInstagramProfiles} from './instagram-links.js';
 // La copia pública validada evita una lectura de 255+ documentos Firestore por visitante.
 // Conservar precios USD ya publicados como REFERENCIA cuando GitHub se retrasa.
 // Si la copia envejece, NO confirmar existencias y remitir a WhatsApp.
@@ -42,7 +43,8 @@ export function validatePublicSnapshot(value,now=Date.now()){
      if(stockUnverified){product.emergency_fallback=true;product.status='available';}
      return product;
    }),
-   profiles:value.profiles,contacts:value.contacts,storefront:value.storefront,
+   profiles:value.profiles,contacts:value.contacts,
+   instagramProfiles:normalizeInstagramProfiles(value.instagramProfiles),storefront:value.storefront,
    hasCatalogState:true,
    pricingEnabled:value.pricingEnabled===true,
    customerPortalEnabled:false,
@@ -75,7 +77,8 @@ export function saveLocallyVerifiedCatalog(data,now=new Date()){
      data.profiles?.length<3)return false;
    const copy={
      schema:SCHEMA,captured_at:now.toISOString(),products:data.products,
-     profiles:data.profiles,contacts:data.contacts||[],storefront:data.storefront,
+     profiles:data.profiles,contacts:data.contacts||[],
+     instagramProfiles:normalizeInstagramProfiles(data.instagramProfiles),storefront:data.storefront,
      pricingEnabled:data.pricingEnabled===true,customerPortalEnabled:false
    };
    validatePublicSnapshot(copy,now.getTime());
