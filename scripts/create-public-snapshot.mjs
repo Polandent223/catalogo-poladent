@@ -1,3 +1,4 @@
+import {normalizeInstagramProfiles} from '../instagram-links.js';
 // Copia pública validada de la presentación REAL aprobada en Firebase.
 // Nunca exporta colecciones privadas ni escribe en Firebase.
 import {readFile,writeFile,rename} from 'node:fs/promises';
@@ -78,7 +79,8 @@ export function createPublicSnapshot(data,now=new Date()){
   return {schema:'poladent-public-snapshot-v1',captured_at:now.toISOString(),
     source:'catalogPublic (sólo documentos públicos de Firestore)',
     source_revision:typeof data.catalogRevision==='string'?data.catalogRevision:null,
-    hasCatalogState:true,products,profiles,contacts,storefront:safeStorefront,welcome,
+    hasCatalogState:true,products,profiles,contacts,
+    instagramProfiles:normalizeInstagramProfiles(data.instagramProfiles),storefront:safeStorefront,welcome,
     pricingEnabled:data.pricingEnabled===true,customerPortalEnabled:false};
 }
 export async function savePublicSnapshot({
