@@ -1,3 +1,4 @@
+import {normalizeInstagramProfiles} from './instagram-links.js';
 // Lectura pública ligera de Firestore: el escaparate no necesita cargar Auth,
 // Storage ni el SDK de administración de Firebase. No utiliza claves privadas.
 const allowedStatuses = new Set(['available', 'sold_out']);
@@ -18,7 +19,7 @@ export function decodeFirestoreValue(value) {
 }
 export function parseCatalogDocuments(documents) {
   const products=[], profiles=[];
-  let contacts=[], hasCatalogState=false, storefront=null, welcome=null, catalogRevision=null, pricingEnabled=false,customerPortalEnabled=false;
+  let contacts=[],instagramProfiles=[],hasCatalogState=false, storefront=null, welcome=null, catalogRevision=null, pricingEnabled=false,customerPortalEnabled=false;
   for (const document of documents || []) {
     const id = String(document.name || '').split('/').pop();
     const data = Object.fromEntries(Object.entries(document.fields || {}).map(([name, value]) => [name, decodeFirestoreValue(value)]));
@@ -28,6 +29,7 @@ export function parseCatalogDocuments(documents) {
       welcome={enabled:data.welcome_enabled===true,
         image_url:typeof data.welcome_image_url==='string'?data.welcome_image_url:'',
         mobile_image_url:typeof data.welcome_mobile_image_url==='string'?data.welcome_mobile_image_url:''};
+      instagramProfiles=normalizeInstagramProfiles(data.instagram_profiles);
       pricingEnabled=data.pricing?.enabled===true;
       customerPortalEnabled=data.customer_portal?.enabled===true;
       contacts = (Array.isArray(data.contacts) ? data.contacts : []).filter(c =>
@@ -47,7 +49,7 @@ export function parseCatalogDocuments(documents) {
     || String(a.name).localeCompare(String(b.name),'es'));
   profiles.sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)
     || String(a.name).localeCompare(String(b.name),'es'));
-  return {products,profiles,contacts,hasCatalogState,storefront,welcome,catalogRevision,pricingEnabled,customerPortalEnabled};
+  return {products,profiles,contacts,instagramProfiles,hasCatalogState,storefront,welcome,catalogRevision,pricingEnabled,customerPortalEnabled};
 }
 export async function loadPublicCatalog(config, request=fetch) {
   if (!config?.projectId || !config?.apiKey) throw Error('Falta la configuración de Firebase.');

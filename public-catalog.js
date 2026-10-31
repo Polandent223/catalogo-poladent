@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {normalizeInstagramProfiles} from './instagram-links.js';
 import {loadPublicSnapshot,restoreLocallyVerifiedCatalog,saveLocallyVerifiedCatalog} from './catalog-public-snapshot.js';
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
@@ -16,7 +17,7 @@ const grid=$('#products'), status=$('#catalog-status'),search=$('#product-search
   shortcuts=$('#brand-shortcuts'),brandsToggle=$('#brands-show-more'),copyBrand=$('#copy-brand'),hero=$('#brand-hero'),
   back=$('#brand-back-cover');
 const labels={available:'Disponible',sold_out:'Agotado'};
-let products=[],profiles=[],contacts=[],shareIds=new Set(),searchIndex=new Map();
+let products=[],profiles=[],contacts=[],instagramProfiles=[],shareIds=new Set(),searchIndex=new Map();
 let pricingEnabled=false,bcvRate=null,emergencyFallback=false;
 let snapshotPriceWarning=false,snapshotCapturedAt='';
 let customerPortalEnabled=false,customerAPI=null;
@@ -161,6 +162,7 @@ function renderBrandHero(){
 
 function renderPremiumSections(values,active){
   const premium=active&&['premium-confianza','premium-compacta'].includes(values.theme);
+  renderInstagramProfiles(premium);
   const about=$('#premium-about'),steps=$('#premium-steps'),closing=$('#premium-closing');
   about.hidden=!(premium&&values.about_enabled);
   steps.hidden=!(premium&&values.steps_enabled);
@@ -481,6 +483,28 @@ function setupBannerSlides(slides,autoPlay,intervalSeconds=3){
   paintBannerSlide();startBannerTimer();
 }
 
+function renderInstagramProfiles(activeHero){
+ const active=normalizeInstagramProfiles(instagramProfiles).filter(p=>p.enabled);
+ const section=$('#instagram-social'),list=$('#instagram-social-list');
+ const footer=$('#footer-instagram'),heroLink=$('#storefront-instagram');
+ section.hidden=!(activeHero&&active.length);
+ footer.hidden=!active.length;
+ heroLink.hidden=!(activeHero&&active.length);
+ list.replaceChildren();footer.replaceChildren();
+ for(const profile of active){
+  const link=element('a','Instagram · '+profile.label,'instagram-profile-link');
+  link.href=profile.url;link.target='_blank';link.rel='noopener noreferrer';list.append(link);
+  const bottom=element('a',profile.label,'footer-instagram-link');
+  bottom.href=profile.url;bottom.target='_blank';bottom.rel='noopener noreferrer';footer.append(bottom);
+ }
+ if(activeHero&&active.length===1){
+  heroLink.href=active[0].url;heroLink.target='_blank';heroLink.rel='noopener noreferrer';
+ }else if(activeHero&&active.length>1){
+  heroLink.href='#instagram-social';heroLink.removeAttribute('target');heroLink.removeAttribute('rel');
+ }else{
+  heroLink.removeAttribute('href');heroLink.removeAttribute('target');heroLink.removeAttribute('rel');
+ }
+}
 function renderStorefront(){
   const current=storefrontDraft||storefrontSettings;
   const input=previewStorefront&&!storefrontDraft&&['premium-confianza','premium-compacta'].includes(requestedPreviewTheme)
@@ -1117,6 +1141,7 @@ async function load(){
       products=data.hasCatalogState||data.products.length?data.products:legacy();
       profiles=data.profiles;
       contacts=data.contacts;
+      instagramProfiles=data.instagramProfiles||[];
       storefrontSettings=data.storefront;
       pricingEnabled=data.pricingEnabled===true;
       customerPortalEnabled=data.customerPortalEnabled===true;
@@ -1127,6 +1152,7 @@ async function load(){
          snapshotPriceWarning=data.snapshotPriceWarning===true;
          snapshotCapturedAt=data.snapshotCapturedAt||'';products=data.products;
          profiles=data.profiles;contacts=data.contacts;
+         instagramProfiles=data.instagramProfiles||[];
          storefrontSettings=data.storefront;pricingEnabled=data.pricingEnabled===true;
          customerPortalEnabled=false;
        }catch{
@@ -1134,6 +1160,7 @@ async function load(){
            const data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
            emergencyFallback=true;products=data.products;
            profiles=data.profiles;contacts=data.contacts;
+           instagramProfiles=data.instagramProfiles||[];
            storefrontSettings=data.storefront||null;pricingEnabled=false;customerPortalEnabled=false;
          }catch{products=legacy();}
        }

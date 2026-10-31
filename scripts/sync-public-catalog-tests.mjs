@@ -55,6 +55,7 @@ try{
     {name:'catalogPublic/_catalog_contacts',fields:Object.fromEntries(Object.entries({
       kind:'contact_settings',status:'available',
       contacts:[{label:'Valencia',phone:'584226710634'}],
+      instagram_profiles:[{label:'POLADENT',url:'https://www.instagram.com/poladent/',enabled:true}],
       pricing:{enabled:true},welcome_enabled:true,
       welcome_image_url:'https://res.cloudinary.com/poladent/image/upload/portada.webp',
       storefront:{enabled:true,theme:'premium-compacta',banner_desktop_url:'https://res.cloudinary.com/poladent/image/upload/banner.webp',
@@ -100,6 +101,7 @@ try{
   assert.equal(out.source_revision,revision);
   assert.equal(out.storefront.banner_desktop_url,'https://res.cloudinary.com/poladent/image/upload/banner.webp');
   assert.equal(out.products[0].price_usd,15.5);
+  assert.equal(out.instagramProfiles[0].label,'POLADENT');
   assert.equal(welcome.welcome.enabled,true);
   assert.ok(out.products.every(p=>!('image_path' in p)), 'Nunca exportar rutas privadas.');
   const secondRun=await syncPublicSnapshot({

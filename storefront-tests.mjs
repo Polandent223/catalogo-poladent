@@ -6,6 +6,9 @@ const load=async name=>{
   if(name==='storefront-settings.js')
     source=source.replace("import {QUICK_AREAS} from './catalog-quick-search.js';",
       read('catalog-quick-search.js').replaceAll('export ',''));
+  if(name==='catalog-public-data.js')
+    source=source.replace("import {normalizeInstagramProfiles} from './instagram-links.js';",
+      read('instagram-links.js').replaceAll('export ',''));
   return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 };
 const {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,secureBannerURL,visibleBrandNames}=await load('storefront-settings.js');

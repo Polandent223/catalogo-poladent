@@ -75,6 +75,14 @@ export async function saveWhatsAppContacts(contacts) {
   return client.saveWhatsAppContacts(contacts);
 }
 
+export async function getInstagramProfiles(){
+ if(!usingFirebase)throw Error('Instagram requiere Firebase.');
+ return client.getInstagramProfiles();
+}
+export async function saveInstagramProfiles(items){
+ if(!usingFirebase)throw Error('Instagram requiere Firebase.');
+ return client.saveInstagramProfiles(items);
+}
 export async function getWelcomeSettings() {
   if (usingFirebase) return client.getWelcomeSettings();
   return {enabled:false,image_url:'',image_path:null};

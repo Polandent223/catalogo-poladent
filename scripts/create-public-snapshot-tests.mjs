@@ -17,7 +17,10 @@ const fakeData={
   {id:'b',name:'DENCO',logo_url:'https://res.cloudinary.com/poladent/image/upload/denco.png'},
   {id:'c',name:'IMODONTO',logo_url:'https://res.cloudinary.com/poladent/image/upload/imodonto.png'}
  ],
- contacts:[{label:'Valencia',phone:'584226710634'}],hasCatalogState:true,
+ contacts:[{label:'Valencia',phone:'584226710634'}],
+ instagramProfiles:[{label:'Instagram Valencia',url:'https://www.instagram.com/poladent_valencia/',enabled:true},
+  {label:'Instagram Maracay',url:'https://www.instagram.com/poladent_maracay/',enabled:false}],
+ hasCatalogState:true,
  welcome:{enabled:true,image_url:'https://res.cloudinary.com/poladent/image/upload/welcome-pc.webp',
  mobile_image_url:'https://res.cloudinary.com/poladent/image/upload/welcome-mobile.webp'},
  storefront:{
@@ -37,6 +40,8 @@ assert.equal(copy.schema,'poladent-public-snapshot-v1');
 assert.equal(copy.products.length,255);
 assert.equal(copy.profiles.length,3);
 assert.equal(copy.contacts.length,1);
+assert.equal(copy.instagramProfiles.length,2);
+assert.equal(copy.instagramProfiles[1].enabled,false);
 assert.equal(copy.storefront.locations[0].name,'Valencia');
 assert.equal(copy.storefront.banner_mobile_url,fakeData.storefront.banner_mobile_url);
 assert.equal(copy.welcome.image_url,fakeData.welcome.image_url);
@@ -54,6 +59,7 @@ assert.equal(fresh.pricingEnabled,true);
 assert.equal(fresh.snapshotPriceWarning,false);
 assert.equal(fresh.products[0].status,'sold_out');
 assert.equal(fresh.profiles[0].logo_url,fakeData.profiles[0].logo_url);
+assert.equal(fresh.instagramProfiles[0].label,'Instagram Valencia');
 assert.equal(fresh.storefront.banner_desktop_url,fakeData.storefront.banner_desktop_url);
 const delayed=validatePublicSnapshot(copy,Date.parse('2026-10-28T03:00:00Z'));
 assert.equal(delayed.emergencyFallback,false,'Retraso de siete horas no debe borrar precios publicados.');

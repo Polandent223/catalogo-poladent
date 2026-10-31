@@ -1,0 +1,21 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Instagram | POLADENT Administración</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="catalog-style.css"><link rel="stylesheet" href="admin-navigation.css"></head>
+<body><header><a class="brand" href="./">POLADENT<span>CASA DENTAL</span></a><a href="admin.html">← Administrador</a></header>
+<main class="admin-wrap contact-admin instagram-admin"><h1>Instagram de POLADENT</h1>
+<p>Agrega hasta 8 cuentas de Instagram. Puedes cambiar el orden y ocultar una cuenta sin eliminarla. Solo las cuentas activas aparecerán junto a WhatsApp en el catálogo.</p>
+<p id="instagram-message" role="status" aria-live="polite"></p>
+<form id="instagram-login" class="admin-form contact-login"><h2>Acceso privado</h2>
+<label>Correo<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+<button class="primary" type="submit">Entrar</button></form>
+<section id="instagram-workspace" hidden>
+<div class="admin-actions"><a class="brand-admin-link" href="admin.html">Productos</a><a class="brand-admin-link" href="contacto.html">WhatsApp</a><a class="brand-admin-link" href="./">Ver catálogo</a><button type="button" id="instagram-logout">Cerrar sesión</button></div>
+<form id="instagram-form" class="admin-form"><h2>Cuentas para seguir</h2>
+<p class="contact-help">Escribe un nombre como «POLADENT Valencia» y pega el enlace a su perfil. No se permiten enlaces a publicaciones ni sitios externos.</p>
+<div id="instagram-rows" class="instagram-admin-rows"></div>
+<button type="button" id="instagram-add">+ Agregar otra cuenta</button>
+<p class="contact-help">Puedes ordenar tus perfiles con las flechas. Si desmarcas «Mostrar al público», la cuenta permanecerá guardada.</p>
+<button id="instagram-save" class="primary" type="submit">Guardar cuentas de Instagram</button></form>
+<p class="contact-help">Los cambios se publican cuando GitHub sincroniza la información pública. No modifica WhatsApp, precios ni productos.</p>
+</section></main><script src="config.js"></script><script type="module" src="instagram-admin.js"></script>
+<script type="module" src="admin-navigation.js"></script></body></html>
