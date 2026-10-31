@@ -1,10 +1,10 @@
 // La copia pública validada evita una lectura de 255+ documentos Firestore por visitante.
-// Resguarda precios de la última publicación durante retrasos de GitHub Actions.
-// Pasadas cuatro horas se identifican como referenciales; a las doce se ocultan.
+// Conservar precios USD ya publicados como REFERENCIA cuando GitHub se retrasa.
+// Si la copia envejece, NO confirmar existencias y remitir a WhatsApp.
 export const STATIC_SNAPSHOT_NAME='catalog-public-snapshot.json';
 const SCHEMA='poladent-public-snapshot-v1';
 export const PRICE_WARNING_AGE_MS=4*60*60*1000;
-export const PRICE_MAX_AGE_MS=12*60*60*1000;
+export const STOCK_MAX_AGE_MS=12*60*60*1000;
 export function validatePublicSnapshot(value,now=Date.now()){
  if(!value||value.schema!==SCHEMA||!Array.isArray(value.products)||
    value.products.length<200||value.products.length>10000||
@@ -13,7 +13,7 @@ export function validatePublicSnapshot(value,now=Date.now()){
    !Array.isArray(value.contacts))
    throw Error('No se encontró una copia completa de la presentación.');
  const captured=Date.parse(value.captured_at);
- if(!Number.isFinite(captured)||captured>now+10*60*1000)
+ if(!Number.isFinite(captured))
    throw Error('La fecha del respaldo no es válida.');
  const ids=new Set();
  for(const p of value.products){
@@ -31,21 +31,31 @@ export function validatePublicSnapshot(value,now=Date.now()){
  if(!banners.some(url=>typeof url==='string'&&url.startsWith('https://')))
    throw Error('La copia no contiene banners de la presentación original.');
  const age=now-captured;
- const fresh=age>=0&&age<=PRICE_MAX_AGE_MS;
- const priceWarning=fresh&&age>=PRICE_WARNING_AGE_MS;
+ const deviceClockBehind=age < -10*60*1000;
+ const stockUnverified=age>STOCK_MAX_AGE_MS||deviceClockBehind;
+ const priceWarning=age>=PRICE_WARNING_AGE_MS||deviceClockBehind;
  return {
-   products:value.products.map(p=>fresh?{...p}:{...p,emergency_fallback:true,status:'available',price_usd:null}),
+   products:value.products.map(p=>{
+     const product={...p};
+     // Una configuración desactivada nunca debe filtrar precios por error.
+     if(value.pricingEnabled!==true)delete product.price_usd;
+     if(stockUnverified){product.emergency_fallback=true;product.status='available';}
+     return product;
+   }),
    profiles:value.profiles,contacts:value.contacts,storefront:value.storefront,
    hasCatalogState:true,
-   pricingEnabled:fresh&&value.pricingEnabled===true,
+   pricingEnabled:value.pricingEnabled===true,
    customerPortalEnabled:false,
-   emergencyFallback:!fresh,publicSnapshot:true,
+   emergencyFallback:stockUnverified,publicSnapshot:true,
    snapshotPriceWarning:priceWarning&&value.pricingEnabled===true,
    snapshotCapturedAt:value.captured_at
  };
 }
 export async function loadPublicSnapshot(request=fetch,baseUrl=new URL('./',import.meta.url)){
  const url=new URL(STATIC_SNAPSHOT_NAME,baseUrl);
+ // Una URL nueva cada cinco minutos evita versiones antiguas del CDN y navegador.
+ // Sólo descarga un archivo estático: no incrementa lecturas de Firestore.
+ url.searchParams.set('v',String(Math.floor(Date.now()/(5*60*1000))));
  const response=await request(url.href,{headers:{Accept:'application/json'},
    signal:AbortSignal.timeout(9000),cache:'no-store'});
  if(!response.ok)throw Error('Copia pública no disponible: HTTP '+response.status);

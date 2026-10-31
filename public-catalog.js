@@ -694,7 +694,7 @@ function renderProducts(){
     &&(!activeQuickArea||quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)));
   grid.replaceChildren();
   appendCards(filtered.slice(0,limit),0);
-  status.textContent=filtered.length?filtered.length+' productos'+(emergencyFallback?' · consulta temporal':status.dataset.snapshot?' · '+status.dataset.snapshot:''):'No encontramos productos con estos filtros.';
+  status.textContent=filtered.length?filtered.length+' productos'+(emergencyFallback?(pricingEnabled?' · precios referenciales · disponibilidad por confirmar':' · consulta temporal'):status.dataset.snapshot?' · '+status.dataset.snapshot:''):'No encontramos productos con estos filtros.';
   updatePagination();
   refreshCartButtons();
 }

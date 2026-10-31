@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createPublicSnapshot} from './create-public-snapshot.mjs';
-import {validatePublicSnapshot,loadPublicSnapshot,PRICE_WARNING_AGE_MS,PRICE_MAX_AGE_MS} from '../catalog-public-snapshot.js';
+import {validatePublicSnapshot,loadPublicSnapshot,PRICE_WARNING_AGE_MS,STOCK_MAX_AGE_MS} from '../catalog-public-snapshot.js';
 assert.equal(PRICE_WARNING_AGE_MS,4*60*60*1000);
-assert.equal(PRICE_MAX_AGE_MS,12*60*60*1000);
+assert.equal(STOCK_MAX_AGE_MS,12*60*60*1000);
 
 const fakeData={
  products:Array.from({length:255},(_,i)=>({
@@ -62,10 +62,23 @@ assert.equal(delayed.snapshotPriceWarning,true);
 assert.equal(delayed.products[1].price_usd,2.5);
 const stale=validatePublicSnapshot(copy,Date.parse('2026-10-28T09:00:00Z'));
 assert.equal(stale.emergencyFallback,true);
-assert.equal(stale.pricingEnabled,false);
+assert.equal(stale.pricingEnabled,true,'Precios USD visibles pero referenciales tras 13 horas.');
+assert.equal(stale.snapshotPriceWarning,true);
 assert.equal(stale.customerPortalEnabled,false);
 assert.ok(stale.products.every(p=>p.emergency_fallback===true));
-assert.ok(stale.products.every(p=>p.price_usd===null));
+assert.equal(stale.products[1].price_usd,2.5,'No eliminar USD por retrasos de GitHub.');
+assert.ok(stale.products.every(p=>p.status==='available'),'No prometer inventario con copia antigua.');
+const veryOld=validatePublicSnapshot(copy,Date.parse('2026-11-05T09:00:00Z'));
+assert.equal(veryOld.pricingEnabled,true,'No desaparecer precios referenciales por retrasos largos.');
+assert.equal(veryOld.products[1].price_usd,2.5);
+assert.equal(veryOld.snapshotPriceWarning,true);
+const wrongClock=validatePublicSnapshot(copy,Date.parse('2026-10-20T09:00:00Z'));
+assert.equal(wrongClock.pricingEnabled,true,'El reloj del visitante no bloquea precios.');
+assert.equal(wrongClock.snapshotPriceWarning,true);
+assert.equal(wrongClock.emergencyFallback,true);
+const disabled=validatePublicSnapshot({...copy,pricingEnabled:false},Date.parse('2026-10-28T09:00:00Z'));
+assert.equal(disabled.pricingEnabled,false);
+assert.ok(disabled.products.every(p=>p.price_usd===undefined),'Respetar precios desactivados.');
 assert.equal(stale.storefront.banner_mobile_url,fakeData.storefront.banner_mobile_url,
  'Conservar presentación original incluso cuando precios ya no están vigentes.');
 assert.throws(()=>createPublicSnapshot({...fakeData,products:[]},now));
@@ -76,7 +89,8 @@ const noPricing=createPublicSnapshot({...fakeData,pricingEnabled:false},now);
 assert.ok(noPricing.products.every(p=>p.price_usd===undefined),
  'Si el administrador no publica precios, el archivo no los expone.');
 const result=await loadPublicSnapshot(async(url,opts)=>{
- assert.ok(url.endsWith('/catalog-public-snapshot.json'));
+ assert.ok(new URL(url).pathname.endsWith('/catalog-public-snapshot.json'));
+ assert.ok(new URL(url).searchParams.has('v'),'Evitar caché vieja de JSON público.');
  assert.equal(opts.cache,'no-store');
  return {ok:true,json:async()=>copy};
 },'https://polandent223.github.io/catalogo-poladent/');

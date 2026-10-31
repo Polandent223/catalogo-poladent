@@ -82,7 +82,9 @@ async function displaySummary(){
      :'Tasa BCV no validada. No se presenta conversión estimada en bolívares.';
    $('#summary-content').hidden=false;
    status.textContent=data.emergencyFallback
-     ?'Resumen temporal: productos encontrados en respaldo. Precios, existencias y tasa a confirmar directamente con POLADENT; este enlace no confirma venta ni disponibilidad.'
+     ?(data.pricingEnabled
+       ?'Resumen con precios USD referenciales de la última publicación. Confirma precio, tasa y disponibilidad con POLADENT antes de pagar. No es factura fiscal.'
+       :'Resumen temporal: productos encontrados en respaldo. Precios, existencias y tasa a confirmar directamente con POLADENT; este enlace no confirma venta ni disponibilidad.')
      :data.snapshotPriceWarning
        ?'Resumen con precios USD referenciales de la última publicación ('+
          new Date(data.snapshotCapturedAt).toLocaleString('es-VE',{timeZone:'America/Caracas',dateStyle:'short',timeStyle:'short'})+
