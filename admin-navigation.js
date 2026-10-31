@@ -7,6 +7,7 @@ const PATHS=[
   ['portada.html','Portada','image'],
   ['diseno.html','Diseño','palette'],
   ['contacto.html','WhatsApp','message'],
+  ['instagram.html','Instagram','camera'],
   ['estadisticas.html','Estadísticas','chart'],
   ['respaldo.html','Respaldos','shield']
 ];
@@ -250,7 +251,7 @@ function stickyShortForm(workspace,id){
   bar.append(submit);
 }
 function init(){
-  const workspace=$('#workspace,#brand-workspace,#contact-workspace,#welcome-admin-workspace,#design-workspace,#analytics-workspace,#backup-workspace,#pricing-workspace');
+  const workspace=$('#workspace,#brand-workspace,#contact-workspace,#instagram-workspace,#welcome-admin-workspace,#design-workspace,#analytics-workspace,#backup-workspace,#pricing-workspace');
   if(!workspace||workspace.dataset.uxMounted)return;
   workspace.dataset.uxMounted='1';
   globalNavigation(workspace);
@@ -260,6 +261,7 @@ function init(){
   else if(page==='estadisticas.html')analyticsPanel(workspace);
   else if(page==='portada.html')welcomePanel(workspace);
   else if(page==='contacto.html')stickyShortForm(workspace,'#contact-form');
+  else if(page==='instagram.html')stickyShortForm(workspace,'#instagram-form');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
