@@ -62,6 +62,8 @@ jobs:
         run: node seo-quality-tests.mjs
       - name: Verificar migración segura de dominio y CORS Cloudinary
         run: node scripts/custom-domain-tests.mjs
+      - name: Diagnosticar registros DNS desde GitHub sin activar dominio
+        run: node scripts/check-domain-dns.mjs
       - name: Validar enlaces y reglas mínimas
         run: |
           grep -q 'catalogPublic' firestore.rules
