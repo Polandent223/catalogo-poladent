@@ -4,7 +4,7 @@ import {readFile, mkdir, writeFile, readdir, rm} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const site='https://polandent223.github.io/catalogo-poladent/';
+const site='https://catalogopoladent.com/';
 const publicUrl=new URL('share/',site).href;
 const output=join(process.cwd(),'share');
 const project='catalogo-poladent';
