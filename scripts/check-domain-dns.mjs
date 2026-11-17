@@ -13,6 +13,7 @@ console.log('DNS catalogopoladent.com A:',ipv4.join(', ')||String(results[0].rea
 console.log('DNS www.catalogopoladent.com CNAME:',cname.join(', ')||String(results[1].reason));
 console.log('Resultado: A='+ (aReady?'OK':'PENDIENTE') +', CNAME='+(cnameReady?'OK':'PENDIENTE'));
 console.log('Confirmación DNS más reciente desde GitHub Actions; no cambia el catálogo público.');
+console.log('Segunda verificación después de la corrección del registro www en Hostinger.');
 if(!aReady||!cnameReady){
  console.log('::warning title=DNS en propagación::No activar el dominio hasta que GitHub detecte todos los A y CNAME.');
 }
