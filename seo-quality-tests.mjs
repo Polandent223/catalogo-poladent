@@ -38,7 +38,7 @@ assert.ok(rules.includes('allow update, delete: if false;'));
 
 const html=readFileSync('index.html','utf8');
 const need=[
-  '<link rel="canonical" href="https://polandent223.github.io/catalogo-poladent/">',
+  '<link rel="canonical" href="https://catalogopoladent.com/">',
   '<meta property="og:site_name" content="POLADENT Casa Dental">',
   '<meta property="og:type" content="website">',
   '<meta name="description"',
@@ -48,15 +48,15 @@ const need=[
 for(const x of need)assert.ok(html.includes(x),'Falta metadato: '+x);
 assert.ok(!html.includes('noindex'), 'No bloquear página comercial principal');
 const sitemap=readFileSync('sitemap.xml','utf8');
-assert.ok(sitemap.includes('https://polandent223.github.io/catalogo-poladent/'));
-assert.ok(sitemap.includes('https://polandent223.github.io/catalogo-poladent/adalta.html'));
+assert.ok(sitemap.includes('https://catalogopoladent.com/'));
+assert.ok(sitemap.includes('https://catalogopoladent.com/adalta.html'));
 assert.ok(!sitemap.includes('admin.html'));
 assert.ok(!sitemap.includes('respaldo.html'));
 assert.ok(!sitemap.includes('/share/'), 'Las fichas de vista previa tienen noindex y redirección');
 const robots=readFileSync('robots.txt','utf8');
-assert.ok(robots.includes('Disallow: /catalogo-poladent/estadisticas.html'));
-assert.ok(robots.includes('Disallow: /catalogo-poladent/respaldo.html'));
-assert.ok(robots.includes('Sitemap: https://polandent223.github.io/catalogo-poladent/sitemap.xml'));
+assert.ok(robots.includes('Disallow: /estadisticas.html'));
+assert.ok(robots.includes('Disallow: /respaldo.html'));
+assert.ok(robots.includes('Sitemap: https://catalogopoladent.com/sitemap.xml'));
 const notice=readFileSync('aviso-estadisticas.html','utf8');
 assert.ok(notice.includes('Global Privacy Control'));
 assert.ok(notice.includes('No se ha establecido un plazo de eliminación automático.'));
