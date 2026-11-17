@@ -46,6 +46,8 @@ jobs:
         run: node storefront-tests.mjs
       - name: Verificar enlaces y cuentas oficiales de Instagram
         run: node instagram-links-tests.mjs
+      - name: Probar Cloudinary con dominio nuevo y original
+        run: node cloudinary-worker-origin-tests.mjs
       - name: Verificar consultas por WhatsApp
         run: node whatsapp-tests.mjs
       - name: Probar carrito sin precios y cotización conjunta

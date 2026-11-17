@@ -6,20 +6,19 @@
  * Ninguna clave privada se entrega al navegador.
  */
 const FIREBASE_PROJECT = 'catalogo-poladent';
-const ALLOWED_ORIGIN = 'https://polandent223.github.io';
+const ALLOWED_ORIGINS = new Set(['https://polandent223.github.io',
+  'https://catalogopoladent.com','https://www.catalogopoladent.com']);
 const MEDIA_FOLDER = 'poladent-catalogo';
 const GOOGLE_JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 
-function respond(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-      'Vary': 'Origin'
-    }
-  });
+function respond(data, status = 200, origin = '') {
+  const headers={
+    'Content-Type':'application/json; charset=utf-8',
+    'Cache-Control':'no-store',
+    'Vary':'Origin'
+  };
+  if(ALLOWED_ORIGINS.has(origin))headers['Access-Control-Allow-Origin']=origin;
+  return new Response(JSON.stringify(data),{status,headers});
 }
 function bytes64url(value) {
   const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
@@ -71,13 +70,14 @@ async function sign(fields, secret) {
 }
 export default {
   async fetch(request, env) {
-    const origin = request.headers.get('Origin');
-    if (origin !== ALLOWED_ORIGIN) return respond({ error: 'Origen no autorizado' }, 403);
+    const origin = request.headers.get('Origin')||'';
+    const reply=(data,status=200)=>respond(data,status,origin);
+    if (!ALLOWED_ORIGINS.has(origin)) return reply({ error: 'Origen no autorizado' }, 403);
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 204,
         headers: {
-          'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+          'Access-Control-Allow-Origin': origin,
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Authorization, Content-Type',
           'Access-Control-Max-Age': '600',
@@ -85,16 +85,16 @@ export default {
         }
       });
     }
-    if (request.method !== 'POST') return respond({ error: 'Método no permitido' }, 405);
+    if (request.method !== 'POST') return reply({ error: 'Método no permitido' }, 405);
     const route = new URL(request.url).pathname;
-    if (!['/sign', '/delete'].includes(route)) return respond({ error: 'Ruta inexistente' }, 404);
+    if (!['/sign', '/delete'].includes(route)) return reply({ error: 'Ruta inexistente' }, 404);
     if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
-      return respond({ error: 'Falta configurar Cloudinary en Cloudflare' }, 503);
+      return reply({ error: 'Falta configurar Cloudinary en Cloudflare' }, 503);
     }
     const bearer = request.headers.get('Authorization') || '';
-    if (!bearer.startsWith('Bearer ')) return respond({ error: 'Inicia sesión' }, 401);
+    if (!bearer.startsWith('Bearer ')) return reply({ error: 'Inicia sesión' }, 401);
     try { await verifyToken(bearer.slice(7)); }
-    catch { return respond({ error: 'Cuenta no autorizada o sesión vencida' }, 403); }
+    catch { return reply({ error: 'Cuenta no autorizada o sesión vencida' }, 403); }
 
     const timestamp = String(Math.floor(Date.now() / 1000));
     if (route === '/sign') {
@@ -104,7 +104,7 @@ export default {
         timestamp
       };
       const signature = await sign(params, env.CLOUDINARY_API_SECRET);
-      return respond({
+      return reply({
         cloud_name: env.CLOUDINARY_CLOUD_NAME,
         api_key: env.CLOUDINARY_API_KEY,
         ...params,
@@ -112,11 +112,11 @@ export default {
       });
     }
     let body;
-    try { body = await request.json(); } catch { return respond({ error: 'Solicitud inválida' }, 400); }
+    try { body = await request.json(); } catch { return reply({ error: 'Solicitud inválida' }, 400); }
     const publicId = body?.public_id;
     if (typeof publicId !== 'string' ||
         !/^poladent-catalogo\/[a-f0-9-]{36}$/.test(publicId)) {
-      return respond({ error: 'Archivo fuera del catálogo' }, 400);
+      return reply({ error: 'Archivo fuera del catálogo' }, 400);
     }
     const params = { public_id: publicId, timestamp };
     const signature = await sign(params, env.CLOUDINARY_API_SECRET);
@@ -127,8 +127,8 @@ export default {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !['ok', 'not found'].includes(result.result)) {
-      return respond({ error: 'No se pudo eliminar la imagen del alojamiento' }, 502);
+      return reply({ error: 'No se pudo eliminar la imagen del alojamiento' }, 502);
     }
-    return respond({ removed: true });
+    return reply({ removed: true });
   }
 };
