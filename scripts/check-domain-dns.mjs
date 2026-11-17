@@ -12,6 +12,7 @@ const cnameReady=cname.some(host=>host.replace(/\.$/,'').toLowerCase()==='poland
 console.log('DNS catalogopoladent.com A:',ipv4.join(', ')||String(results[0].reason));
 console.log('DNS www.catalogopoladent.com CNAME:',cname.join(', ')||String(results[1].reason));
 console.log('Resultado: A='+ (aReady?'OK':'PENDIENTE') +', CNAME='+(cnameReady?'OK':'PENDIENTE'));
+console.log('Confirmación DNS más reciente desde GitHub Actions; no cambia el catálogo público.');
 if(!aReady||!cnameReady){
  console.log('::warning title=DNS en propagación::No activar el dominio hasta que GitHub detecte todos los A y CNAME.');
 }
