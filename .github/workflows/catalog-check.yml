@@ -60,6 +60,8 @@ jobs:
         run: node backup-tests.mjs
       - name: Comprobar SEO y calidad del contador
         run: node seo-quality-tests.mjs
+      - name: Verificar migración segura de dominio y CORS Cloudinary
+        run: node scripts/custom-domain-tests.mjs
       - name: Validar enlaces y reglas mínimas
         run: |
           grep -q 'catalogPublic' firestore.rules
