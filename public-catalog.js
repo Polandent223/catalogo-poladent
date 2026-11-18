@@ -673,6 +673,9 @@ async function refreshLivePricing(){
   products=next.products;pricingEnabled=next.pricingEnabled;
   snapshotPriceWarning=next.snapshotPriceWarning===true;
   if(!pricingEnabled)bcvRate=null;
+  $('#catalog-cart-intro').textContent=pricingEnabled
+    ?'¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.'
+    :'El catálogo funciona en modo consulta. Precios y existencia sujetos a confirmación por WhatsApp.';
   updateBcvBanner();
   renderProducts();renderCart();
   if(selected){
