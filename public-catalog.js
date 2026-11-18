@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {readLivePricing,applyLivePricing,LIVE_PRICING_POLL_MS} from './catalog-live-pricing.js';
 import {normalizeInstagramProfiles} from './instagram-links.js';
 import {loadPublicSnapshot,restoreLocallyVerifiedCatalog,saveLocallyVerifiedCatalog} from './catalog-public-snapshot.js';
 import {loadEmergencyCatalog} from './catalog-emergency.js';
@@ -20,6 +21,7 @@ const labels={available:'Disponible',sold_out:'Agotado'};
 let products=[],profiles=[],contacts=[],instagramProfiles=[],shareIds=new Set(),searchIndex=new Map();
 let pricingEnabled=false,bcvRate=null,emergencyFallback=false;
 let snapshotPriceWarning=false,snapshotCapturedAt='';
+let lastLivePricingCheck=0,livePricingInFlight=false;
 let customerPortalEnabled=false,customerAPI=null;
 let alreadyQuotedIds=new Set();
 let brandsExpanded=false;
@@ -655,6 +657,35 @@ function updateBcvBanner(){
      ' · Datos a través de proveedor independiente, verificar en BCV.'
    :'Tasa BCV temporalmente no disponible: mostramos USD, sin calcular bolívares.');
 }
+// Estado USD desde un único documento público, sin descargar fichas ni imágenes.
+async function refreshLivePricing(){
+ if(!catalogLoaded||livePricingInFlight)return;
+ const cfg=window.CATALOGO_FIREBASE||{};
+ if(!cfg.apiKey||!cfg.projectId)return;
+ livePricingInFlight=true;lastLivePricingCheck=Date.now();
+ try{
+  const live=await readLivePricing(cfg);
+  const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning},live);
+  const changed=next.pricingEnabled!==pricingEnabled||
+    products.some((p,i)=>p.price_usd!==next.products[i]?.price_usd);
+  if(!changed)return;
+  const wasEnabled=pricingEnabled;
+  products=next.products;pricingEnabled=next.pricingEnabled;
+  snapshotPriceWarning=next.snapshotPriceWarning===true;
+  if(!pricingEnabled)bcvRate=null;
+  $('#catalog-cart-intro').textContent=pricingEnabled
+    ?'¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.'
+    :'El catálogo funciona en modo consulta. Precios y existencia sujetos a confirmación por WhatsApp.';
+  updateBcvBanner();
+  renderProducts();renderCart();
+  if(selected){
+   selected=products.find(p=>String(p.id)===String(selected.id))||selected;
+   drawDetailPrice(selected);
+  }
+  if(pricingEnabled&&!wasEnabled)void refreshBcvRate();
+ }catch(error){console.warn('Se conserva la última publicación de precios:',error.message);}
+ finally{livePricingInFlight=false;}
+}
 async function refreshBcvRate(){
  if(!pricingEnabled)return;
  try{bcvRate=await fetchBcvRate();}
@@ -1129,6 +1160,14 @@ async function load(){
           data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
         }
       }
+      // La última decisión del administrador prevalece sobre el JSON de GitHub.
+      try{
+        const live=await readLivePricing(cfg);
+        data=applyLivePricing(data,live);
+        lastLivePricingCheck=Date.now();
+      }catch(error){
+        console.warn('Estado público de precios en vivo no disponible:',error.message);
+      }
       if(data.publicSnapshot&&data.snapshotCapturedAt&&!data.emergencyFallback){
         const timestamp=new Date(data.snapshotCapturedAt);
         if(Number.isFinite(timestamp.getTime()))
@@ -1178,8 +1217,8 @@ async function load(){
       $('#catalog-cart-intro').textContent='¿Necesitas varios productos? Consulta los montos por ficha y confirma el total por WhatsApp.';
       updateBcvBanner();
       refreshBcvRate();
-      setInterval(refreshBcvRate,30*60*1000);
     }
+    setInterval(refreshBcvRate,30*60*1000);
     cartLines=restoreCart();
     catalogLoaded=true;
     renderCart();
@@ -1197,6 +1236,19 @@ async function load(){
     renderBrandHero();
     renderProducts();
     renderStorefront();
+    // Revisión moderada para evitar cuota de Firebase agotada.
+    // Los nuevos visitantes ven el estado actual al entrar; las pestañas
+    // abiertas se actualizan cada dos minutos o al recuperar el foco.
+    if(cfg.apiKey&&cfg.projectId){
+      setInterval(()=>{if(document.visibilityState==='visible')void refreshLivePricing();},LIVE_PRICING_POLL_MS);
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible'&&Date.now()-lastLivePricingCheck>15000)
+          void refreshLivePricing();
+      });
+      window.addEventListener('focus',()=>{
+        if(Date.now()-lastLivePricingCheck>15000)void refreshLivePricing();
+      });
+    }
     void startOptionalCustomerPortal();
     if(previewStorefront && window.parent!==window)
       window.parent.postMessage({type:'poladent:storefront-ready'},location.origin);

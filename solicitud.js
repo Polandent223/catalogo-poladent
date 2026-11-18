@@ -1,4 +1,5 @@
 import {loadPublicCatalog} from './catalog-public-data.js';
+import {readLivePricing,applyLivePricing} from './catalog-live-pricing.js';
 import {loadPublicSnapshot,restoreLocallyVerifiedCatalog} from './catalog-public-snapshot.js';
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {parseSummaryFragment,cartFinancials,cartTotals} from './quote-cart.js';
@@ -37,6 +38,9 @@ async function displaySummary(){
        data=restoreLocallyVerifiedCatalog()||await loadEmergencyCatalog();
      }
    }
+   // El resumen compartido utiliza el mismo estado público en vivo.
+   try{data=applyLivePricing(data,await readLivePricing(cfg));}
+   catch(error){console.warn('Se mantiene la última copia verificada:',error.message);}
    const available=new Map(data.products.map(p=>[String(p.id),p]));
    const current=requested.filter(x=>available.has(x.id));
    const missing=requested.length-current.length;
