@@ -261,7 +261,7 @@ $('#pricing-switch').addEventListener('click',async()=>{
  setBusy(true);
  try{
    pricing=await savePricingEnabled(enable);
-   note(enable?'Precios ACTIVADOS para clientes.':'Precios desactivados; los valores USD privados se conservan.');
+   note(enable?'Precios ACTIVADOS. Los nuevos visitantes verán el cambio directamente; las pestañas abiertas se actualizan periódicamente.':'Precios DESACTIVADOS. Los valores USD privados se conservan; los nuevos visitantes no verán montos.');
  }catch(error){
    note('No se completó el cambio: '+error.message+
       '. Comprueba el estado real antes de reintentar.',true);
