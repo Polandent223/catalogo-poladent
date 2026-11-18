@@ -8,6 +8,7 @@ import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/12.
 import {normalizeStorefront} from './storefront-settings.js';
 import {normalizeInstagramProfiles} from './instagram-links.js';
 import {cleanUSD} from './catalog-pricing.js';
+import {buildPublicPriceIndex} from './catalog-live-pricing.js';
 import {adjustedPriceUSD} from './price-bulk.js';
 import {brandKey,planBrandRename} from './brand-management.js';
 
@@ -326,6 +327,12 @@ export async function saveProduct(id, body) {
   if(!pricing.enabled)delete publicProduct.price_usd;
   if (product.status === 'hidden') batch.delete(doc(db, 'catalogPublic', key));
   else batch.set(doc(db, 'catalogPublic', key), publicProduct);
+  if(pricing.enabled){
+    // Índice ligero para clientes: misma operación atómica que la ficha.
+    batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
+      [key]:product.status==='hidden'||product.price_usd===null?deleteField():product.price_usd
+    }},{merge:true});
+  }
   await batch.commit();
   return key;
 }
@@ -350,6 +357,9 @@ export async function deleteProduct(product) {
   }
   batch.delete(doc(db, 'catalogProducts', product.id));
   batch.delete(doc(db, 'catalogPublic', product.id));
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
+    [String(product.id)]:deleteField()
+  }},{merge:true});
   await batch.commit();
   if (!cleanupRef) {
     // Para imágenes externas no somos propietarios del archivo.
@@ -542,9 +552,12 @@ export async function saveProductPrice(productId,value){
   if(pricing.enabled&&product.status!=='hidden'){
     const publicRef=doc(db,'catalogPublic',String(productId));
     const exists=await getDoc(publicRef);
-    if(exists.exists())batch.update(publicRef,{
-      price_usd:price===null?deleteField():price
-    });
+    if(exists.exists()){
+      batch.update(publicRef,{price_usd:price===null?deleteField():price});
+      batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
+        [String(productId)]:price===null?deleteField():price
+      }},{merge:true});
+    }
   }
   if(pricing.enabled&&product.status!=='hidden')markCatalogActive(batch);
   await batch.commit();
@@ -570,13 +583,18 @@ export async function savePricingEnabled(enabled){
   // Por encima del límite seguro de Firestore no realizamos escrituras parciales.
   if(published.length>450)
     throw Error('Hay más de 450 productos públicos. Por seguridad no se activaron ni desactivaron precios: hace falta una sincronización por lotes supervisada.');
+  const prices=active?buildPublicPriceIndex(byId,new Set(published.map(p=>p.id))):{};
   const data={kind:'contact_settings',status:'available',
-    pricing:{enabled:active,updated_at:new Date().toISOString()}};
+    pricing:{enabled:active,updated_at:new Date().toISOString(),public_index_version:1}};
   const batch=writeBatch(db);
   for(const current of published)
     batch.update(current.ref,patchPricing(current));
   batch.set(doc(db,'catalogProducts',CONTACTS_DOC),data,{merge:true});
-  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true});
+  // Reemplazar el índice entero al activar y borrarlo al desactivar.
+  // mergeFields conserva contactos, banners, Instagram y demás ajustes.
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{
+    ...data,pricing_public_prices:active?prices:deleteField()
+  },{mergeFields:['kind','status','pricing','pricing_public_prices']});
   markCatalogActive(batch);
   await batch.commit();
   return {enabled:active,updated_at:data.pricing.updated_at,products:published.length};
@@ -628,11 +646,17 @@ export async function applyBulkPriceChanges(rows,meta={}){
          if(!snapshots[i].exists()||cleanUSD(current.price_usd)!==row.before||current.status!==row.status)
            throw Error('El precio o estado de '+row.name+' cambió durante la operación. No se guardó este bloque.');
        }
+       const livePrices={};
        for(const row of chunk){
          transaction.update(doc(db,'catalogProducts',row.id),{price_usd:row.after,price_updated_at:now,price_batch:operationId});
-         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id)){
            transaction.update(doc(db,'catalogPublic',row.id),{price_usd:row.after});
+           livePrices[row.id]=row.after;
+         }
        }
+       if(Object.keys(livePrices).length)
+         transaction.set(doc(db,'catalogPublic',CONTACTS_DOC),
+           {pricing_public_prices:livePrices},{merge:true});
        transaction.set(audit,{kind:'price_adjustment',operation_id:operationId,method,
          direction:method==='percent'?meta.direction:'',
          percent:method==='percent'?Number(meta.percent):null,
@@ -698,13 +722,19 @@ export async function undoBulkPriceOperation(operationId){
             current.status!==row.status)
            throw Error('El producto '+row.name+' cambió. No se deshizo el bloque.');
        }
+       const revertedPrices={};
        for(const row of rows){
          transaction.update(doc(db,'catalogProducts',row.id),{
            price_usd:row.before===null?deleteField():row.before,price_updated_at:now,price_batch:null});
-         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id))
+         if(pricing.enabled&&row.status!=='hidden'&&published.has(row.id)){
            transaction.update(doc(db,'catalogPublic',row.id),{
              price_usd:row.before===null?deleteField():row.before});
+           revertedPrices[row.id]=row.before===null?deleteField():row.before;
+         }
        }
+       if(Object.keys(revertedPrices).length)
+         transaction.set(doc(db,'catalogPublic',CONTACTS_DOC),
+           {pricing_public_prices:revertedPrices},{merge:true});
        transaction.update(audit.ref,{undone_at:now,undone_by:auth.currentUser.uid});
        if(pricing.enabled)markCatalogActive(transaction);
      });
