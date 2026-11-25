@@ -58,7 +58,7 @@ assert.ok(rules.includes("request.resource.data.keys().hasOnly(['type','seconds'
 assert.ok(summary.includes('ANALYTICS_SOURCES'));
 assert.ok(admin.includes('summarizeChannelPerformance(data.sources)'));
 assert.ok(admin.includes('report.topFrequency'));
-assert.ok(admin.includes('role=\'row\''));
+assert.ok(admin.includes("row.setAttribute('role','row')"));
 assert.ok(html.includes('id="analytics-channel-insight"'));
 assert.ok(html.includes('puede superar 100 por cada 100 visitas'));
 assert.ok(css.includes('.analytics-source-frequency'));
