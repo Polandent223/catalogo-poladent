@@ -49,7 +49,7 @@ assert.ok(listener.includes('if(telemetryDisabled||!TYPES.has(type)'),
   'Los próximos clics no deben enviar estadísticas durante el fallo.');
 assert.ok(listener.includes('if(pending>=60 || (force&&pending>=5))'),
   'Reducir registro de permanencia de 4 por minuto a 1.');
-assert.ok(listener.includes("record('visit')"),
+assert.ok(listener.includes("record('visit',0,encodeBrandSource('',source))"),
   'Conservar las métricas básicas de visita.');
 assert.ok(listener.includes("record('whatsapp'"),
   'Conservar la medición de consultas reales por WhatsApp.');
