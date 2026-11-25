@@ -8,6 +8,8 @@ on:
     # todo Firestore. Las fotos de nuevos productos se regeneran por cron/manual.
     paths:
       - 'scripts/generate-product-share.mjs'
+      - 'scripts/generate-seo-collections.mjs'
+      - 'scripts/generate-seo-collections-tests.mjs'
       - 'scripts/product-preview-tests.mjs'
       - 'scripts/build-static-catalog.mjs'
       - 'scripts/build-static-catalog-tests.mjs'
@@ -61,6 +63,12 @@ jobs:
           else
             echo "Todavía no existe captura completa original: se mantienen intactas las 255 fichas."
           fi
+      - name: Generar colecciones SEO desde la copia pública (sin cuotas de Firebase)
+        if: github.event_name != 'pull_request'
+        run: |
+          if ! node scripts/generate-seo-collections.mjs; then
+            echo "::warning::La copia pública no está suficientemente actualizada. Se conservan colecciones y sitemap anteriores."
+          fi
       - name: Crear respaldo seguro a partir de fichas públicas existentes
         if: github.event_name != 'pull_request'
         run: |
@@ -74,6 +82,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A share/ catalog-emergency-backup.json
+          if [ -d colecciones ]; then
+            git add -A colecciones/ sitemap.xml
+          fi
           if [ -f catalog-public-snapshot.json ] && [ -f catalog-welcome-snapshot.json ]; then
             git add catalog-public-snapshot.json catalog-welcome-snapshot.json
           fi
