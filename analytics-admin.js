@@ -2,6 +2,7 @@ import {configured,login,logout,restoreSession,listAnalyticsEvents,listProducts}
 import {summarizeAnalytics,comparisonRanges,metricChange,formatDuration} from './analytics-summary.js';
 import {interestByArea} from './catalog-quick-search.js';
 import {campaignURL} from './analytics-source.js';
+import {summarizeChannelPerformance} from './analytics-performance.js';
 const $=q=>document.querySelector(q),message=$('#analytics-message'),months=$('#analytics-month');
 function tell(text,error=false){message.textContent=text;message.className=error?'error':'';}
 function monthName(date){return new Intl.DateTimeFormat('es',{month:'long',year:'numeric'}).format(date);}
@@ -72,13 +73,41 @@ function renderAreaInsights(events,names){
 }
 
 function renderSources(data){
+ const report=summarizeChannelPerformance(data.sources);
  const node=$('#analytics-sources');node.replaceChildren();
- for(const channel of data.sources){
+ for(const channel of report.items){
   const row=document.createElement('div');row.className='analytics-source-row';row.setAttribute('role','row');
-  const name=document.createElement('strong');name.textContent=channel.label;name.setAttribute('role','cell');
+  const name=document.createElement('div');name.setAttribute('role','cell');
+  const title=document.createElement('strong');title.textContent=channel.label;
+  const detail=document.createElement('small');detail.className='analytics-source-frequency';
+  detail.textContent=channel.clicksPer100===null
+   ?'Sin visitas registradas para calcular frecuencia'
+   :channel.clicksPer100.toLocaleString('es-VE',{maximumFractionDigits:1})+' clics por cada 100 visitas';
+  name.append(title,detail);
   const visits=document.createElement('span');visits.textContent=String(channel.visits);visits.setAttribute('role','cell');
   const clicks=document.createElement('span');clicks.textContent=String(channel.whatsappClicks);clicks.setAttribute('role','cell');
   row.append(name,visits,clicks);node.append(row);
+ }
+ const insight=$('#analytics-channel-insight');
+ if(report.totalVisits===0){
+  insight.textContent='Todavía no hay suficientes visitas registradas para analizar los canales.';
+ }else{
+  const parts=[report.taggedVisits+' de '+report.totalVisits+' visitas tienen origen identificado.'];
+  if(report.leadingChannel){
+   parts.push('Más clics identificados: '+report.leadingChannel.label+
+    ' ('+report.leadingChannel.whatsappClicks+').');
+  }else{
+   parts.push('Aún no hay clics a WhatsApp atribuibles a un canal identificado.');
+  }
+  if(report.topFrequency){
+   parts.push('Entre canales con al menos 20 visitas, mayor frecuencia: '+
+    report.topFrequency.label+' ('+
+    report.topFrequency.clicksPer100.toLocaleString('es-VE',{maximumFractionDigits:1})+
+    ' clics por 100 visitas).');
+  }else{
+   parts.push('Para comparar la frecuencia entre canales, espera a reunir al menos 20 visitas por canal.');
+  }
+  insight.textContent=parts.join(' ');
  }
 }
 function renderCampaignLinks(){
