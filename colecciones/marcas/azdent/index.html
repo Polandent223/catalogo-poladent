@@ -58,5 +58,16 @@ footer{border-top:1px solid #dce7ef;padding:25px 20px;text-align:center;color:#5
 <a class="whatsapp" href="https://wa.me/584144827311?text=Hola%2C%20quisiera%20consultar%20los%20productos%20de%20Productos%20AZDENT%20para%20odontolog%C3%ADa%20en%20POLADENT." target="_blank" rel="noopener noreferrer">WhatsApp Valencia</a>
 <a class="whatsapp" href="https://wa.me/584226710634?text=Hola%2C%20quisiera%20consultar%20los%20productos%20de%20Productos%20AZDENT%20para%20odontolog%C3%ADa%20en%20POLADENT." target="_blank" rel="noopener noreferrer">WhatsApp Maracay</a>
 <p>También puedes <a href="https://catalogopoladent.com/">agregar varios productos a una sola cotización</a> desde el catálogo, sin crear una cuenta.</p>
-</aside></main><footer>POLADENT Casa Dental · Valencia y Maracay, Venezuela · 
+</aside></main>
+<script type="module">
+import {classifyCatalogSource} from '../../../analytics-source.js';
+const origin=classifyCatalogSource(location.href,document.referrer);
+if(origin!=='sin_identificar')for(const anchor of document.querySelectorAll('a[href]')){
+const url=new URL(anchor.href);
+if(url.hostname==='catalogopoladent.com'&&url.pathname==='/'&&!url.searchParams.has('utm_source')){
+url.searchParams.set('utm_source',origin);
+url.searchParams.set('utm_medium','referral');anchor.href=url.href;
+}}
+</script>
+<footer>POLADENT Casa Dental · Valencia y Maracay, Venezuela · 
 <a href="https://catalogopoladent.com/">Catálogo oficial</a></footer></body></html>
