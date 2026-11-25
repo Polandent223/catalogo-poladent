@@ -102,7 +102,21 @@ function collectionHTML(snapshot,path,title,intro,products,kind){
  '<p>POLADENT Casa Dental atiende consultas para consultorio y laboratorio. Confirma montos y existencia antes de comprar.</p>',
  contactLinks(snapshot,title),
  '<p>También puedes <a href="'+SITE+'">agregar varios productos a una sola cotización</a> desde el catálogo, sin crear una cuenta.</p>',
- '</aside></main><footer>POLADENT Casa Dental · Valencia y Maracay, Venezuela · ',
+ '</aside></main>',
+ // El visitante puede descubrir esta colección en Google, Instagram u otro sitio
+ // y luego abrir una ficha en el catálogo. Pasar SOLO el nombre de canal al
+ // siguiente enlace: no cookies, no identificadores ni URL de procedencia.
+ '<script type="module">',
+ "import {classifyCatalogSource} from '../../../analytics-source.js';",
+ "const origin=classifyCatalogSource(location.href,document.referrer);",
+ "if(origin!=='sin_identificar')for(const anchor of document.querySelectorAll('a[href]')){",
+ "const url=new URL(anchor.href);",
+ "if(url.hostname==='catalogopoladent.com'&&url.pathname==='/'&&!url.searchParams.has('utm_source')){",
+ "url.searchParams.set('utm_source',origin);",
+ "url.searchParams.set('utm_medium','referral');anchor.href=url.href;",
+ "}}",
+ '</script>',
+ '<footer>POLADENT Casa Dental · Valencia y Maracay, Venezuela · ',
  '<a href="'+SITE+'">Catálogo oficial</a></footer></body></html>'
  ].join('\n');
 }
