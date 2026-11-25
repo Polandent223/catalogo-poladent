@@ -64,6 +64,8 @@ jobs:
         run: node backup-tests.mjs
       - name: Comprobar SEO y calidad del contador
         run: node seo-quality-tests.mjs
+      - name: Validar colecciones SEO con productos reales, enlaces y sin precios estáticos
+        run: node scripts/generate-seo-collections-tests.mjs
       - name: Verificar migración segura de dominio y CORS Cloudinary
         run: node scripts/custom-domain-tests.mjs
       - name: Probar dominio público HTTPS y compatibilidad con QR original
