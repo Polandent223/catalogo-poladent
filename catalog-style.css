@@ -2091,6 +2091,24 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
 .catalog-emergency-alert[hidden]{display:none!important}
 
 
+/* Colecciones para búsquedas: sección discreta que no altera las fichas ni el carrito. */
+.seo-discovery{width:min(1104px,calc(100% - 28px));margin:36px auto 16px;
+ padding:24px clamp(16px,3vw,29px);border:1px solid #d5e6f0;border-radius:16px;
+ background:linear-gradient(125deg,#f8fcff,#eff7fb)}
+.seo-discovery .eyebrow{font-size:11px;letter-spacing:.13em;font-weight:800;
+ color:#1a7497;margin:0 0 6px}
+.seo-discovery h2{margin:0 0 7px;font-size:clamp(20px,2.8vw,27px);color:#123957}
+.seo-discovery p{font-size:13px;line-height:1.7;color:#466882;margin:0 0 16px}
+.seo-discovery-links{display:flex;flex-wrap:wrap;gap:9px}
+.seo-discovery-links a{display:inline-flex;align-items:center;min-height:39px;
+ border:1px solid #c9e0ed;padding:9px 13px;border-radius:9px;background:#fff;
+ text-decoration:none;font-size:12px;font-weight:800;color:#135b7a}
+.seo-discovery-links a:hover,.seo-discovery-links a:focus-visible{background:#e2f2fb}
+.seo-discovery p.seo-discovery-brands{margin:16px 0 0}
+.seo-discovery-brands a{color:#136688;font-weight:800;margin:0 6px 0 0}
+@media(max-width:560px){.seo-discovery{margin:24px auto 12px;padding:17px}
+.seo-discovery-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.seo-discovery-links a{font-size:11px;padding:9px;justify-content:center;text-align:center}}
 /* Instagram POLADENT: enlaces discretos, responsive y completamente opcionales. */
 .storefront-actions a.storefront-instagram-link{
   background:linear-gradient(115deg,#8134af,#c13584 58%,#e6683c);
