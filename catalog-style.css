@@ -2143,3 +2143,26 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
  .instagram-admin-row{grid-template-columns:1fr}
  .instagram-row-actions button{flex:1}
 }
+
+/* Canales comerciales: panel privado, sin tocar tarjetas ni diseño público. */
+.analytics-sources-panel,.analytics-campaign-links{margin:16px 0}
+.analytics-source-table{width:100%;border:1px solid #d8e5ed;border-radius:12px;overflow:hidden}
+.analytics-source-row{display:grid;grid-template-columns:minmax(0,1fr) 82px 124px;
+ gap:12px;align-items:center;padding:11px 15px;border-bottom:1px solid #e1ebf0;font-size:13px}
+.analytics-source-row:last-child{border-bottom:0}
+.analytics-source-row strong{font-weight:750;color:#163e58;overflow-wrap:anywhere}
+.analytics-source-row span:not(:first-child){font-variant-numeric:tabular-nums;text-align:right}
+.analytics-source-header{background:#eaf4fa;color:#205674;font-size:12px;font-weight:800}
+.analytics-campaign-row{display:flex;align-items:center;justify-content:space-between;
+ gap:12px;padding:10px 2px;border-bottom:1px solid #e3ecf2}
+.analytics-campaign-row:last-child{border-bottom:0}
+.analytics-campaign-row span{font-size:13px;color:#294c61}
+.analytics-campaign-row button{min-height:40px;padding:8px 12px;border-radius:8px;
+ background:#0e5277;color:#fff;border:0;font-weight:800;white-space:nowrap;cursor:pointer}
+.analytics-campaign-row button:hover{background:#093b58}
+@media(max-width:520px){
+ .analytics-source-row{grid-template-columns:minmax(0,1fr) 56px 92px;gap:6px;padding:10px 9px;font-size:11px}
+ .analytics-source-header{font-size:10px}
+ .analytics-campaign-row span{font-size:12px}
+ .analytics-campaign-row button{padding:8px 9px;font-size:11px}
+}
