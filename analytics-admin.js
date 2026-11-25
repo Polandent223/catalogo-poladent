@@ -1,6 +1,7 @@
 import {configured,login,logout,restoreSession,listAnalyticsEvents,listProducts} from './catalog-service.js';
 import {summarizeAnalytics,comparisonRanges,metricChange,formatDuration} from './analytics-summary.js';
 import {interestByArea} from './catalog-quick-search.js';
+import {campaignURL} from './analytics-source.js';
 const $=q=>document.querySelector(q),message=$('#analytics-message'),months=$('#analytics-month');
 function tell(text,error=false){message.textContent=text;message.className=error?'error':'';}
 function monthName(date){return new Intl.DateTimeFormat('es',{month:'long',year:'numeric'}).format(date);}
@@ -70,6 +71,40 @@ function renderAreaInsights(events,names){
     'Coincidencias aproximadas por nombre del producto',area.views,'aperturas');
 }
 
+function renderSources(data){
+ const node=$('#analytics-sources');node.replaceChildren();
+ for(const channel of data.sources){
+  const row=document.createElement('div');row.className='analytics-source-row';row.setAttribute('role','row');
+  const name=document.createElement('strong');name.textContent=channel.label;name.setAttribute('role','cell');
+  const visits=document.createElement('span');visits.textContent=String(channel.visits);visits.setAttribute('role','cell');
+  const clicks=document.createElement('span');clicks.textContent=String(channel.whatsappClicks);clicks.setAttribute('role','cell');
+  row.append(name,visits,clicks);node.append(row);
+ }
+}
+function renderCampaignLinks(){
+ const list=$('#analytics-campaign-links');list.replaceChildren();
+ const channels=[['instagram','Perfil y publicaciones de Instagram'],
+                 ['google','Google Maps (cuando quieras actualizar el enlace)'],
+                 ['qr','Nuevos códigos QR'],
+                 ['whatsapp','Enlaces compartidos por WhatsApp'],
+                 ['facebook','Publicaciones de Facebook']];
+ for(const [source,labelText] of channels){
+  const row=document.createElement('div');row.className='analytics-campaign-row';
+  const label=document.createElement('span');label.textContent=labelText;
+  const button=document.createElement('button');button.type='button';
+  button.className='analytics-campaign-copy';
+  button.textContent='Copiar enlace';
+  button.addEventListener('click',async()=>{
+   try{
+    await navigator.clipboard.writeText(campaignURL(source));
+    setContent('analytics-campaign-copy-status','Enlace de '+labelText+' copiado. Úsalo en tus nuevas publicaciones.');
+   }catch{
+    setContent('analytics-campaign-copy-status','Tu navegador no permitió copiar: '+campaignURL(source));
+   }
+  });
+  row.append(label,button);list.append(row);
+ }
+}
 function buildChart(summary,range){
   const chart=$('#analytics-chart');chart.replaceChildren();
   // Gráfico de barras del periodo, incluidos días con cero visitas.
@@ -102,6 +137,7 @@ function render(events,range,previousEvents,comparisonLabel,names){
   renderProductInsights(data,names);
   renderWhatsappByBrand(data);
   renderAreaInsights(events,names);
+  renderSources(data);
   const brands=$('#analytics-brands');brands.replaceChildren();
   if(!data.brands.length)brands.append(label('Todavía no hay productos abiertos en este periodo.'));
   for(const item of data.brands.slice(0,12)){
@@ -139,6 +175,7 @@ async function reload(){
 }
 async function show(){
   $('#analytics-login').hidden=true;$('#analytics-workspace').hidden=false;
+  renderCampaignLinks();
   await reload();
 }
 $('#analytics-login').onsubmit=async event=>{
