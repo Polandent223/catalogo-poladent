@@ -1,24 +1,28 @@
 // Agregaciones del historial POLADENT. No hay identificadores de visitantes.
+import {ANALYTICS_SOURCES,decodeBrandSource} from './analytics-source.js';
 const dateKey=date=>date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
 
 export function summarizeAnalytics(events) {
   const metrics={
     visits:0,productViews:0,whatsappClicks:0,activeSeconds:0,
-    brands:[],whatsappByBrand:[],products:[],days:[]
+    brands:[],whatsappByBrand:[],products:[],days:[],sources:[]
   };
   const perBrand=new Map(),perWhatsAppBrand=new Map(),perProduct=new Map(),perDay=new Map();
+  const perSource=new Map(ANALYTICS_SOURCES.map(x=>[x.id,{id:x.id,label:x.label,visits:0,whatsappClicks:0}]));
   for(const event of events){
     const date=event.created_at instanceof Date?event.created_at:new Date(event.created_at);
     if(Number.isNaN(date.getTime()))continue;
     const kind=event.type,day=dateKey(date);
     if(!perDay.has(day))perDay.set(day,{day,visits:0,whatsapp:0});
-    const d=perDay.get(day), brand=String(event.brand||'').trim();
+    const d=perDay.get(day), decoded=decodeBrandSource(event.brand),brand=decoded.brand;
+    const source=perSource.get(decoded.source)||perSource.get('sin_identificar');
     const id=String(event.product_id||'').trim();
-    if(kind==='visit'){metrics.visits++;d.visits++;}
+    if(kind==='visit'){metrics.visits++;d.visits++;source.visits++;}
     if(kind==='engagement')metrics.activeSeconds+=Math.max(0,Math.min(60,Number(event.seconds)||0));
     if(kind==='whatsapp'){
       metrics.whatsappClicks++;
       d.whatsapp++;
+      source.whatsappClicks++;
       const group=brand||'Sin marca';
       perWhatsAppBrand.set(group,(perWhatsAppBrand.get(group)||0)+1);
     }
@@ -41,6 +45,7 @@ export function summarizeAnalytics(events) {
     .map(([name,clicks])=>({name,clicks}));
   metrics.products=[...perProduct.values()].sort((a,b)=>b.views-a.views||b.whatsappClicks-a.whatsappClicks||a.id.localeCompare(b.id));
   metrics.days=[...perDay.values()].sort((a,b)=>a.day.localeCompare(b.day));
+  metrics.sources=[...perSource.values()];
   return metrics;
 }
 

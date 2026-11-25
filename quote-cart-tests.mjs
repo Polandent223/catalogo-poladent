@@ -145,6 +145,6 @@ assert.ok(!summaryJs.includes('saveProduct('));
 
 assert.ok(!publicCode.includes("from './catalog-service.js'"));
 assert.ok(analytics.includes("a#inquiry-whatsapp, a#inquiry-quick, a#cart-whatsapp"));
-assert.ok(analytics.includes("record('whatsapp',0,'Cotización múltiple','')"));
+assert.ok(analytics.includes("record('whatsapp',0,encodeBrandSource('Cotización múltiple',source),'')"));
 assert.ok(!html.includes('Precio: $'), 'No añadir precios al catálogo');
 console.log('Carrito POLADENT: cantidades, persistencia, ocultos, varios productos, WhatsApp y pruebas de privacidad correctos.');
