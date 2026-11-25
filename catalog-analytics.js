@@ -1,4 +1,5 @@
 import {createEventGate,isRealWhatsAppClick} from './analytics-quality.js';
+import {classifyCatalogSource,encodeBrandSource} from './analytics-source.js';
 // Estadísticas anónimas de POLADENT.
 // No utiliza cookies, localStorage, identificadores de dispositivos, IP, teléfonos,
 // contenido del mensaje ni información personal de visitantes.
@@ -19,6 +20,8 @@ export function startCatalogAnalytics() {
   // no insistir en cada clic o minuto durante la misma visita.
   let telemetryDisabled=false;
   const allowEvent=createEventGate();
+  // Una sola clasificación por apertura; no conserva identificadores de clientes.
+  const source=classifyCatalogSource(location.href,document.referrer);
   const firestore=Promise.all([
     import('https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js'),
     import('https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js')
@@ -40,7 +43,7 @@ export function startCatalogAnalytics() {
       }
     });
   }
-  record('visit');
+  record('visit',0,encodeBrandSource('',source));
 
   // Tiempo estimado en el catálogo visible; nunca cuenta pestañas ocultas.
   let last=performance.now(), pending=0;
@@ -81,11 +84,11 @@ export function startCatalogAnalytics() {
     if(!isRealWhatsAppClick(event,link))return;
     if(link.id==='cart-whatsapp'){
       // Una solicitud múltiple representa un clic, no uno por producto.
-      record('whatsapp',0,'Cotización múltiple','');
+      record('whatsapp',0,encodeBrandSource('Cotización múltiple',source),'');
       return;
     }
     const id=new URLSearchParams(location.hash.replace(/^#/, '')).get('producto')||'';
     const brand=document.getElementById('detail-brand')?.textContent||'';
-    record('whatsapp',0,brand,id);
+    record('whatsapp',0,encodeBrandSource(brand,source),id);
   });
 }
