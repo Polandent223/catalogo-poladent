@@ -2166,3 +2166,14 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
  .analytics-campaign-row span{font-size:12px}
  .analytics-campaign-row button{padding:8px 9px;font-size:11px}
 }
+
+/* Rendimiento de canales: segunda línea discreta y legible en móviles. */
+.analytics-source-frequency{display:block;font-size:11px;line-height:1.45;
+ color:#52768a;font-weight:500;margin-top:3px}
+.analytics-channel-insight{font-size:13px;color:#194c68;line-height:1.65;
+ padding:13px 15px;background:#f0f8fc;border-left:3px solid #4296b8;
+ border-radius:6px;margin:8px 0 16px}
+@media(max-width:520px){
+ .analytics-source-frequency{font-size:10px;line-height:1.4}
+ .analytics-channel-insight{font-size:12px;padding:11px}
+}

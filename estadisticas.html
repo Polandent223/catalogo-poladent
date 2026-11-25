@@ -35,7 +35,8 @@
 </div>
 <section class="analytics-panel analytics-sources-panel" aria-labelledby="analytics-sources-heading">
 <h3 id="analytics-sources-heading">¿De dónde llegan las visitas y consultas?</h3>
-<p class="analytics-panel-description">Comparamos aperturas del catálogo y clics para iniciar cotizaciones por WhatsApp. Son eventos, no clientes únicos ni mensajes enviados.</p>
+<p class="analytics-panel-description">Comparamos aperturas del catálogo con clics para iniciar cotizaciones por WhatsApp. Debajo de cada canal encontrarás sus clics por cada 100 aperturas; no son porcentajes de compradores.</p>
+<p id="analytics-channel-insight" class="analytics-channel-insight" role="status" aria-live="polite">Analizando el origen de las visitas…</p>
 <div class="analytics-source-table" role="table" aria-label="Canales de captación">
   <div class="analytics-source-row analytics-source-header" role="row"><span role="columnheader">Origen</span><span role="columnheader">Visitas</span><span role="columnheader">Clics WhatsApp</span></div>
   <div id="analytics-sources"></div>
@@ -61,6 +62,6 @@
 <p class="analytics-panel-description">Basado en las fichas de productos que se abren, clasificadas por sus nombres. No son búsquedas escritas ni compras confirmadas; no guardamos palabras que escriben los clientes.</p>
 <div id="analytics-areas"></div>
 </section>
-<p class="analytics-note">Se cuentan <strong>visitas</strong>, no personas únicas. El tiempo es aproximado y solo considera la página visible. Las consultas son clics para abrir WhatsApp; no significa que el mensaje se haya enviado. El historial comienza cuando se activaron las reglas de estadísticas en Firebase. Los productos eliminados pueden aparecer únicamente con su identificador histórico; sus registros no se borran. No se almacenan teléfonos ni mensajes de los visitantes. El canal se deduce de etiquetas de campaña o del sitio de procedencia, cuando el navegador lo permite.</p>
+<p class="analytics-note">Se cuentan <strong>aperturas del catálogo</strong>, no personas únicas ni visitantes que únicamente vieron la bienvenida. La frecuencia de clics puede superar 100 por cada 100 visitas si alguien pulsa WhatsApp varias veces. El tiempo es aproximado y solo considera la página visible. Las consultas son clics para abrir WhatsApp; no significa que el mensaje se haya enviado. El historial comienza cuando se activaron las reglas de estadísticas en Firebase. Los productos eliminados pueden aparecer únicamente con su identificador histórico; sus registros no se borran. No se almacenan teléfonos ni mensajes de los visitantes. El canal se deduce de etiquetas de campaña o del sitio de procedencia, cuando el navegador lo permite.</p>
 </section></main>
 <script src="config.js"></script><script type="module" src="analytics-admin.js"></script><script type="module" src="admin-navigation.js"></script></body></html>
