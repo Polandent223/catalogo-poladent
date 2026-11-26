@@ -667,12 +667,19 @@ async function refreshLivePricing(){
  try{
   const live=await readLivePricing(cfg);
   const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning},live);
-  const changed=next.pricingEnabled!==pricingEnabled||
+  const shown=normalizeStorefront(storefrontSettings||{});
+  const incoming=normalizeStorefront(next.storefront||{});
+  const highlightsChanged=shown.featured_products_enabled!==incoming.featured_products_enabled||
+    shown.featured_products_title!==incoming.featured_products_title||
+    shown.featured_products_include_sold_out!==incoming.featured_products_include_sold_out||
+    JSON.stringify(shown.featured_product_ids)!==JSON.stringify(incoming.featured_product_ids);
+  const changed=highlightsChanged||next.pricingEnabled!==pricingEnabled||
     products.some((p,i)=>p.price_usd!==next.products[i]?.price_usd||
       p.name!==next.products[i]?.name);
   if(!changed)return;
   const wasEnabled=pricingEnabled;
   products=next.products;pricingEnabled=next.pricingEnabled;
+  storefrontSettings=next.storefront||storefrontSettings;
   // Al cambiar un nombre, buscar y filtrar con el texto nuevo, sin recargar
   // 255 fichas desde Firestore.
   searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand+' '+(p.description||''))]));
