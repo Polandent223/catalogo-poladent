@@ -2210,6 +2210,13 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
 /* POLADENT: escaparate de productos seleccionados, real y desactivable.
    Comparte fichas y carrito con el catálogo, sin duplicar datos ni precios. */
 #product-highlights[hidden]{display:none!important}
+/* Al cargar el escaparate en PC, garantizar su bloque visible en el layout compacto.
+   En teléfono se conserva la presentación de dos columnas. */
+@media(min-width:701px){
+ body.storefront-active.storefront-theme-premium-compacta #product-highlights:not([hidden]){
+   display:block;width:calc(100% - 36px);max-width:1180px
+ }
+}
 .product-highlights{width:min(1110px,calc(100% - 28px));margin:23px auto 26px;
  padding:20px clamp(13px,2.5vw,26px);border:1px solid #cfe3ef;
  border-radius:18px;background:linear-gradient(135deg,#f7fcff 5%,#eaf5fc 100%)}
