@@ -38,8 +38,8 @@ export function mergePublicHighlights(snapshot,publicDocument){
 
 export async function syncPublicHighlights({root=process.cwd(),request=fetch}={}){
  const config=await readFile(resolve(root,'config.js'),'utf8');
- const apiKey=config.match(/apiKey:\\s*['"]([^'"]+)['"]/)?.[1];
- const projectId=config.match(/projectId:\\s*['"]([^'"]+)['"]/)?.[1];
+ const apiKey=config.match(/apiKey:\s*['"]([^'"]+)['"]/)?.[1];
+ const projectId=config.match(/projectId:\s*['"]([^'"]+)['"]/)?.[1];
  if(!apiKey||projectId!=='catalogo-poladent')throw Error('Configuración Firebase ajena a POLADENT.');
  const url=new URL('https://firestore.googleapis.com/v1/projects/'+
    encodeURIComponent(projectId)+'/databases/(default)/documents/catalogPublic/_catalog_contacts');
