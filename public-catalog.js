@@ -666,7 +666,8 @@ async function refreshLivePricing(){
  livePricingInFlight=true;lastLivePricingCheck=Date.now();
  try{
   const live=await readLivePricing(cfg);
-  const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning},live);
+  // Mantener el diseño completo durante la actualización ligera: no reemplazarlo por un bloque parcial.
+  const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning,storefront:storefrontSettings},live);
   const shown=normalizeStorefront(storefrontSettings||{});
   const incoming=normalizeStorefront(next.storefront||{});
   const highlightsChanged=shown.featured_products_enabled!==incoming.featured_products_enabled||
