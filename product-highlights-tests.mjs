@@ -95,6 +95,18 @@ assert.ok(catalog.includes('highlightsChanged'), 'Visibilidad actualizable desde
 assert.ok(catalog.includes("storefrontSettings=next.storefront||storefrontSettings"));
 assert.ok(style.includes('#product-highlights[hidden]{display:none!important}'));
 assert.ok(style.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
+// La versión de los módulos que dibujan destacados debe ser idéntica en PC y móvil.
+const assetVersion='20261126-destacados-pc1';
+assert.ok(page.includes('catalog-style.css?v='+assetVersion));
+assert.ok(page.includes('welcome.js?v='+assetVersion));
+assert.ok(read('welcome.js').includes('public-catalog.js?v='+assetVersion));
+assert.ok(catalog.includes('catalog-live-pricing.js?v='+assetVersion));
+assert.ok(catalog.includes('storefront-settings.js?v='+assetVersion));
+assert.ok(read('catalog-live-pricing.js').includes('storefront-settings.js?v='+assetVersion));
+assert.ok(style.includes('@media(min-width:701px){\n body.storefront-active.storefront-theme-premium-compacta #product-highlights:not([hidden])'),
+ 'La sección habilitada debe permanecer visible en escritorio.');
+assert.ok(catalog.includes("if(key!=='catalogo')"),
+ 'No ocultar el catálogo o destacados por reglas de pantallas independientes.');
 assert.ok(read('quote-cart.js').includes('export const CART_LIMIT=20'));
 assert.ok(backend.includes('storefront:normalized'));
 assert.ok(backend.includes("doc(db,'catalogPublic',CONTACTS_DOC),data,{merge:true}"));
