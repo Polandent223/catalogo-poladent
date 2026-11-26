@@ -5,7 +5,7 @@ import {loadPublicSnapshot,restoreLocallyVerifiedCatalog,saveLocallyVerifiedCata
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
-import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
+import {normalizeStorefront,STORE_THEMES,visibleBrandNames,selectFeaturedProducts} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
 import {fetchBcvRate,cleanUSD,formatUSD,formatVES,formatBcvRate,convertVES} from './catalog-pricing.js';
@@ -730,13 +730,8 @@ function buildCard(p,index){
 function renderProductHighlights(values=normalizeStorefront(storefrontDraft||storefrontSettings||{})){
   const section=$('#product-highlights');
   const list=$('#product-highlights-grid');
-  // Siempre se usan fichas del inventario público actual; nunca se muestran
-  // productos eliminados ni ocultos ni se incrustan importes estáticos.
-  const byId=new Map(products.map(p=>[String(p.id),p]));
-  const items=(values.featured_product_ids||[]).map(id=>byId.get(id))
-    .filter(p=>p&&p.name&&p.brand&&p.image_url&&
-      (p.status==='available'||
-        (values.featured_products_include_sold_out&&p.status==='sold_out')));
+  // Sólo productos públicos reales, sin duplicar información ni precios.
+  const items=selectFeaturedProducts(products,values);
   section.hidden=values.featured_products_enabled!==true||items.length===0||Boolean(brand.value);
   list.replaceChildren();
   if(section.hidden)return;
