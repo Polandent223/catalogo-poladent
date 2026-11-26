@@ -124,12 +124,27 @@ const publicCode=readFileSync('public-catalog.js','utf8');
 const html=readFileSync('index.html','utf8');
 const analytics=readFileSync('catalog-analytics.js','utf8');
 for(const id of ['cart-open','cart-dialog','cart-items','cart-form','cart-city',
-  'cart-contact','cart-whatsapp','cart-count','detail-cart-add']){
+  'cart-contact','cart-whatsapp','cart-count','detail-cart-add',
+  'mobile-quote-bar','mobile-quote-count','mobile-quote-notice','mobile-quote-open']){
   assert.ok(html.includes('id="'+id+'"'),id);
 }
 assert.ok(!html.includes('id="cart-timing"'));
 assert.ok(html.includes('class="cart-bag-icon"'));
 assert.ok(html.includes('class="cart-count-badge"'));
+assert.ok(html.includes('id="mobile-quote-bar"')&&html.includes('hidden'),
+  'La barra móvil debe comenzar oculta y sólo mostrarse con artículos.');
+assert.ok(publicCode.includes("mobileQuoteOpen.addEventListener('click'"),
+  'La barra móvil abre el carrito EXISTENTE.');
+assert.ok(publicCode.includes("mobileQuoteBar.hidden=!catalogLoaded||count===0"),
+  'No mostrar barra con carrito vacío.');
+assert.ok(publicCode.includes('updateMobileQuoteBar();'),
+  'La barra debe seguir las cantidades del carrito.');
+assert.ok(publicCode.includes('announceMobileQuoteAdded(p)'),
+  'Confirmar visualmente al agregar productos.');
+const styles=readFileSync('catalog-style.css','utf8');
+assert.ok(styles.includes('#mobile-quote-bar[hidden]{display:none!important}'));
+assert.ok(styles.includes('body.mobile-quote-active'), 'Reservar espacio para que no tape los últimos productos.');
+assert.ok(styles.includes('@media(max-width:700px)'), 'No añadir un segundo carrito a PC.');
 assert.ok(html.includes('aria-label="Mi cotización, 0 productos"'));
 assert.ok(html.includes('no crea una cuenta ni un historial de cliente'));
 assert.ok(publicCode.includes('sessionStorage.setItem(CART_STORAGE_KEY'));
