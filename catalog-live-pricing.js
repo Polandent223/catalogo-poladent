@@ -2,6 +2,7 @@
 // El administrador publica el índice sólo mientras precios públicos estén activados.
 import {decodeFirestoreValue} from './catalog-public-data.js';
 import {cleanUSD} from './catalog-pricing.js';
+import {normalizeFeaturedProductIds} from './storefront-settings.js';
 
 export const LIVE_PRICING_POLL_MS=120000;
 const MAX_PUBLIC_PRICES=5000;
@@ -25,7 +26,7 @@ export function parseLivePricingDocument(document){
   throw Error('No se encontró una publicación de precios válida.');
  const enabled=data.pricing.enabled===true;
  const indexed=data.pricing.public_index_version===1;
- const result={enabled,indexed,prices:{},names:{},updatedAt:typeof data.pricing.updated_at==='string'
+ const result={enabled,indexed,prices:{},names:{},highlights:null,updatedAt:typeof data.pricing.updated_at==='string'
    ?data.pricing.updated_at:''};
  // Reutilizar la misma lectura de precios, incluso cuando están apagados.
  // Sólo nombres públicos válidos, con sus IDs de producto.
@@ -38,6 +39,19 @@ export function parseLivePricingDocument(document){
     result.names[id]=name.trim();
    }
   }
+ }
+ // El mismo documento ya contiene los ajustes del diseño comercial.
+ // Leer sólo el bloque de destacados evita nuevas consultas de Firestore.
+ const sf=data.storefront;
+ if(sf&&typeof sf==='object'&&!Array.isArray(sf)){
+  result.highlights={
+   featured_products_enabled:sf.featured_products_enabled===true,
+   featured_products_title:typeof sf.featured_products_title==='string'
+     &&sf.featured_products_title.trim().length<=72&&sf.featured_products_title.trim()
+       ?sf.featured_products_title.trim():'Productos destacados',
+   featured_product_ids:normalizeFeaturedProductIds(sf.featured_product_ids),
+   featured_products_include_sold_out:sf.featured_products_include_sold_out===true
+  };
  }
  if(!enabled)return result;
  if(!indexed)return result; // Versión anterior: conservar la copia de GitHub.
@@ -70,21 +84,24 @@ export function applyLivePricing(catalog,live){
  if(!catalog||!Array.isArray(catalog.products)||typeof live?.enabled!=='boolean')
   throw Error('No se pudo aplicar el estado público de precios.');
  const names=live.names||{};
+ const catalogWithHighlights=live.highlights
+  ?{...catalog,storefront:{...(catalog.storefront||{}),...live.highlights}}
+  :catalog;
  const namedProducts=catalog.products.map(p=>{
   const publicName=Object.prototype.hasOwnProperty.call(names,p.id)?names[p.id]:null;
   return publicName?{...p,name:publicName}:p;
  });
  if(!live.enabled){
-  return {...catalog,pricingEnabled:false,products:namedProducts.map(p=>{
+  return {...catalogWithHighlights,pricingEnabled:false,products:namedProducts.map(p=>{
    const product={...p};delete product.price_usd;return product;
   })};
  }
  if(!live.indexed){
   // Sin un índice completo no inventamos montos ni filtramos precios privados.
-  return {...catalog,pricingEnabled:catalog.pricingEnabled===true,products:namedProducts};
+  return {...catalogWithHighlights,pricingEnabled:catalog.pricingEnabled===true,products:namedProducts};
  }
  const prices=live.prices;
- return {...catalog,pricingEnabled:true,snapshotPriceWarning:false,products:namedProducts.map(p=>{
+ return {...catalogWithHighlights,pricingEnabled:true,snapshotPriceWarning:false,products:namedProducts.map(p=>{
   const product={...p};
   if(Object.prototype.hasOwnProperty.call(prices,p.id))product.price_usd=prices[p.id];
   else delete product.price_usd;
