@@ -3,7 +3,7 @@ import {
   listBrands,listProducts,getStorefrontSettings,saveStorefrontSettings,
   uploadImage,removeImage
 } from './catalog-service.js';
-import {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront} from './storefront-settings.js';
+import {STORE_DEFAULTS,STORE_THEMES,normalizeStorefront,normalizeFeaturedProductIds} from './storefront-settings.js';
 
 const $=q=>document.querySelector(q);
 const form=$('#design-form'),msg=$('#design-message'),frame=$('#design-frame');
@@ -399,9 +399,95 @@ function clearObjectURLs(){
     previewURLs[field]='';
   }
 }
+// Selección de fichas públicas existentes. El administrador conserva el orden
+// mediante ID, nunca copia precios ni datos personales al bloque promocional.
+let highlightInventory=[],highlightSelectedIds=[];
+function drawHighlightSelection(){
+  const selected=$('#design-highlight-selected');selected.replaceChildren();
+  $('#design-highlight-count').textContent=highlightSelectedIds.length+' / 6';
+  if(highlightSelectedIds.length===0){
+    const message=document.createElement('p');message.textContent='Aún no hay productos elegidos.';
+    selected.append(message);
+  }
+  highlightSelectedIds.forEach((id,index)=>{
+    const product=highlightInventory.find(p=>String(p.id)===id);
+    const row=document.createElement('div');row.className='design-highlight-row';
+    const info=document.createElement('div');info.className='design-highlight-info';
+    const title=document.createElement('strong');title.textContent=(index+1)+'. '+(product?.name||'Producto retirado');
+    const subtitle=document.createElement('small');subtitle.textContent=product
+      ?product.brand+' · '+(product.status==='sold_out'?'Agotado':'Disponible')
+      :'ID: '+id+' · no aparecerá en el catálogo';
+    info.append(title,subtitle);
+    const actions=document.createElement('div');actions.className='design-highlight-actions';
+    for(const [label,delta] of [['↑',-1],['↓',1]]){
+      const btn=document.createElement('button');btn.type='button';btn.textContent=label;
+      btn.setAttribute('aria-label',(delta<0?'Subir ':'Bajar ')+(product?.name||id));
+      btn.disabled=index+delta<0||index+delta>=highlightSelectedIds.length;
+      btn.addEventListener('click',()=>{
+        const swap=index+delta;
+        [highlightSelectedIds[index],highlightSelectedIds[swap]]=
+          [highlightSelectedIds[swap],highlightSelectedIds[index]];
+        drawHighlightSelection();drawHighlightCandidates();sendPreview();
+      });
+      actions.append(btn);
+    }
+    const remove=document.createElement('button');remove.type='button';
+    remove.textContent='Quitar';remove.setAttribute('aria-label','Quitar '+(product?.name||id));
+    remove.addEventListener('click',()=>{
+      highlightSelectedIds=highlightSelectedIds.filter(x=>x!==id);
+      drawHighlightSelection();drawHighlightCandidates();sendPreview();
+    });
+    actions.append(remove);row.append(info,actions);selected.append(row);
+  });
+}
+function drawHighlightCandidates(){
+  const target=$('#design-highlight-candidates');target.replaceChildren();
+  const filter=$('#design-highlight-search').value.trim().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const normalized=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const options=highlightInventory.filter(p=>!highlightSelectedIds.includes(String(p.id))
+    &&(!filter||normalized(p.name+' '+p.brand).includes(filter))).slice(0,12);
+  if(!options.length){
+    const message=document.createElement('p');message.textContent='No hay productos coincidentes para agregar.';
+    target.append(message);return;
+  }
+  for(const p of options){
+    const row=document.createElement('div');row.className='design-highlight-row';
+    const text=document.createElement('div');text.className='design-highlight-info';
+    const title=document.createElement('strong');title.textContent=p.name;
+    const subtitle=document.createElement('small');subtitle.textContent=p.brand+
+      (p.status==='sold_out'?' · Agotado':'');
+    text.append(title,subtitle);
+    const button=document.createElement('button');button.type='button';
+    button.textContent='Agregar';button.disabled=highlightSelectedIds.length>=6;
+    button.setAttribute('aria-label','Destacar '+p.name);
+    button.addEventListener('click',()=>{
+      if(highlightSelectedIds.length>=6)return;
+      highlightSelectedIds.push(String(p.id));
+      $('#design-highlight-feedback').textContent=p.name+' agregado a destacados.';
+      drawHighlightSelection();drawHighlightCandidates();sendPreview();
+    });
+    row.append(text,button);target.append(row);
+  }
+}
+function makeHighlightChoices(products){
+  highlightInventory=products.filter(p=>p?.id&&p.name&&p.brand&&
+    ['available','sold_out'].includes(p.status))
+    .sort((a,b)=>String(a.brand).localeCompare(String(b.brand),'es')||
+      String(a.name).localeCompare(String(b.name),'es'));
+  drawHighlightCandidates();
+}
+$('#design-highlight-search').addEventListener('input',drawHighlightCandidates);
 function fillForm(settings){
   clearObjectURLs();
   published=normalizeStorefront(settings);
+  highlightSelectedIds=[...published.featured_product_ids];
+  $('#design-highlights-enabled').checked=published.featured_products_enabled;
+  $('#design-highlights-sold-out').checked=published.featured_products_include_sold_out;
+  form.elements.namedItem('featured_products_title').value=published.featured_products_title;
+  $('#design-highlight-search').value='';
+  $('#design-highlight-feedback').textContent='';
+  drawHighlightSelection();drawHighlightCandidates();
   $('#design-banner-autoplay').checked=published.banner_autoplay;
   extraBanners=[...published.banner_extra_slides];
   drawExtraBanners();
@@ -489,6 +575,10 @@ function formSettings(useFilePreview=true){
     brands_title:read('brands_title'),
     trust_items:[read('trust_1'),read('trust_2'),read('trust_3')],
     featured_brands:selectedBrands(),
+    featured_products_enabled:$('#design-highlights-enabled').checked,
+    featured_products_title:read('featured_products_title'),
+    featured_product_ids:normalizeFeaturedProductIds(highlightSelectedIds),
+    featured_products_include_sold_out:$('#design-highlights-sold-out').checked,
     banner_desktop_url:useFilePreview&&previewURLs.desktop||$('#'+urls.desktop).value.trim(),
     banner_mobile_url:useFilePreview&&previewURLs.mobile||$('#'+urls.mobile).value.trim()
   };
@@ -539,6 +629,7 @@ async function loadAdmin(){
     getStorefrontSettings(),listBrands(true),listProducts(true)
   ]);
   makeBrandChoices(profiles,products);
+  makeHighlightChoices(products);
   $('#design-login').hidden=true;
   $('#design-workspace').hidden=false;
   fillForm(settings);
