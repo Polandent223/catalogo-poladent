@@ -25,9 +25,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Obtener copia publica validada
+      - name: Leer solo ajustes públicos y validar destacados
         run: |
-          node scripts/sync-public-catalog.mjs
+          node scripts/sync-public-highlights.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
