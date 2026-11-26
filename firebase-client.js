@@ -327,6 +327,14 @@ export async function saveProduct(id, body) {
   if(!pricing.enabled)delete publicProduct.price_usd;
   if (product.status === 'hidden') batch.delete(doc(db, 'catalogPublic', key));
   else batch.set(doc(db, 'catalogPublic', key), publicProduct);
+  // El HTML usa un respaldo de GitHub; publicamos también el nombre en el
+  // MISMO documento ligero que ya consulta para los precios. Un solo lote
+  // atómico, sin recargar 255 fichas ni añadir solicitudes desde el navegador.
+  // El mapa se actualiza por ID con merge, preservando todas las otras entradas.
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{
+    kind:'contact_settings',status:'available',
+    public_product_names:{[key]:product.status==='hidden'?deleteField():product.name}
+  },{merge:true});
   if(pricing.enabled){
     // Índice ligero para clientes: misma operación atómica que la ficha.
     batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
@@ -357,7 +365,10 @@ export async function deleteProduct(product) {
   }
   batch.delete(doc(db, 'catalogProducts', product.id));
   batch.delete(doc(db, 'catalogPublic', product.id));
-  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{
+    kind:'contact_settings',status:'available',
+    public_product_names:{[String(product.id)]:deleteField()},
+    pricing_public_prices:{
     [String(product.id)]:deleteField()
   }},{merge:true});
   await batch.commit();
