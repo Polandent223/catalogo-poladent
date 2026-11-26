@@ -71,7 +71,7 @@ assert.ok(!linkWithRef.includes('Cliente Dental'),'No filtrar nombre en enlace p
 assert.ok(!linkWithRef.includes('0412'),'No filtrar teléfono en enlace público');
 
 for(const tampered of ['#pedido=p1=2,p1=3','#pedido=hidden=0','#pedido=p1=10000',
- '#pedido=p1=1,p2=2,p3=3,p4=4,p5=5,p6=6,p7=7,p8=8,p9=9,p10=10,p11=11',
+ '#pedido='+Array.from({length:21},(_,i)=>'p'+(i+1)+'=1').join(','),
  '#pedido=<script>=1','#pedido=p1=3.2']){
  assert.deepEqual(parseSummaryFragment(tampered),[]);
 }
@@ -108,6 +108,13 @@ let full=Array.from({length:CART_LIMIT},(_,i)=>({
   id:'test-'+i,name:'Producto '+i,brand:'ICE',status:'available'
 }));
 let lot=full.map(p=>({id:p.id,quantity:1}));
+const twentyLineSummary=cartSummaryURL(lot,full,'https://catalogopoladent.com/');
+assert.ok(twentyLineSummary.startsWith('https://catalogopoladent.com/solicitud.html#pedido='));
+assert.deepEqual(parseSummaryFragment(new URL(twentyLineSummary).hash),lot);
+assert.equal(parseSummaryFragment('#pedido='+Array.from({length:21},(_,i)=>'p'+i+'=1').join(',')).length,0);
+const twentyItemsMsg=cartWhatsAppURL('584121234567',lot,full,{name:'Cliente',phone:'0412 1234567',city:'Valencia'},twentyLineSummary);
+assert.ok(twentyItemsMsg.startsWith('https://wa.me/'));
+assert.ok(new URL(twentyItemsMsg).searchParams.get('text').includes('Productos diferentes: 20'));
 const eleven={id:'eleven',name:'Extra',brand:'ICE',status:'available'};
 assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 20/);
 const long=[{id:'long',name:'X'.repeat(8000),brand:'VRC',status:'available'}];
