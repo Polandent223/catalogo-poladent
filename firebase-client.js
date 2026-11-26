@@ -331,16 +331,17 @@ export async function saveProduct(id, body) {
   // MISMO documento ligero que ya consulta para los precios. Un solo lote
   // atómico, sin recargar 255 fichas ni añadir solicitudes desde el navegador.
   // El mapa se actualiza por ID con merge, preservando todas las otras entradas.
-  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{
+  const liveProductPatch={
     kind:'contact_settings',status:'available',
     public_product_names:{[key]:product.status==='hidden'?deleteField():product.name}
-  },{merge:true});
+  };
   if(pricing.enabled){
     // Índice ligero para clientes: misma operación atómica que la ficha.
-    batch.set(doc(db,'catalogPublic',CONTACTS_DOC),{pricing_public_prices:{
+    liveProductPatch.pricing_public_prices={
       [key]:product.status==='hidden'||product.price_usd===null?deleteField():product.price_usd
-    }},{merge:true});
+    };
   }
+  batch.set(doc(db,'catalogPublic',CONTACTS_DOC),liveProductPatch,{merge:true});
   await batch.commit();
   return key;
 }
