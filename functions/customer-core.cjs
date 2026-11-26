@@ -1,5 +1,5 @@
 'use strict';
-const MAX_PRODUCTS=10;
+const MAX_PRODUCTS=20;
 function normalizeCedula(input){
  const value=String(input||'').trim().toUpperCase().replace(/[\s.-]/g,'');
  if(!/^[VE][0-9]{6,9}$/.test(value))throw Error('Indica una cédula venezolana como V12345678 o E12345678.');
