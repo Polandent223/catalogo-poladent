@@ -46,6 +46,30 @@ assert.ok(js.includes("if(logout)workspace.querySelector('.ux-admin-global').app
 assert.ok(js.includes("if(preview){"),'El iframe de vista previa se preserva.');
 assert.ok(css.includes('.ux-tab-panel[hidden]{display:none!important}'),
  'Solo se muestra la pestaña activa.');
+
+// Regresión: canales y enlaces de campañas no deben aparecer bajo todas las
+// pestañas. Se MUEVEN desde el workspace al panel Resumen; no se copian.
+const analyticsMarkup=read('estadisticas.html');
+const analyticsBlock=js.slice(js.indexOf('function analyticsPanel('),js.indexOf('function welcomePanel('));
+for(const [selector,id] of [
+  ['.analytics-sources-panel','analytics-sources'],
+  ['.analytics-campaign-links','analytics-campaign-links']
+]){
+  assert.equal((analyticsMarkup.match(new RegExp('id="'+id+'"','g'))||[]).length,1,
+    'La sección '+id+' existe una sola vez.');
+  assert.ok(analyticsBlock.includes("workspace.querySelector(':scope > "+selector+"')"),
+    'Buscar sólo el bloque original del workspace: '+selector);
+}
+assert.ok(analyticsBlock.includes("manager.panels.get('resumen').append(sources)"),
+  'Origen de visitas debe mostrarse sólo en Resumen.');
+assert.ok(analyticsBlock.includes("manager.panels.get('resumen').append(campaigns)"),
+  'Enlaces identificables deben mostrarse sólo en Resumen.');
+assert.ok(analyticsBlock.includes("manager.panels.get('visitas').append(columns[0])"),
+  'Visitas y marcas conserva sólo su sección.');
+assert.ok(analyticsBlock.includes("manager.panels.get('interes').append(columns[1],areas)"),
+  'Productos y consultas conserva sus secciones.');
+assert.ok(!/manager\.panels\.get\('(visitas|interes)'\)\.append\([^\n]*(sources|campaigns)/.test(analyticsBlock),
+  'No repetir canales ni enlaces fuera de Resumen.');
 assert.ok(css.includes('overflow-x:auto'),'Las pestañas caben en teléfonos.');
 assert.ok(css.includes('.ux-preview-fold>summary'),
  'La vista previa se puede plegar.');

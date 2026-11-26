@@ -208,6 +208,10 @@ function analyticsPanel(workspace){
   const comparison=workspace.querySelector('.analytics-comparison');
   const columns=[...workspace.querySelectorAll(':scope > .analytics-columns')];
   const areas=workspace.querySelector('.analytics-area-panel');
+  // Secciones añadidas al panel después de crear las pestañas: antes quedaban
+  // como hijas directas del workspace y se veían en TODAS las pestañas.
+  const sources=workspace.querySelector(':scope > .analytics-sources-panel');
+  const campaigns=workspace.querySelector(':scope > .analytics-campaign-links');
   const foot=workspace.querySelector('.analytics-note');
   if(!metrics||!comparison||columns.length!==2||!areas)return;
   const manager=tabs(workspace,[
@@ -216,6 +220,9 @@ function analyticsPanel(workspace){
   const filter=workspace.querySelector('.analytics-filters');
   filter.after(manager.bar);
   manager.panels.get('resumen').append(metrics,comparison);
+  // Mover los nodos existentes, sin duplicar estadísticas ni enlaces.
+  if(sources)manager.panels.get('resumen').append(sources);
+  if(campaigns)manager.panels.get('resumen').append(campaigns);
   manager.panels.get('visitas').append(columns[0]);
   manager.panels.get('interes').append(columns[1],areas);
   if(foot)manager.panels.get('resumen').append(foot);
