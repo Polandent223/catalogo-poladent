@@ -1,0 +1,73 @@
+name: Sincronizar catalogo publico POLADENT
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  push:
+    branches:
+      - main
+      - fix/poladent-destacados-respaldo-20261126
+    paths:
+      - '.github/workflows/catalog-public-sync.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: poladent-public-sync
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Obtener copia publica validada
+        run: |
+          node scripts/sync-public-catalog.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const data=JSON.parse(readFileSync('catalog-public-snapshot.json','utf8'));
+          assert.ok(data.products.length>=200);
+          assert.equal(data.storefront?.enabled,true);
+          assert.ok(Array.isArray(data.products));
+          const ids=data.storefront?.featured_product_ids||[];
+          assert.ok(Array.isArray(ids)&&ids.length<=6);
+          console.log('Publicacion validada:',{
+            products:data.products.length,
+            highlighted:ids.length,
+            highlightsEnabled:data.storefront?.featured_products_enabled===true
+          });
+          NODE
+      - name: Guardar solo archivos publicos modificados
+        id: changes
+        run: |
+          if git diff --quiet -- catalog-public-snapshot.json catalog-welcome-snapshot.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Respaldo publico sin cambios"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- catalog-public-snapshot.json catalog-welcome-snapshot.json
+          git commit -m "Sincronizar respaldo publico POLADENT [skip ci]"
+          git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Preparar GitHub Pages con la copia actualizada
+        if: github.ref == 'refs/heads/main' && steps.changes.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+      - name: Subir sitio estatico a Pages
+        if: github.ref == 'refs/heads/main' && steps.changes.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Publicar sitio actualizado
+        if: github.ref == 'refs/heads/main' && steps.changes.outputs.changed == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 600000
