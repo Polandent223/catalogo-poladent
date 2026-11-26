@@ -138,6 +138,16 @@ export function normalizeFeaturedProductIds(input){
   const ids=Array.isArray(input)?input:[];
   return [...new Set(ids.map(id=>String(id||'')).filter(id=>/^[A-Za-z0-9_-]{1,140}$/.test(id)))].slice(0,6);
 }
+// Capa visual: filtra por los IDs y estados del inventario público vigente.
+export function selectFeaturedProducts(products,settings){
+  const s=normalizeStorefront(settings||{});
+  if(!s.featured_products_enabled||!Array.isArray(products))return [];
+  const current=new Map(products.filter(p=>p&&p.id&&p.name&&p.brand&&
+    secureBannerURL(p.image_url)&&
+    (p.status==='available'||(s.featured_products_include_sold_out&&p.status==='sold_out')))
+    .map(p=>[String(p.id),p]));
+  return s.featured_product_ids.map(id=>current.get(id)).filter(Boolean);
+}
 export function normalizeStorefront(input={},allowBlob=false) {
   const s=input&&typeof input==='object'?input:{};
   const list=Array.isArray(s.trust_items)?s.trust_items:STORE_DEFAULTS.trust_items;
