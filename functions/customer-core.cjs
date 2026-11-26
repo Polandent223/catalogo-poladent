@@ -17,7 +17,7 @@ function normalizeCustomerName(value){
 }
 function validateRequestedItems(value){
  if(!Array.isArray(value)||value.length<1||value.length>MAX_PRODUCTS)
-   throw Error('Incluye entre 1 y 10 productos.');
+   throw Error('Incluye entre 1 y 20 productos.');
  const unique=new Set();
  return value.map(item=>{
    const id=String(item?.id||'');
