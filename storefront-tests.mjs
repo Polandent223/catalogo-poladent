@@ -306,7 +306,8 @@ assert.ok(adminCode.includes('function renderCompactOrder(device)'));
 assert.ok(adminCode.includes('compact_order_mobile:[...compactOrderMobile]'));
 assert.ok(adminCode.includes('compact_order_desktop:[...compactOrderDesktop]'));
 assert.ok(publicCode.includes('function applyCompactLayout(values,active)'));
-assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar'"));
+assert.ok(publicCode.includes("catalogo:['#product-highlights','.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar'"),
+ 'El escaparate opcional debe acompañar al catálogo en modo compacto.');
 assert.ok(!publicCode.includes('main.appendChild(\'#products\')'));
 assert.ok(style.includes('body.storefront-active.storefront-theme-premium-compacta main'));
 assert.ok(style.includes('order:var(--compact-mobile-order,4)'));
@@ -340,7 +341,7 @@ assert.ok(!page.includes('<a href="admin.html">Administración</a>'),'Ocultar en
 assert.ok(publicCode.includes('function renderQuickAreas()'));
 assert.ok(publicCode.includes('quickAreasForProduct(p,currentQuickAreas,currentQuickAuto).includes(activeQuickArea)'));
 assert.ok(publicCode.includes('function refreshQuickInquiry()'));
-assert.ok(publicCode.includes("catalogo:['.brands-area','#brand-hero','#quick-areas'"));
+assert.ok(publicCode.includes("catalogo:['#product-highlights','.brands-area','#brand-hero','#quick-areas'"));
 assert.ok(publicCode.includes("field.primary='Ver productos'"));
 assert.ok(style.includes('.quick-area-buttons'));
 assert.ok(style.includes('.inquiry-quick'));

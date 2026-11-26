@@ -97,6 +97,11 @@ export const STORE_DEFAULTS=Object.freeze({
   brands_title:'Explora todas nuestras marcas',
   trust_items:['Equipos e insumos dentales','Cotización por WhatsApp','Atención personalizada'],
   featured_brands:['ADALTA','EASYINSMILE','IMODONTO'],
+  // El administrador decide qué fichas reales destacar. No activar por defecto.
+  featured_products_enabled:false,
+  featured_products_title:'Productos destacados',
+  featured_product_ids:[],
+  featured_products_include_sold_out:false,
   banner_desktop_url:'',
   banner_desktop_path:null,
   banner_mobile_url:'',
@@ -127,6 +132,21 @@ export function visibleBrandNames(allNames,featuredBrands=[],activeBrand='',expa
   if(expanded)return [...names];
   const featured=new Set(Array.isArray(featuredBrands)?featuredBrands:[]);
   return names.filter(name=>featured.has(name)||name===activeBrand);
+}
+// IDs públicos existentes: nunca construir productos ficticios ni incrustar precios.
+export function normalizeFeaturedProductIds(input){
+  const ids=Array.isArray(input)?input:[];
+  return [...new Set(ids.map(id=>String(id||'')).filter(id=>/^[A-Za-z0-9_-]{1,140}$/.test(id)))].slice(0,6);
+}
+// Capa visual: filtra por los IDs y estados del inventario público vigente.
+export function selectFeaturedProducts(products,settings){
+  const s=normalizeStorefront(settings||{});
+  if(!s.featured_products_enabled||!Array.isArray(products))return [];
+  const current=new Map(products.filter(p=>p&&p.id&&p.name&&p.brand&&
+    secureBannerURL(p.image_url)&&
+    (p.status==='available'||(s.featured_products_include_sold_out&&p.status==='sold_out')))
+    .map(p=>[String(p.id),p]));
+  return s.featured_product_ids.map(id=>current.get(id)).filter(Boolean);
 }
 export function normalizeStorefront(input={},allowBlob=false) {
   const s=input&&typeof input==='object'?input:{};
@@ -190,6 +210,10 @@ export function normalizeStorefront(input={},allowBlob=false) {
     featured_title:bounded(s.featured_title,65,STORE_DEFAULTS.featured_title),
     brands_title:bounded(s.brands_title,65,STORE_DEFAULTS.brands_title),
     trust_items,featured_brands,
+    featured_products_enabled:s.featured_products_enabled===true,
+    featured_products_title:bounded(s.featured_products_title,72,STORE_DEFAULTS.featured_products_title),
+    featured_product_ids:normalizeFeaturedProductIds(s.featured_product_ids),
+    featured_products_include_sold_out:s.featured_products_include_sold_out===true,
     banner_desktop_url:secureBannerURL(s.banner_desktop_url,allowBlob),
     banner_mobile_url:secureBannerURL(s.banner_mobile_url,allowBlob),
     banner_desktop_path:typeof s.banner_desktop_path==='string'?s.banner_desktop_path:null,

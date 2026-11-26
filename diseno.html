@@ -285,6 +285,21 @@ background:linear-gradient(105deg,#f9fcff 0%,#d5edfe 60%,#07559d 61%,#0a2a5d 100
 <div id="design-brands" class="design-brands"></div>
 <label>Texto del botón para explorar todas las marcas<input name="brands_title" maxlength="65" required></label>
 </fieldset>
+<fieldset id="design-highlight-editor">
+<legend>Productos destacados · escaparate comercial</legend>
+<p>Elige hasta seis productos reales y su orden. La sección es opcional, independiente de las marcas destacadas. Puedes dejarla desactivada sin modificar el catálogo.</p>
+<label class="design-toggle"><input id="design-highlights-enabled" type="checkbox"> Mostrar productos destacados al público</label>
+<label>Título de la sección
+<input name="featured_products_title" maxlength="72" placeholder="Productos destacados"></label>
+<label class="design-toggle"><input id="design-highlights-sold-out" type="checkbox"> Permitir artículos agotados (se mostrarán como «Agotado»)</label>
+<p>Recomendamos seleccionar de cuatro a seis productos. Los productos ocultos nunca se muestran.</p>
+<label for="design-highlight-search">Buscar productos disponibles o agotados</label>
+<input id="design-highlight-search" type="search" placeholder="Buscar por nombre o marca…" autocomplete="off">
+<div id="design-highlight-candidates" class="design-highlight-candidates" aria-label="Resultados de productos disponibles"></div>
+<h3>Selección y orden <span id="design-highlight-count">0 / 6</span></h3>
+<div id="design-highlight-selected" class="design-highlight-selected" aria-live="polite"></div>
+<p id="design-highlight-feedback" class="design-status" role="status" aria-live="polite"></p>
+</fieldset>
 <fieldset id="design-premium-editor"><legend>Contenido · Premium Confianza</legend>
 <p>Estos textos se muestran cuando seleccionas Premium Confianza o Premium Compacta. Puedes cambiarlos cuando quieras, sin modificar tus productos ni las otras plantillas.</p>
 <label class="design-toggle"><input type="checkbox" id="design-about-enabled"> Mostrar «¿Por qué elegir POLADENT?»</label>

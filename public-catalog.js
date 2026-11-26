@@ -5,7 +5,7 @@ import {loadPublicSnapshot,restoreLocallyVerifiedCatalog,saveLocallyVerifiedCata
 import {loadEmergencyCatalog} from './catalog-emergency.js';
 import {cloudinaryImage,setCardImage} from './catalog-images.js';
 import {whatsappInquiryURL} from './contact-links.js';
-import {normalizeStorefront,STORE_THEMES,visibleBrandNames} from './storefront-settings.js';
+import {normalizeStorefront,STORE_THEMES,visibleBrandNames,selectFeaturedProducts} from './storefront-settings.js';
 import {QUICK_AREAS,quickAreaCounts,quickAreasForProduct} from './catalog-quick-search.js';
 import {bannerImageForViewport} from './banner-slides.js';
 import {fetchBcvRate,cleanUSD,formatUSD,formatVES,formatBcvRate,convertVES} from './catalog-pricing.js';
@@ -336,7 +336,7 @@ function renderOfficialLocations(values,active){
 const COMPACT_LAYOUT_NODES={
   hero:['#storefront-hero'],
   trust:['.storefront-trust'],
-  catalogo:['.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar','#cart-feedback',
+  catalogo:['#product-highlights','.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar','#cart-feedback',
     '#catalog-status','#products','#more','#brand-back-cover'],
   about:['#premium-about'],
   locations:['#official-locations'],
@@ -522,6 +522,7 @@ function renderStorefront(){
   stage.hidden=!active;
   renderOfficialLocations(values,active);
   renderPremiumSections(values,active);
+  renderProductHighlights(values);
   applyCompactLayout(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   $('#footer-locations').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
@@ -666,12 +667,19 @@ async function refreshLivePricing(){
  try{
   const live=await readLivePricing(cfg);
   const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning},live);
-  const changed=next.pricingEnabled!==pricingEnabled||
+  const shown=normalizeStorefront(storefrontSettings||{});
+  const incoming=normalizeStorefront(next.storefront||{});
+  const highlightsChanged=shown.featured_products_enabled!==incoming.featured_products_enabled||
+    shown.featured_products_title!==incoming.featured_products_title||
+    shown.featured_products_include_sold_out!==incoming.featured_products_include_sold_out||
+    JSON.stringify(shown.featured_product_ids)!==JSON.stringify(incoming.featured_product_ids);
+  const changed=highlightsChanged||next.pricingEnabled!==pricingEnabled||
     products.some((p,i)=>p.price_usd!==next.products[i]?.price_usd||
       p.name!==next.products[i]?.name);
   if(!changed)return;
   const wasEnabled=pricingEnabled;
   products=next.products;pricingEnabled=next.pricingEnabled;
+  storefrontSettings=next.storefront||storefrontSettings;
   // Al cambiar un nombre, buscar y filtrar con el texto nuevo, sin recargar
   // 255 fichas desde Firestore.
   searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand+' '+(p.description||''))]));
@@ -682,6 +690,7 @@ async function refreshLivePricing(){
     :'El catálogo funciona en modo consulta. Precios y existencia sujetos a confirmación por WhatsApp.';
   updateBcvBanner();
   renderProducts();renderCart();
+  renderProductHighlights();
   if(selected){
    selected=products.find(p=>String(p.id)===String(selected.id))||selected;
    $('#detail-name').textContent=selected.name;
@@ -697,7 +706,7 @@ async function refreshBcvRate(){
  if(!pricingEnabled)return;
  try{bcvRate=await fetchBcvRate();}
  catch(error){bcvRate=null;console.warn('Tasa BCV no validada:',error.message);}
- updateBcvBanner();renderProducts();renderCart();if(selected)drawDetailPrice(selected);
+ updateBcvBanner();renderProducts();renderCart();renderProductHighlights();if(selected)drawDetailPrice(selected);
 }
 function buildCard(p,index){
   const card=element('article',null,'product-card'),button=element('button',null,'image-button');
@@ -717,6 +726,22 @@ function buildCard(p,index){
   add.type='button';add.dataset.cartAdd=String(p.id);
   add.addEventListener('click',()=>addToCart(p));
   card.append(view,add);return card;
+}
+function renderProductHighlights(values=normalizeStorefront(storefrontDraft||storefrontSettings||{})){
+  const section=$('#product-highlights');
+  const list=$('#product-highlights-grid');
+  // Sólo productos públicos reales, sin duplicar información ni precios.
+  const items=selectFeaturedProducts(products,values);
+  section.hidden=values.featured_products_enabled!==true||items.length===0||Boolean(brand.value);
+  list.replaceChildren();
+  if(section.hidden)return;
+  $('#product-highlights-title').textContent=values.featured_products_title;
+  for(const [index,product] of items.entries()){
+    const card=buildCard(product,index);
+    card.prepend(element('span','Selección POLADENT','highlight-ribbon'));
+    list.append(card);
+  }
+  refreshCartButtons();
 }
 function appendCards(rows,start){
   const fragment=document.createDocumentFragment();
@@ -766,6 +791,7 @@ function selectBrand(name){
   drawBrands();
   renderBrandHero();
   renderProducts();
+  renderProductHighlights();
   history.replaceState(null,'',brandUrl(name));
   renderStorefront();
 }
