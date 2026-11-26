@@ -46,6 +46,8 @@ export async function syncPublicHighlights({root=process.cwd(),request=fetch}={}
  url.searchParams.set('key',apiKey);
  const response=await request(url.href,{headers:{Accept:'application/json'},
    signal:AbortSignal.timeout(14000),cache:'no-store'});
+ if(response.status===429)return {updated:false,deferred:true,
+   reason:'Firebase limita temporalmente las consultas (429); el respaldo permanece intacto.'};
  if(!response.ok)throw Error('No se pudo leer el único documento público de destacados (HTTP '+response.status+').');
  const document=await response.json();
  const file=resolve(root,'catalog-public-snapshot.json');
