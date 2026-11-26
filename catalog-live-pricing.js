@@ -2,7 +2,7 @@
 // El administrador publica el índice sólo mientras precios públicos estén activados.
 import {decodeFirestoreValue} from './catalog-public-data.js';
 import {cleanUSD} from './catalog-pricing.js';
-import {normalizeFeaturedProductIds} from './storefront-settings.js';
+import {normalizeFeaturedProductIds} from './storefront-settings.js?v=20261126-destacados-pc1';
 
 export const LIVE_PRICING_POLL_MS=120000;
 const MAX_PUBLIC_PRICES=5000;
