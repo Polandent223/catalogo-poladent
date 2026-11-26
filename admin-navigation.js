@@ -100,7 +100,7 @@ function designPanel(workspace){
   if(!form)return;
   const fields=[...form.querySelectorAll(':scope > fieldset')];
   const manager=tabs(form,[
-    ['banners','Banners'],['marcas','Marcas'],
+    ['banners','Banners'],['marcas','Marcas'],['destacados','Productos destacados'],
     ['plantillas','Plantillas'],['pantallas','Móvil y PC'],
     ['areas','Áreas'],['textos','Textos'],['sedes','Sedes']
   ],'banners');
@@ -115,6 +115,7 @@ function designPanel(workspace){
     let key='textos';
     if(id==='design-theme-chooser'||label.includes('publicación'))key='plantillas';
     else if(id==='design-compact-editor')key='pantallas';
+    else if(id==='design-highlight-editor')key='destacados';
     else if(id==='design-areas-editor')key='areas';
     else if(id==='design-locations')key='sedes';
     else if(id==='design-premium-editor'||label.includes('confianza'))key='textos';
