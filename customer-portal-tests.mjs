@@ -28,6 +28,11 @@ assert.equal(core.calculateQuote(items,catalog,false,null).total_usd,null,'Preci
 assert.throws(()=>core.calculateQuote(items,[catalog[0]],true,123),'Producto oculto o retirado');
 assert.throws(()=>core.validateRequestedItems([{id:'p1',quantity:1},{id:'p1',quantity:2}]));
 assert.throws(()=>core.validateRequestedItems([{id:'p1',quantity:10000}]));
+const twentyRequested=Array.from({length:20},(_,i)=>({id:'p'+i,quantity:1}));
+assert.deepEqual(core.validateRequestedItems(twentyRequested),twentyRequested,
+ 'El módulo de clientes opcional debe aceptar 20 productos cuando se active.');
+assert.throws(()=>core.validateRequestedItems([...twentyRequested,{id:'p20',quantity:1}]),
+ /20|cantidad|productos/i,'Rechazar el producto 21.');
 assert.throws(()=>core.priceCents('no es precio'));
 const rate=core.validBcvPayload({USD:887.302,effective_date:'2026-10-27'},new Date('2026-10-27T17:00:00Z'));
 assert.equal(rate.usd_ves,887.302);
