@@ -48,6 +48,8 @@ jobs:
         run: node storefront-tests.mjs
       - name: Validar productos destacados, disponibilidad y carrito sin escrituras extra
         run: node product-highlights-tests.mjs
+      - name: Verificar que el respaldo de destacados use una sola lectura pública
+        run: node scripts/sync-public-highlights-tests.mjs
       - name: Verificar enlaces y cuentas oficiales de Instagram
         run: node instagram-links-tests.mjs
       - name: Probar Cloudinary con dominio nuevo y original
