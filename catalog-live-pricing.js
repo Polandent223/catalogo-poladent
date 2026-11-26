@@ -25,8 +25,20 @@ export function parseLivePricingDocument(document){
   throw Error('No se encontró una publicación de precios válida.');
  const enabled=data.pricing.enabled===true;
  const indexed=data.pricing.public_index_version===1;
- const result={enabled,indexed,prices:{},updatedAt:typeof data.pricing.updated_at==='string'
+ const result={enabled,indexed,prices:{},names:{},updatedAt:typeof data.pricing.updated_at==='string'
    ?data.pricing.updated_at:''};
+ // Reutilizar la misma lectura de precios, incluso cuando están apagados.
+ // Sólo nombres públicos válidos, con sus IDs de producto.
+ const rawNames=data.public_product_names;
+ if(rawNames&&typeof rawNames==='object'&&!Array.isArray(rawNames)&&
+   Object.keys(rawNames).length<=5000){
+  for(const [id,name] of Object.entries(rawNames)){
+   if(/^[A-Za-z0-9_-]{1,140}$/.test(id)&&typeof name==='string'&&
+     name.trim().length>0&&name.trim().length<=180){
+    result.names[id]=name.trim();
+   }
+  }
+ }
  if(!enabled)return result;
  if(!indexed)return result; // Versión anterior: conservar la copia de GitHub.
  const rawPrices=data.pricing_public_prices;
@@ -57,17 +69,22 @@ export async function readLivePricing(config,request=fetch){
 export function applyLivePricing(catalog,live){
  if(!catalog||!Array.isArray(catalog.products)||typeof live?.enabled!=='boolean')
   throw Error('No se pudo aplicar el estado público de precios.');
+ const names=live.names||{};
+ const namedProducts=catalog.products.map(p=>{
+  const publicName=Object.prototype.hasOwnProperty.call(names,p.id)?names[p.id]:null;
+  return publicName?{...p,name:publicName}:p;
+ });
  if(!live.enabled){
-  return {...catalog,pricingEnabled:false,products:catalog.products.map(p=>{
+  return {...catalog,pricingEnabled:false,products:namedProducts.map(p=>{
    const product={...p};delete product.price_usd;return product;
   })};
  }
  if(!live.indexed){
   // Sin un índice completo no inventamos montos ni filtramos precios privados.
-  return {...catalog,pricingEnabled:catalog.pricingEnabled===true};
+  return {...catalog,pricingEnabled:catalog.pricingEnabled===true,products:namedProducts};
  }
  const prices=live.prices;
- return {...catalog,pricingEnabled:true,snapshotPriceWarning:false,products:catalog.products.map(p=>{
+ return {...catalog,pricingEnabled:true,snapshotPriceWarning:false,products:namedProducts.map(p=>{
   const product={...p};
   if(Object.prototype.hasOwnProperty.call(prices,p.id))product.price_usd=prices[p.id];
   else delete product.price_usd;

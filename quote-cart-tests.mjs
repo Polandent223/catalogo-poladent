@@ -13,7 +13,7 @@ const products=[
 ];
 const share=p=>'https://polandent223.github.io/catalogo-poladent/?marca='+
   encodeURIComponent(p.brand)+'#producto='+encodeURIComponent(p.id);
-assert.equal(CART_LIMIT,10);
+assert.equal(CART_LIMIT,20);
 assert.equal(CART_STORAGE_KEY,'poladent.quote.cart.v1');
 for(const bad of [undefined,null,'',0,-1,10000,'1.2','no','1e5']){
   assert.equal(cartQuantity(bad),null);
@@ -71,7 +71,7 @@ assert.ok(!linkWithRef.includes('Cliente Dental'),'No filtrar nombre en enlace p
 assert.ok(!linkWithRef.includes('0412'),'No filtrar teléfono en enlace público');
 
 for(const tampered of ['#pedido=p1=2,p1=3','#pedido=hidden=0','#pedido=p1=10000',
- '#pedido=p1=1,p2=2,p3=3,p4=4,p5=5,p6=6,p7=7,p8=8,p9=9,p10=10,p11=11',
+ '#pedido='+Array.from({length:21},(_,i)=>'p'+(i+1)+'=1').join(','),
  '#pedido=<script>=1','#pedido=p1=3.2']){
  assert.deepEqual(parseSummaryFragment(tampered),[]);
 }
@@ -108,8 +108,15 @@ let full=Array.from({length:CART_LIMIT},(_,i)=>({
   id:'test-'+i,name:'Producto '+i,brand:'ICE',status:'available'
 }));
 let lot=full.map(p=>({id:p.id,quantity:1}));
+const twentyLineSummary=cartSummaryURL(lot,full,'https://catalogopoladent.com/');
+assert.ok(twentyLineSummary.startsWith('https://catalogopoladent.com/solicitud.html#pedido='));
+assert.deepEqual(parseSummaryFragment(new URL(twentyLineSummary).hash),lot);
+assert.equal(parseSummaryFragment('#pedido='+Array.from({length:21},(_,i)=>'p'+i+'=1').join(',')).length,0);
+const twentyItemsMsg=cartWhatsAppURL('584121234567',lot,full,{name:'Cliente',phone:'0412 1234567',city:'Valencia'},twentyLineSummary);
+assert.ok(twentyItemsMsg.startsWith('https://wa.me/'));
+assert.ok(new URL(twentyItemsMsg).searchParams.get('text').includes('Productos diferentes: 20'));
 const eleven={id:'eleven',name:'Extra',brand:'ICE',status:'available'};
-assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 10/);
+assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 20/);
 const long=[{id:'long',name:'X'.repeat(8000),brand:'VRC',status:'available'}];
 assert.ok(cartSummaryURL([{id:'long',quantity:1}],long,
   'https://polandent223.github.io/catalogo-poladent/').includes('solicitud.html'));
@@ -117,12 +124,27 @@ const publicCode=readFileSync('public-catalog.js','utf8');
 const html=readFileSync('index.html','utf8');
 const analytics=readFileSync('catalog-analytics.js','utf8');
 for(const id of ['cart-open','cart-dialog','cart-items','cart-form','cart-city',
-  'cart-contact','cart-whatsapp','cart-count','detail-cart-add']){
+  'cart-contact','cart-whatsapp','cart-count','detail-cart-add',
+  'mobile-quote-bar','mobile-quote-count','mobile-quote-notice','mobile-quote-open']){
   assert.ok(html.includes('id="'+id+'"'),id);
 }
 assert.ok(!html.includes('id="cart-timing"'));
 assert.ok(html.includes('class="cart-bag-icon"'));
 assert.ok(html.includes('class="cart-count-badge"'));
+assert.ok(html.includes('id="mobile-quote-bar"')&&html.includes('hidden'),
+  'La barra móvil debe comenzar oculta y sólo mostrarse con artículos.');
+assert.ok(publicCode.includes("mobileQuoteOpen.addEventListener('click'"),
+  'La barra móvil abre el carrito EXISTENTE.');
+assert.ok(publicCode.includes("mobileQuoteBar.hidden=!catalogLoaded||count===0"),
+  'No mostrar barra con carrito vacío.');
+assert.ok(publicCode.includes('updateMobileQuoteBar();'),
+  'La barra debe seguir las cantidades del carrito.');
+assert.ok(publicCode.includes('announceMobileQuoteAdded(p)'),
+  'Confirmar visualmente al agregar productos.');
+const styles=readFileSync('catalog-style.css','utf8');
+assert.ok(styles.includes('#mobile-quote-bar[hidden]{display:none!important}'));
+assert.ok(styles.includes('body.mobile-quote-active'), 'Reservar espacio para que no tape los últimos productos.');
+assert.ok(styles.includes('@media(max-width:700px)'), 'No añadir un segundo carrito a PC.');
 assert.ok(html.includes('aria-label="Mi cotización, 0 productos"'));
 assert.ok(html.includes('no crea una cuenta ni un historial de cliente'));
 assert.ok(publicCode.includes('sessionStorage.setItem(CART_STORAGE_KEY'));

@@ -23,12 +23,16 @@ const doc={fields:{
  }}},
  pricing_public_prices:{mapValue:{fields:{
   rodio:{doubleValue:1.77},equipo:{doubleValue:120.5}
+ }}},
+ public_product_names:{mapValue:{fields:{
+  rodio:{stringValue:'Material de rodio actualizado'},equipo:{stringValue:'Equipo actualizado'}
  }}}
 }};
 const live=parseLivePricingDocument(doc);
 assert.equal(live.enabled,true);
 assert.equal(live.indexed,true);
 assert.deepEqual(live.prices,index);
+assert.deepEqual(live.names,{rodio:'Material de rodio actualizado',equipo:'Equipo actualizado'});
 const stale={products:[
  {id:'rodio',price_usd:2,name:'Espejo'},
  {id:'equipo',name:'Equipo'},
@@ -39,17 +43,30 @@ assert.equal(on.pricingEnabled,true,'El precio debe aparecer aunque la copia vie
 assert.equal(on.products[0].price_usd,1.77);
 assert.equal(on.products[1].price_usd,120.5);
 assert.equal(on.products[2].price_usd,undefined,'La ficha no publicada no recibe importe.');
+assert.equal(on.products[0].name,'Material de rodio actualizado',
+ 'El nombre editado prevalece sobre la copia estática.');
+assert.equal(on.products[1].name,'Equipo actualizado');
 const off=applyLivePricing(on,parseLivePricingDocument({fields:{
  kind:{stringValue:'contact_settings'},
  pricing:{mapValue:{fields:{enabled:{booleanValue:false},public_index_version:{integerValue:'1'}}}}
 }}));
 assert.equal(off.pricingEnabled,false);
 assert.ok(off.products.every(p=>p.price_usd===undefined),'Ocultar todos los importes cuando el administrador desactiva.');
+// La actualización rápida de nombres es independiente de los precios.
+const offWithName=parseLivePricingDocument({fields:{
+ kind:{stringValue:'contact_settings'},
+ pricing:{mapValue:{fields:{enabled:{booleanValue:false},public_index_version:{integerValue:'1'}}}},
+ public_product_names:{mapValue:{fields:{rodio:{stringValue:'Nombre nuevo sin precios'}}}}
+}});
+assert.equal(applyLivePricing(stale,offWithName).products[0].name,'Nombre nuevo sin precios');
+assert.equal(applyLivePricing(stale,offWithName).products[0].price_usd,undefined);
+assert.equal(applyLivePricing(stale,offWithName).pricingEnabled,false);
 const old=parseLivePricingDocument({fields:{
  kind:{stringValue:'contact_settings'},pricing:{mapValue:{fields:{enabled:{booleanValue:true}}}}
 }});
 assert.equal(old.indexed,false,'Compatibilidad con base existente sin índice.');
 assert.equal(applyLivePricing(stale,old).pricingEnabled,false,'No inventar precios si la copia vieja no los contenía.');
+assert.deepEqual(old.names,{},'Documentos anteriores siguen funcionando.');
 const malformed=JSON.parse(JSON.stringify(doc));
 malformed.fields.pricing_public_prices.mapValue.fields.rodio={stringValue:'1.777'};
 assert.throws(()=>parseLivePricingDocument(malformed),/dos decimales|precio/i);
@@ -67,6 +84,11 @@ await assert.rejects(()=>readLivePricing({projectId:'catalogo-poladent',apiKey:'
 const admin=read('firebase-client.js');
 assert.ok(admin.includes('buildPublicPriceIndex(byId,new Set(published.map(p=>p.id)))'));
 assert.ok(admin.includes('pricing_public_prices:active?prices:deleteField()'));
+assert.ok(admin.includes('public_product_names:{[key]:product.status'), 'Guardar nombre rápido en el mismo lote.');
+assert.ok(admin.includes('batch.set(doc(db,\'catalogPublic\',CONTACTS_DOC),liveProductPatch,{merge:true})'),
+  'Una sola escritura junto a la ficha, sin otro documento público.');
+assert.ok(admin.includes('public_product_names:{[String(product.id)]:deleteField()}'),
+  'Eliminar índice ligero al borrar un producto.');
 assert.ok(admin.includes("mergeFields:['kind','status','pricing','pricing_public_prices']"));
 assert.ok(admin.includes('public_index_version:1'));
 assert.ok(admin.includes('livePrices[row.id]=row.after'));
@@ -76,6 +98,9 @@ assert.ok(publicCode.includes('await readLivePricing(cfg)'));
 assert.ok(publicCode.includes('data=applyLivePricing(data,live)'));
 assert.ok(publicCode.includes('setInterval(()=>{if(document.visibilityState'));
 assert.ok(publicCode.includes('void refreshLivePricing();'));
+assert.ok(publicCode.includes('p.name!==next.products[i]?.name'));
+assert.ok(publicCode.includes("$('#detail-name').textContent=selected.name"));
+assert.ok(publicCode.includes("searchIndex=new Map(products.map(p=>[p.id,normalize(p.name"));
 const summary=read('solicitud.js');
 assert.ok(summary.includes('data=applyLivePricing(data,await readLivePricing(cfg))'));
 assert.ok(read('firestore.rules').includes('allow get, list: if true;'));

@@ -2177,3 +2177,32 @@ body.storefront-active.storefront-theme-premium-compacta .brand-shortcut-label s
  .analytics-source-frequency{font-size:10px;line-height:1.4}
  .analytics-channel-insight{font-size:12px;padding:11px}
 }
+
+/* POLADENT · acceso móvil a la cotización ya existente.
+   Aparece sólo cuando hay productos, sin cubrir fichas ni botones. */
+#mobile-quote-bar[hidden]{display:none!important}
+.mobile-quote-bar{display:none}
+@media(max-width:700px){
+  body.mobile-quote-active{padding-bottom:calc(95px + env(safe-area-inset-bottom,0px))}
+  #mobile-quote-bar:not([hidden]){
+    position:fixed;bottom:0;left:0;right:0;z-index:70;
+    display:flex;align-items:center;gap:12px;justify-content:space-between;
+    min-height:72px;padding:11px max(14px,env(safe-area-inset-right,14px))
+      calc(11px + env(safe-area-inset-bottom,0px))
+      max(14px,env(safe-area-inset-left,14px));
+    background:#f7fcff;border-top:1px solid #b6d7e7;
+    box-shadow:0 -5px 18px #092a4d22;color:#143c59;
+  }
+  .mobile-quote-copy{min-width:0;flex:1;display:grid;gap:3px}
+  .mobile-quote-copy strong{font-size:14px;font-weight:900;color:#0c3a5e}
+  #mobile-quote-count{display:inline-flex;align-items:center;justify-content:center;
+    padding:2px 7px;min-width:23px;border-radius:999px;
+    background:#e0f0f9;color:#07527b;font-size:12px}
+  #mobile-quote-notice{font-size:11px;color:#47687d;overflow:hidden;
+    white-space:nowrap;text-overflow:ellipsis}
+  #mobile-quote-open{flex:none;min-width:130px;min-height:45px;
+    padding:10px 14px;border:0;border-radius:10px;color:#fff;
+    background:linear-gradient(125deg,#07466c,#0876a1);
+    font-size:12px;font-weight:800;cursor:pointer}
+  #mobile-quote-open:focus-visible{outline:3px solid #75c9ed;outline-offset:2px}
+}
