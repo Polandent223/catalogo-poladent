@@ -13,7 +13,7 @@ const products=[
 ];
 const share=p=>'https://polandent223.github.io/catalogo-poladent/?marca='+
   encodeURIComponent(p.brand)+'#producto='+encodeURIComponent(p.id);
-assert.equal(CART_LIMIT,10);
+assert.equal(CART_LIMIT,20);
 assert.equal(CART_STORAGE_KEY,'poladent.quote.cart.v1');
 for(const bad of [undefined,null,'',0,-1,10000,'1.2','no','1e5']){
   assert.equal(cartQuantity(bad),null);
@@ -109,7 +109,7 @@ let full=Array.from({length:CART_LIMIT},(_,i)=>({
 }));
 let lot=full.map(p=>({id:p.id,quantity:1}));
 const eleven={id:'eleven',name:'Extra',brand:'ICE',status:'available'};
-assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 10/);
+assert.throws(()=>addCartLine(lot,'eleven',[...full,eleven]),/hasta 20/);
 const long=[{id:'long',name:'X'.repeat(8000),brand:'VRC',status:'available'}];
 assert.ok(cartSummaryURL([{id:'long',quantity:1}],long,
   'https://polandent223.github.io/catalogo-poladent/').includes('solicitud.html'));
