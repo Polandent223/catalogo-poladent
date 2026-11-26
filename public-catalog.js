@@ -667,10 +667,14 @@ async function refreshLivePricing(){
   const live=await readLivePricing(cfg);
   const next=applyLivePricing({products,pricingEnabled,snapshotPriceWarning},live);
   const changed=next.pricingEnabled!==pricingEnabled||
-    products.some((p,i)=>p.price_usd!==next.products[i]?.price_usd);
+    products.some((p,i)=>p.price_usd!==next.products[i]?.price_usd||
+      p.name!==next.products[i]?.name);
   if(!changed)return;
   const wasEnabled=pricingEnabled;
   products=next.products;pricingEnabled=next.pricingEnabled;
+  // Al cambiar un nombre, buscar y filtrar con el texto nuevo, sin recargar
+  // 255 fichas desde Firestore.
+  searchIndex=new Map(products.map(p=>[p.id,normalize(p.name+' '+p.brand+' '+(p.description||''))]));
   snapshotPriceWarning=next.snapshotPriceWarning===true;
   if(!pricingEnabled)bcvRate=null;
   $('#catalog-cart-intro').textContent=pricingEnabled
@@ -680,7 +684,10 @@ async function refreshLivePricing(){
   renderProducts();renderCart();
   if(selected){
    selected=products.find(p=>String(p.id)===String(selected.id))||selected;
+   $('#detail-name').textContent=selected.name;
+   $('#detail-image').alt=selected.name;
    drawDetailPrice(selected);
+   refreshQuickInquiry();
   }
   if(pricingEnabled&&!wasEnabled)void refreshBcvRate();
  }catch(error){console.warn('Se conserva la última publicación de precios:',error.message);}
@@ -764,6 +771,29 @@ function selectBrand(name){
 }
 const cartDialog=$('#cart-dialog'),cartForm=$('#cart-form'),cartOpen=$('#cart-open'),
   cartWhatsApp=$('#cart-whatsapp'),cartItems=$('#cart-items'),cartMessage=$('#cart-message');
+const mobileQuoteBar=$('#mobile-quote-bar'),mobileQuoteCount=$('#mobile-quote-count'),
+  mobileQuoteNotice=$('#mobile-quote-notice'),mobileQuoteOpen=$('#mobile-quote-open');
+let mobileQuoteResetTimer=0;
+function updateMobileQuoteBar(){
+  const count=cartTotals(cartLines).products;
+  mobileQuoteBar.hidden=!catalogLoaded||count===0;
+  document.body.classList.toggle('mobile-quote-active',!mobileQuoteBar.hidden);
+  mobileQuoteCount.textContent=String(count);
+  if(!mobileQuoteResetTimer){
+    mobileQuoteNotice.textContent=count===1?'1 producto listo para cotizar':
+      count+' productos listos para cotizar';
+  }
+}
+function announceMobileQuoteAdded(product){
+  if(!product||mobileQuoteBar.hidden)return;
+  clearTimeout(mobileQuoteResetTimer);
+  mobileQuoteNotice.textContent='✓ '+product.name+' agregado';
+  mobileQuoteResetTimer=setTimeout(()=>{
+    mobileQuoteResetTimer=0;
+    updateMobileQuoteBar();
+  },3000);
+}
+mobileQuoteOpen.addEventListener('click',()=>{if(!cartOpen.disabled)cartOpen.click();});
 function restoreCart(){
   try{
     const stored=JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY)||'[]');
@@ -968,12 +998,14 @@ function renderCart(){
   if(!contacts.length&&cartLines.length)showCartMessage('Los contactos de WhatsApp no están configurados. Intenta de nuevo más tarde.',true);
   updateCartLink();
   refreshCartButtons();
+  updateMobileQuoteBar();
 }
 function addToCart(p){
   try{
     cartLines=addCartLine(cartLines,String(p.id),products);
     persistCart();
     renderCart();
+    announceMobileQuoteAdded(p);
     $('#cart-feedback').textContent=p.name+' agregado. Tienes '+cartLines.length+
       ' de '+CART_LIMIT+' productos posibles en tu cotización.';
   }catch(error){
