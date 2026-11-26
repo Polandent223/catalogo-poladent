@@ -12,7 +12,7 @@ function enterCatalog(replaceURL=false){
     // La medición se carga en segundo plano, después de entrar al catálogo.
     import('./catalog-analytics.js').then(m=>m.startCatalogAnalytics())
       .catch(error=>console.warn('No se pudo iniciar el contador:',error?.message));
-    import('./public-catalog.js').catch(error=>{
+    import('./public-catalog.js?v=20261126-destacados-pc1').catch(error=>{
       console.error('No se pudo iniciar catálogo',error);
       $('#catalog-status').textContent='No se pudo cargar el catálogo. Actualiza la página para reintentar.';
     });
