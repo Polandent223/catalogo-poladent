@@ -1,7 +1,7 @@
 // El carrito solo conserva IDs y cantidades de artículos públicos de la sesión.
 // La ciudad y el plazo de compra NUNCA se guardan.
 import {normalizeQuoteDetails} from './contact-links.js';
-export const CART_LIMIT=10;
+export const CART_LIMIT=20;
 export const CART_STORAGE_KEY='poladent.quote.cart.v1';
 export function cartQuantity(value){
   if(value===null||value===undefined||String(value).trim()==='')return null;
