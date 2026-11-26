@@ -336,7 +336,7 @@ function renderOfficialLocations(values,active){
 const COMPACT_LAYOUT_NODES={
   hero:['#storefront-hero'],
   trust:['.storefront-trust'],
-  catalogo:['.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar','#cart-feedback',
+  catalogo:['#product-highlights','.brands-area','#brand-hero','#quick-areas','.filters','.cart-toolbar','#cart-feedback',
     '#catalog-status','#products','#more','#brand-back-cover'],
   about:['#premium-about'],
   locations:['#official-locations'],
@@ -522,6 +522,7 @@ function renderStorefront(){
   stage.hidden=!active;
   renderOfficialLocations(values,active);
   renderPremiumSections(values,active);
+  renderProductHighlights(values);
   applyCompactLayout(values,active);
   $('#storefront-locations-link').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
   $('#footer-locations').hidden=!(active&&values.locations_enabled&&values.locations.length>0);
@@ -682,6 +683,7 @@ async function refreshLivePricing(){
     :'El catálogo funciona en modo consulta. Precios y existencia sujetos a confirmación por WhatsApp.';
   updateBcvBanner();
   renderProducts();renderCart();
+  renderProductHighlights();
   if(selected){
    selected=products.find(p=>String(p.id)===String(selected.id))||selected;
    $('#detail-name').textContent=selected.name;
@@ -697,7 +699,7 @@ async function refreshBcvRate(){
  if(!pricingEnabled)return;
  try{bcvRate=await fetchBcvRate();}
  catch(error){bcvRate=null;console.warn('Tasa BCV no validada:',error.message);}
- updateBcvBanner();renderProducts();renderCart();if(selected)drawDetailPrice(selected);
+ updateBcvBanner();renderProducts();renderCart();renderProductHighlights();if(selected)drawDetailPrice(selected);
 }
 function buildCard(p,index){
   const card=element('article',null,'product-card'),button=element('button',null,'image-button');
@@ -717,6 +719,27 @@ function buildCard(p,index){
   add.type='button';add.dataset.cartAdd=String(p.id);
   add.addEventListener('click',()=>addToCart(p));
   card.append(view,add);return card;
+}
+function renderProductHighlights(values=normalizeStorefront(storefrontDraft||storefrontSettings||{})){
+  const section=$('#product-highlights');
+  const list=$('#product-highlights-grid');
+  // Siempre se usan fichas del inventario público actual; nunca se muestran
+  // productos eliminados ni ocultos ni se incrustan importes estáticos.
+  const byId=new Map(products.map(p=>[String(p.id),p]));
+  const items=(values.featured_product_ids||[]).map(id=>byId.get(id))
+    .filter(p=>p&&p.name&&p.brand&&p.image_url&&
+      (p.status==='available'||
+        (values.featured_products_include_sold_out&&p.status==='sold_out')));
+  section.hidden=values.featured_products_enabled!==true||items.length===0||Boolean(brand.value);
+  list.replaceChildren();
+  if(section.hidden)return;
+  $('#product-highlights-title').textContent=values.featured_products_title;
+  for(const [index,product] of items.entries()){
+    const card=buildCard(product,index);
+    card.prepend(element('span','Selección POLADENT','highlight-ribbon'));
+    list.append(card);
+  }
+  refreshCartButtons();
 }
 function appendCards(rows,start){
   const fragment=document.createDocumentFragment();
@@ -766,6 +789,7 @@ function selectBrand(name){
   drawBrands();
   renderBrandHero();
   renderProducts();
+  renderProductHighlights();
   history.replaceState(null,'',brandUrl(name));
   renderStorefront();
 }
