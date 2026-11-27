@@ -1,5 +1,6 @@
 // Alerta de mantenimiento para GitHub Actions, sin cambiar el catálogo público.
-// Los precios se identifican como referenciales pasadas cuatro horas y se ocultan a las doce.
+// Los precios se marcan como referenciales desde cuatro horas; la disponibilidad
+// no se confirma tras doce horas. No prometer que el código oculta los USD.
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -15,7 +16,7 @@ export function inspectPublicSnapshotHealth(snapshot,now=Date.now()){
     const priced=snapshot.products.filter(p=>Number.isFinite(Number(p.price_usd))&&Number(p.price_usd)>0).length;
     if(!priced)throw Error('Los precios están activados pero no hay ningún USD publicado.');
     if(age>=ALERT_AGE_MS)throw Error('La última captura tiene '+Math.floor(age/60000)+
-      ' minutos: los precios se ocultarán después de doce horas. Revisar sincronización.');
+      ' minutos: la disponibilidad dejará de verificarse a las doce horas; los USD serán referenciales. Revisar sincronización.');
   }
   return {ageMinutes:Math.floor(age/60000),publicProducts:checked.products.length,
     pricingEnabled:checked.pricingEnabled,pricedProducts:snapshot.products.filter(p=>
