@@ -32,5 +32,11 @@ assert.equal(mergePublicHighlights(result.snapshot,{fields:{kind:str('contact_se
  .snapshot.storefront.featured_products_enabled,false);
 assert.throws(()=>mergePublicHighlights(snapshot,{fields:{kind:str('contact_settings'),
  storefront:map({featured_products_enabled:bool(true),featured_product_ids:array(['not-in-catalog'])})}}),
- /no están presentes/);
+ /copia pública/);
+assert.throws(()=>mergePublicHighlights(snapshot,{fields:{kind:str('contact_settings'),
+ storefront:map({featured_products_enabled:bool(true),featured_product_ids:array(['p1','nuevo'])})}}),
+ /copia pública/, 'No publicar selecciones parciales de productos nuevos.');
+assert.throws(()=>mergePublicHighlights(snapshot,{fields:{kind:str('contact_settings'),
+ storefront:map({featured_product_ids:array(['p1'])})}}),
+ /incompletos/, 'Una respuesta parcial nunca debe apagar los destacados.');
 console.log('POLADENT: sincronización ligera de destacados sin modificar 255 fichas, precios o fecha de inventario OK.');
