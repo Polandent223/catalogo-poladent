@@ -17,17 +17,18 @@ export function mergePublicHighlights(snapshot,publicDocument){
  if(!fields||fields.kind?.stringValue!=='contact_settings'||!fields.storefront)
    throw Error('No se encontró el documento público del diseño comercial.');
  const latest=decodeFirestoreValue(fields.storefront);
- if(!latest||typeof latest!=='object'||Array.isArray(latest))
-   throw Error('Los ajustes de destacados no tienen un formato válido.');
+ if(!latest||typeof latest!=='object'||Array.isArray(latest)||
+   typeof latest.featured_products_enabled!=='boolean'||
+   !Array.isArray(latest.featured_product_ids))
+   throw Error('Los ajustes de destacados están incompletos; no se sobrescribe la selección guardada.');
  const normalized=normalizeStorefront(latest);
  // Si se activaron, confirmar que la copia estática contiene productos reales.
  // De lo contrario, no sustituir un respaldo con una selección incompleta.
  const ids=normalized.featured_product_ids;
  const known=new Set(snapshot.products.filter(p=>['available','sold_out'].includes(p?.status))
    .map(p=>String(p.id)));
- if(normalized.featured_products_enabled&&ids.length&&
-   !ids.some(id=>known.has(id)))
-   throw Error('Los nuevos destacados todavía no están presentes en el inventario estático.');
+ if(normalized.featured_products_enabled&&ids.some(id=>!known.has(id)))
+   throw Error('Algunos productos destacados aún no están en la copia pública; se conserva la selección anterior.');
  const merged={...snapshot,storefront:{...snapshot.storefront}};
  for(const key of FIELDS)merged.storefront[key]=normalized[key];
  const changed=FIELDS.some(key=>
