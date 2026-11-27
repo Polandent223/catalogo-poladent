@@ -34,5 +34,6 @@ assert.ok(!wf.includes('firebase deploy'),'El catálogo no debe desplegar reglas
 const catalog=readFileSync('public-catalog.js','utf8');
 assert.ok(catalog.includes('cartWhatsAppURL(')&&catalog.includes('whatsappInquiryURL('));
 const sync=readFileSync('scripts/sync-public-catalog.mjs','utf8');
-assert.ok(sync.includes('REFRESH_INTERVAL_MS=60*60*1000'));
+assert.ok(sync.includes('REFRESH_INTERVAL_MS=4*60*60*1000'),
+  'Renovar copia completa como máximo cada cuatro horas si no hay cambios de inventario.');
 console.log('POLADENT: alerta de frescura, guardia de precios, consultas y sin cambios privados OK');
